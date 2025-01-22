@@ -1,0 +1,27 @@
+{% extends 'users/layout.html' %}
+
+{% block title %}Чаты пользователя {{ username }}{% endblock %}
+
+{% block content %}
+    <h1>Чаты пользователя {{ username }}</h1>
+    <ul>
+        Чаты с пользователями:
+        {% for user, chat_info in messages.items %}
+            <li>
+                <ul>
+                    <li>
+                        <a href="{% url 'messages' chat_id=chat_info.chat_id %}">Чат с: {{ user }}</a>
+                    </li>
+                    <li>
+                        Последнее сообщение:
+                        {% if chat_info.message %}
+                            {{ chat_info.message }}
+                        {% else %}
+                            Сообщений пока нет
+                        {% endif %}
+                    </li>
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

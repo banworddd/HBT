@@ -1,0 +1,25 @@
+{% extends 'users/layout.html' %}
+
+{% block title %}{{ post.post }}{% endblock %}
+
+{% block content %}
+    <h1>{{ post.title }}</h1>
+    <p><small>Автор:
+        {% if not post.author %}
+            Админ
+        {% else %}
+            {{ post.author.user.username }}
+        {% endif %}
+    </small></p>
+    <p><small>Дата публикации: {{ post.pub_date }}</small></p>
+    <p>{{ post.post}}</p>
+    {% if is_admin %}
+        <a href="{% url 'editpost' post_slug=post.slug %}">Изменить</a> <a href="{% url 'deletepost' post_slug=post.slug %}">X</a>
+                {% endif %}
+    {% for edits in post_edits %}
+        <p>Дата изменения {{ edits.edit_date }} </p>
+        <p>Автор изменения  {{ edits.edit_author_name }}</p>
+        <p>Предыдущая версия поста {{ edits.post_previous }}</p>
+        <p>Текущая версия поста {{ edits.post_next }}</p>
+    {% endfor %}
+{% endblock %}

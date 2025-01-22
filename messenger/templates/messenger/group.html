@@ -1,0 +1,60 @@
+<!-- templates/messenger/group.html -->
+{% extends 'users/layout.html' %}
+
+{% block title %}{{ group.public_name }}{% endblock %}
+
+{% block content %}
+    <h1>{{ group.public_name }}</h1>
+    {{ group.name }}
+    <p>{{ group.description }}</p>
+    <p>Количество подписчиков: {{ subscribers }}</p>
+
+    <p>Администраторы:</p>
+    <ul>
+        {% for admin in group_admins %}
+            <li>{{ admin.user.username }}</li>
+        {% endfor %}
+    </ul>
+    {% if is_admin %}
+        <a href="{% url 'editgroup' group_name=group.name %}">Редактировать группу</a>
+    {% endif %}
+    <h2>Посты в группе</h2>
+    <ul>
+        {% for post in group_posts %}
+            <li><p><a href="{% url 'post' post_slug=post.slug %}">Название: {{ post.title }}</a></p>
+                <p>{{ post.post }}</p>
+                <p><small>Автор:
+                        {{ post.author_name }}
+                </small></p>
+                <p><small>Дата публикации: {{ post.pub_date }}</small></p>
+                {% if post.is_edit %}
+                    Пост был изменен - {{ post.edit_date }}
+                {% endif %}
+                {% if is_admin %}
+                <a href="{% url 'deletepost' post_slug=post.slug %}">X</a>
+                {% endif %}
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+    {% if is_admin %}
+        <h1>Create a New Post</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Submit</button>
+        </form>
+    {% endif %}
+
+    {% if not is_subscriber %}
+        <form method="post" action="{% url 'subscribe' group.name %}">
+            {% csrf_token %}
+            <button type="submit">Подписаться</button>
+        </form>
+    {% else %}
+        <form method="post" action="{% url 'unsubscribe' group.name %}">
+            {% csrf_token %}
+            <button type="submit">Отписаться</button>
+        </form>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'users/layout.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+    <p>Профиль пользователя: {{ public_name }}</p>
+    <p>Никнейм : {{ username }}</p>
+    <p>Email пользователя: {{ email }}</p>
+    <p>Статус пользователя: {{ status }}</p>
+    <p>Дата регистрации: {{ reg_date }}</p>
+
+    {% if username == request_user.username %}
+        <p>Подписки:</p>
+        <ul>
+            {% for group in groups %}
+                <li>{{ group.group.name }}</li>
+            {% endfor %}
+        </ul>
+
+        <h2>Редактировать профиль</h2>
+
+        <!-- Вывод ошибок формы -->
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li><strong>{{ field }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <!-- Форма -->
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Username:@ </label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div class="text-danger">
+                        {% for error in form.username.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.public_name.id_for_label }}">Имя </label>
+                {{ form.public_name }}
+                {% if form.public_name.errors %}
+                    <div class="text-danger">
+                        {% for error in form.public_name.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.status.id_for_label }}">Status:</label>
+                {{ form.status }}
+                {% if form.status.errors %}
+                    <div class="text-danger">
+                        {% for error in form.status.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <button type="submit">Сохранить</button>
+        </form>
+    {% endif %}
+{% endblock %}

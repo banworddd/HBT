@@ -1,0 +1,18 @@
+<!-- templates/myapp/messages.html -->
+{% extends 'users/layout.html' %}
+
+{% block title %}Chat Messages{% endblock %}
+
+{% block content %}
+    <div class="chat-container">
+        <h2>Chat Messages</h2>
+        {% for message in messages %}
+        <div class="message {% if message.sender.id == current_user.id %}sender{% else %}recipient{% endif %}">
+            <p class="text">{{ message.text }}</p>
+            <p class="time">{{ message.send_time|date:"d M Y, H:i" }}</p>
+        </div>
+        {% empty %}
+        <p>No messages in this chat.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

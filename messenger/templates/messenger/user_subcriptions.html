@@ -1,0 +1,14 @@
+{% extends 'users/layout.html' %}
+
+{% block title %}Мои подписки{% endblock %}
+
+{% block content %}
+    <h1>Мои подписки</h1>
+    <ul>
+        {% for subscription in user_groups %}
+            <li><a href="{% url 'group' group_name=subscription.group.name %}">{{ subscription.group.name }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
+

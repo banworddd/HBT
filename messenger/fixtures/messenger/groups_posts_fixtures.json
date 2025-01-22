@@ -1,0 +1,62 @@
+[
+    {
+        "model": "messenger.groupposts",
+        "pk": 1,
+        "fields": {
+            "group": 1,
+            "post": "This is the first post in group 1 by author 1.",
+            "author": 1,
+            "pub_date": "2023-10-01T12:00:00Z"
+        }
+    },
+    {
+        "model": "messenger.groupposts",
+        "pk": 2,
+        "fields": {
+            "group": 1,
+            "post": "This is the second post in group 1 by author 1.",
+            "author": 1,
+            "pub_date": "2023-10-02T12:00:00Z"
+        }
+    },
+    {
+        "model": "messenger.groupposts",
+        "pk": 3,
+        "fields": {
+            "group": 1,
+            "post": "This is the first post in group 1 by author 2.",
+            "author": 2,
+            "pub_date": "2023-10-03T12:00:00Z"
+        }
+    },
+    {
+        "model": "messenger.groupposts",
+        "pk": 4,
+        "fields": {
+            "group": 2,
+            "post": "This is the first post in group 2 by author 1.",
+            "author": 1,
+            "pub_date": "2023-10-04T12:00:00Z"
+        }
+    },
+    {
+        "model": "messenger.groupposts",
+        "pk": 5,
+        "fields": {
+            "group": 2,
+            "post": "This is the second post in group 2 by author 1.",
+            "author": 1,
+            "pub_date": "2023-10-05T12:00:00Z"
+        }
+    },
+    {
+        "model": "messenger.groupposts",
+        "pk": 6,
+        "fields": {
+            "group": 2,
+            "post": "This is the first post in group 2 by author 2.",
+            "author": 2,
+            "pub_date": "2023-10-06T12:00:00Z"
+        }
+    }
+]

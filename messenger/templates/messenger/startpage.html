@@ -1,0 +1,9 @@
+{% extends 'users/layout.html' %}
+
+{% block title %}HBT{% endblock %}
+
+{% block content %}
+    <h1>Добро пожаловать в HBT!</h1>
+    <p>HBT пользуются уже: {{ count }} человек</p>
+    <p><a href="{% url 'reg' %}">Присоединиться к комьюнити</a> или <a href="{% url 'login' %}">войти</a></p>
+{% endblock %}

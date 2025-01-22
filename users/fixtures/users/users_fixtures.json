@@ -1,0 +1,328 @@
+[
+  {
+    "model": "users.customuser",
+    "pk": 1,
+    "fields": {
+      "username": "user1",
+      "email": "user1@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 2,
+    "fields": {
+      "username": "user2",
+      "email": "user2@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 3,
+    "fields": {
+      "username": "user3",
+      "email": "user3@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 4,
+    "fields": {
+      "username": "user4",
+      "email": "user4@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 5,
+    "fields": {
+      "username": "user5",
+      "email": "user5@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 6,
+    "fields": {
+      "username": "user6",
+      "email": "user6@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 7,
+    "fields": {
+      "username": "user7",
+      "email": "user7@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 8,
+    "fields": {
+      "username": "user8",
+      "email": "user8@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 9,
+    "fields": {
+      "username": "user9",
+      "email": "user9@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 10,
+    "fields": {
+      "username": "user10",
+      "email": "user10@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 11,
+    "fields": {
+      "username": "user11",
+      "email": "user11@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 12,
+    "fields": {
+      "username": "user12",
+      "email": "user12@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 13,
+    "fields": {
+      "username": "user13",
+      "email": "user13@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 14,
+    "fields": {
+      "username": "user14",
+      "email": "user14@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 15,
+    "fields": {
+      "username": "user15",
+      "email": "user15@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 16,
+    "fields": {
+      "username": "user16",
+      "email": "user16@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 17,
+    "fields": {
+      "username": "user17",
+      "email": "user17@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 18,
+    "fields": {
+      "username": "user18",
+      "email": "user18@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 19,
+    "fields": {
+      "username": "user19",
+      "email": "user19@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.customuser",
+    "pk": 20,
+    "fields": {
+      "username": "user20",
+      "email": "user20@example.com",
+      "status": "active",
+      "password": "pbkdf2_sha256$216000$..."
+    }
+  },
+  {
+    "model": "users.chats",
+    "pk": 1,
+    "fields": {
+      "user_1": 1,
+      "user_2": 2
+    }
+  },
+  {
+    "model": "users.chats",
+    "pk": 2,
+    "fields": {
+      "user_1": 3,
+      "user_2": 4
+    }
+  },
+  {
+    "model": "users.chats",
+    "pk": 3,
+    "fields": {
+      "user_1": 5,
+      "user_2": 6
+    }
+  },
+  {
+    "model": "users.chats",
+    "pk": 4,
+    "fields": {
+      "user_1": 7,
+      "user_2": 8
+    }
+  },
+  {
+    "model": "users.chats",
+    "pk": 5,
+    "fields": {
+      "user_1": 9,
+      "user_2": 10
+    }
+  },
+  {
+    "model": "users.chats",
+    "pk": 6,
+    "fields": {
+      "user_1": 11,
+      "user_2": 12
+    }
+  },
+  {
+    "model": "users.chats",
+    "pk": 7,
+    "fields": {
+      "user_1": 13,
+      "user_2": 14
+    }
+  },
+  {
+    "model": "users.chats",
+    "pk": 8,
+    "fields": {
+      "user_1": 15,
+      "user_2": 16
+    }
+  },
+  {
+    "model": "users.chats",
+    "pk": 9,
+    "fields": {
+      "user_1": 17,
+      "user_2": 18
+    }
+  },
+  {
+    "model": "users.chats",
+    "pk": 10,
+    "fields": {
+      "user_1": 19,
+      "user_2": 20
+    }
+  },
+   {
+    "model": "users.chats",
+    "pk": 11,
+    "fields": {
+      "user_1": 1,
+      "user_2": 3
+    }
+  },
+  {
+    "model": "users.chats",
+    "pk": 12,
+    "fields": {
+      "user_1": 1,
+      "user_2": 4
+    }
+  },
+   {
+    "model": "users.chats",
+    "pk": 13,
+    "fields": {
+      "user_1": 5,
+      "user_2": 1
+    }
+  },
+  {
+    "model": "users.message",
+    "pk": 1,
+    "fields": {
+      "text": "Great! Let's discuss at 3 PM?",
+      "recipient": 1,
+      "sender": 5,
+      "chat": 13,
+      "send_time": "2025-01-17T10:55:00Z"
+    }
+  },
+  {
+    "model": "users.message",
+    "pk": 2,
+    "fields": {
+      "text": "Great! Let's discuss at 3 PM?",
+      "recipient": 5,
+      "sender": 1,
+      "chat": 13,
+      "send_time": "2025-01-18T10:55:00Z"
+    }
+  }
+]

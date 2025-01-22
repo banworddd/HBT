@@ -1,0 +1,190 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from users.models import CustomUser
+from .models import Groups, GroupSubscribers, GroupPosts, GroupPostsEdits
+from .forms import GroupPostForm, GroupCreationForm
+from users.utils import check_user_status
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Groups, GroupSubscribers
+from .forms import GroupCreationForm
+
+
+def startpage(request):
+    if request.user.is_authenticated:
+        user = CustomUser.objects.get(email=request.user.email)
+        if user.is_confirmed is False:
+            return redirect ('emailconfirmation')
+        return redirect('chats', username=user.username)
+    count = CustomUser.objects.count()
+    return render(request, 'messenger/startpage.html', context={'count':count})
+
+def groups(request):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    groups = Groups.objects.all()
+    group_info = {}
+    for group in groups:
+        group_info[group.name] = GroupSubscribers.objects.filter(group=group).count()
+    return render (request, 'messenger/groups.html', context={'group_info':group_info})
+
+
+def user_subcriptions(request):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+    user_groups = GroupSubscribers.objects.filter(user=request.user)
+    return render(request, 'messenger/user_subcriptions.html', context={'user_groups':user_groups})
+
+def group(request, group_name):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    form = GroupPostForm()
+    group = Groups.objects.get(name=group_name)
+    group_admins = GroupSubscribers.objects.filter(group=group, is_admin=True)
+    group_posts = GroupPosts.objects.filter(group=group)
+    subscribers = GroupSubscribers.objects.filter(group=group).count()
+    is_admin = group_admins.filter(user=request.user).exists()
+    is_subscriber = GroupSubscribers.objects.filter(group=group, user=request.user).exists()
+    if request.method == 'POST':
+        form = GroupPostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.group = group
+            post.author = GroupSubscribers.objects.get(group = group, user=request.user)
+            post.author_name = request.user.username
+            post.author = GroupSubscribers.objects.get(user=request.user, is_admin=True, group=group)
+            post.save()
+            return redirect('group', group_name)
+
+    return render(request, 'messenger/group.html', context={
+        'group': group,
+        'group_posts': group_posts,
+        'subscribers': subscribers,
+        'group_admins': group_admins,
+        'form': form,
+        'is_admin' : is_admin,
+        'is_subscriber' : is_subscriber
+    })
+
+def subscribe(request, group_name):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    group = Groups.objects.get(name=group_name)
+    if not GroupSubscribers.objects.filter(group=group, user = request.user).exists():
+        if Groups.objects.filter(creator = request.user):
+            GroupSubscribers.objects.create(group=group, user=request.user, is_admin=True)
+        else:
+            GroupSubscribers.objects.create(group=group, user=request.user, is_admin=False)
+    return redirect('group', group_name)
+
+
+def unsubscribe(request, group_name):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    group = Groups.objects.get(name=group_name)
+    if GroupSubscribers.objects.filter(group=group, user=request.user).exists():
+        GroupSubscribers.objects.filter(group=group, user=request.user).delete()
+    return redirect('group', group_name)
+
+def creategroup(request):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    if request.method == 'POST':
+        form = GroupCreationForm(request.POST)
+        if form.is_valid():
+            group = form.save(commit=False)
+            group.creator = request.user
+            group.save()
+            return redirect('group', group_name=group.name)  # Перенаправление на страницу группы
+    else:
+        form = GroupCreationForm()
+    return render(request, 'messenger/create_group.html', context={'form': form})
+
+
+def postview(request, post_slug):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    post = GroupPosts.objects.get(slug=post_slug)
+    post_edits = GroupPostsEdits.objects.filter(post = post)
+    group = post.group
+    is_admin = GroupSubscribers.objects.filter(group=group, user=request.user, is_admin=True).exists()
+    return render(request, 'messenger/post.html', context={'post':post, 'is_admin':is_admin, 'post_edits':post_edits})
+
+def deletepost(request, post_slug):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    post = GroupPosts.objects.get(slug=post_slug)
+    group = Groups.objects.get(name=post.group.name)
+    post.delete()
+    return redirect('group', group_name=group.name)
+
+
+def editpost(request, post_slug):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    post = get_object_or_404(GroupPosts, slug=post_slug)
+    group = post.group
+    redactor = GroupSubscribers.objects.get(group=group, user=request.user, is_admin=True)
+    if not GroupSubscribers.objects.filter(group=group, user=request.user, is_admin=True).exists():
+        return redirect('startpage')
+
+    if request.method == 'POST':
+        form = GroupPostForm(request.POST, instance=post)
+        if form.is_valid():
+            post_previous = post
+            post = form.save(commit=False)
+            post.is_edit = True
+            post_edit = GroupPostsEdits.objects.create(post=post, edit_author=redactor, edit_author_name=redactor.user.username, post_previous=post_previous.post,post_next=post.post )
+            post_edit.save()
+            post.save()
+            return redirect('post', post_slug = post_slug)
+
+    else:
+        form = GroupPostForm(instance=post)
+
+    return render(request, 'messenger/editpost.html', context={'post':post, 'form':form})
+
+
+def editgroup(request, group_name):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    # Получение группы
+    group = get_object_or_404(Groups, name=group_name)
+
+    # Проверка прав доступа
+    if not GroupSubscribers.objects.filter(group=group, user=request.user, is_admin=True).exists():
+        return redirect('startpage')
+
+    if request.method == 'POST':
+        # Обработка POST-запроса
+        form = GroupCreationForm(request.POST, instance=group)
+        if form.is_valid():
+            name = '@'+form.cleaned_data['name'].lower()
+            form.save()
+            return redirect('group', group_name=name)
+    else:
+        # Обработка GET-запроса
+        form = GroupCreationForm(instance=group)
+
+    return render(request, 'messenger/edit_group.html', context={'form': form})
+
+
+
+

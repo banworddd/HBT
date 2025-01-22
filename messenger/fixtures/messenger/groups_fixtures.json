@@ -1,0 +1,72 @@
+[
+    {
+        "model": "messenger.groups",
+        "pk": 1,
+        "fields": {
+            "name": "Group 1"
+        }
+    },
+    {
+        "model": "messenger.groups",
+        "pk": 2,
+        "fields": {
+            "name": "Group 2"
+        }
+    },
+    {
+        "model": "messenger.groups",
+        "pk": 3,
+        "fields": {
+            "name": "Group 3"
+        }
+    },
+    {
+        "model": "messenger.groups",
+        "pk": 4,
+        "fields": {
+            "name": "Group 4"
+        }
+    },
+    {
+        "model": "messenger.groups",
+        "pk": 5,
+        "fields": {
+            "name": "Group 5"
+        }
+    },
+    {
+        "model": "messenger.groups",
+        "pk": 6,
+        "fields": {
+            "name": "Group 6"
+        }
+    },
+    {
+        "model": "messenger.groups",
+        "pk": 7,
+        "fields": {
+            "name": "Group 7"
+        }
+    },
+    {
+        "model": "messenger.groups",
+        "pk": 8,
+        "fields": {
+            "name": "Group 8"
+        }
+    },
+    {
+        "model": "messenger.groups",
+        "pk": 9,
+        "fields": {
+            "name": "Group 9"
+        }
+    },
+    {
+        "model": "messenger.groups",
+        "pk": 10,
+        "fields": {
+            "name": "Group 10"
+        }
+    }
+]

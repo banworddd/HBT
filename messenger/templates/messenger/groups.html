@@ -1,0 +1,13 @@
+{% extends 'users/layout.html' %}
+
+{% block title %}Группы{% endblock %}
+
+{% block content %}
+    <h1>Groups</h1>
+    <ul>
+
+        {% for group_name, subscriber_count in group_info.items %}
+            <li><a href="{% url 'group' group_name=group_name %}">{{ group_name }}</a>: {{ subscriber_count }} подписчиков</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'users/layout.html' %}
+
+{% block title %}Create Group{% endblock %}
+
+{% block content %}
+    <h1>Create a New Group</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Create</button>
+    </form>
+{% endblock %}

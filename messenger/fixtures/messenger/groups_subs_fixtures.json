@@ -1,0 +1,82 @@
+[
+    {
+        "model": "messenger.groupsubscribers",
+        "pk": 1,
+        "fields": {
+            "group": 1,
+            "user": 21
+        }
+    },
+    {
+        "model": "messenger.groupsubscribers",
+        "pk": 2,
+        "fields": {
+            "group": 2,
+            "user": 21
+        }
+    },
+    {
+        "model": "messenger.groupsubscribers",
+        "pk": 3,
+        "fields": {
+            "group": 3,
+            "user": 21
+        }
+    },
+    {
+        "model": "messenger.groupsubscribers",
+        "pk": 4,
+        "fields": {
+            "group": 4,
+            "user": 21
+        }
+    },
+    {
+        "model": "messenger.groupsubscribers",
+        "pk": 5,
+        "fields": {
+            "group": 5,
+            "user": 21
+        }
+    },
+    {
+        "model": "messenger.groupsubscribers",
+        "pk": 6,
+        "fields": {
+            "group": 1,
+            "user": 22
+        }
+    },
+    {
+        "model": "messenger.groupsubscribers",
+        "pk": 7,
+        "fields": {
+            "group": 2,
+            "user": 22
+        }
+    },
+    {
+        "model": "messenger.groupsubscribers",
+        "pk": 8,
+        "fields": {
+            "group": 3,
+            "user": 22
+        }
+    },
+    {
+        "model": "messenger.groupsubscribers",
+        "pk": 9,
+        "fields": {
+            "group": 4,
+            "user": 22
+        }
+    },
+    {
+        "model": "messenger.groupsubscribers",
+        "pk": 10,
+        "fields": {
+            "group": 5,
+            "user": 22
+        }
+    }
+]

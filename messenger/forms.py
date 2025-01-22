@@ -1,0 +1,28 @@
+from django import forms
+from .models import GroupPosts, Groups
+import re
+
+class GroupPostForm(forms.ModelForm):
+    class Meta:
+        model = GroupPosts
+        fields = ['title', 'post']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'post': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+        }
+
+class GroupCreationForm(forms.ModelForm):
+    class Meta:
+        model = Groups
+        fields = ['name','public_name', 'description']
+        widgets = {
+            'Name': forms.Textarea(attrs={'rows': 2, 'cols': 20}),
+        }
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if not re.match(r'^[a-zA-Z0-9]+$', name):
+            raise forms.ValidationError("Имя группы может содержать только латинские буквы и цифры ")
+        if Groups.objects.filter(name='@' + name.lower()).exists():
+            raise forms.ValidationError('Группа с таким именем уже существует')
+        return name

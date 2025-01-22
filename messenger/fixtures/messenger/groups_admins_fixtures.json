@@ -1,0 +1,42 @@
+[
+    {
+        "model": "messenger.groupadmins",
+        "pk": 1,
+        "fields": {
+            "group": 1,
+            "group_admin": 22
+        }
+    },
+    {
+        "model": "messenger.groupadmins",
+        "pk": 2,
+        "fields": {
+            "group": 2,
+            "group_admin": 22
+        }
+    },
+    {
+        "model": "messenger.groupadmins",
+        "pk": 3,
+        "fields": {
+            "group": 3,
+            "group_admin": 22
+        }
+    },
+    {
+        "model": "messenger.groupadmins",
+        "pk": 4,
+        "fields": {
+            "group": 4,
+            "group_admin": 22
+        }
+    },
+    {
+        "model": "messenger.groupadmins",
+        "pk": 5,
+        "fields": {
+            "group": 5,
+            "group_admin": 22
+        }
+    }
+]
