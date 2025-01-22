@@ -21,7 +21,6 @@ def groups(request):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
-
     groups = Groups.objects.all()
     group_info = {}
     for group in groups:
