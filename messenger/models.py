@@ -36,6 +36,8 @@ class GroupPosts(models.Model):
     pub_date = models.DateTimeField(auto_now_add=True)
     edit_date = models.DateTimeField(auto_now=True, blank=True, null=True)
     is_edit = models.BooleanField(default=False)
+    pictures = models.ForeignKey('GroupPostPictures', on_delete=models.SET_NULL, blank=True, null=True, related_name='pictures')
+    thumbnail = models.ImageField(upload_to='pictures/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -57,4 +59,15 @@ class GroupPostsEdits(models.Model):
     post_next = models.TextField()
     class Meta:
         unique_together = (('post', 'edit_date'),)
+
+class GroupPostPictures(models.Model):
+    post = models.ForeignKey(GroupPosts, on_delete=models.CASCADE, related_name='post_pictures')
+    picture1 = models.ImageField(upload_to='pictures/')
+    picture2 = models.ImageField(upload_to='pictures/')
+    picture3 = models.ImageField(upload_to='pictures/')
+    picture4 = models.ImageField(upload_to='pictures/')
+    picture5 = models.ImageField(upload_to='pictures/')
+
+
+
 

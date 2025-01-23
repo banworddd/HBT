@@ -98,6 +98,7 @@ def profileview(request, username):
         form = CustomUserEditionForm(instance=user)
 
     user_data = {
+        'avatar' : user.avatar,
         'public_name': user.public_name,
         'username': user.username,
         'email': user.email,

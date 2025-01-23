@@ -8,6 +8,7 @@
     <p>Email пользователя: {{ email }}</p>
     <p>Статус пользователя: {{ status }}</p>
     <p>Дата регистрации: {{ reg_date }}</p>
+    <p><img src="{{ avatar.url }}" alt = 'avatar' width="200"></p>
 
     {% if username == request_user.username %}
         <p>Подписки:</p>
