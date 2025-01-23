@@ -6,7 +6,20 @@
     <h1>Мои подписки</h1>
     <ul>
         {% for subscription in user_groups %}
-            <li><a href="{% url 'group' group_name=subscription.group.name %}">{{ subscription.group.name }}</a></li>
+
+            {% if subscription.group.is_active and not subscription.is_admin%}
+            <li><a href="{% url 'group' group_name=subscription.group.name %}">{{ subscription.group.name }}</a> {{ subscription.group.is_active }}</li>
+            {% endif %}
+
+        {% endfor %}
+    </ul>
+     <h1>Мои группы (Админ)</h1>
+     <ul>
+    {% for subscription in user_groups %}
+            {% if  subscription.is_admin%}
+            <li><a href="{% url 'group' group_name=subscription.group.name %}">{{ subscription.group.name }}</a> {{ subscription.group.is_active }}</li>
+            {% endif %}
+
         {% endfor %}
     </ul>
 {% endblock %}

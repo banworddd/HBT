@@ -5,12 +5,17 @@ from slugify import slugify
 from datetime import datetime
 import os
 from uuid import uuid4
+from .managers import ActiveGroupManager
 
 class Groups(models.Model):
     name = models.CharField(max_length=50, unique=True)
     public_name = models.CharField(max_length=100)
     creator = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='creator')
     description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    objects = models.Manager()
+    active_groups = ActiveGroupManager()
 
     def save(self, *args, **kwargs):
         self.name = '@' + self.name.lower()

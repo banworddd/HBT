@@ -11,7 +11,7 @@ class GroupPostForm(forms.ModelForm):
 class GroupCreationForm(forms.ModelForm):
     class Meta:
         model = Groups
-        fields = ['name','public_name', 'description']
+        fields = ['name','public_name', 'description', 'is_active']
         widgets = {
             'Name': forms.Textarea(attrs={'rows': 2, 'cols': 20}),
         }

@@ -21,7 +21,7 @@ def groups(request):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
-    groups = Groups.objects.all()
+    groups = Groups.active_groups.all()
     group_info = {}
     for group in groups:
         group_info[group.name] = GroupSubscribers.objects.filter(group=group).count()
@@ -33,6 +33,7 @@ def user_subcriptions(request):
     if redirect_response:
         return redirect_response
     user_groups = GroupSubscribers.objects.filter(user=request.user)
+
     return render(request, 'messenger/user_subcriptions.html', context={'user_groups':user_groups})
 
 def group(request, group_name):
@@ -75,7 +76,7 @@ def subscribe(request, group_name):
 
     group = Groups.objects.get(name=group_name)
     if not GroupSubscribers.objects.filter(group=group, user = request.user).exists():
-        if Groups.objects.filter(creator = request.user):
+        if group.creator == request.user:
             GroupSubscribers.objects.create(group=group, user=request.user, is_admin=True)
         else:
             GroupSubscribers.objects.create(group=group, user=request.user, is_admin=False)
