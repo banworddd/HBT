@@ -1,7 +1,9 @@
 import random
 import string
+
 from django.shortcuts import redirect
 from .models import CustomUser
+
 
 def code_generation(email, username):
     code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
@@ -21,3 +23,5 @@ def check_user_status(request):
         return redirect('emailconfirmation')
 
     return None
+
+

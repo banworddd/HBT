@@ -1,6 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from uuid import uuid4
+import os
 
+def generate_avatar_name(instance, filename):
+    extension = filename.split('.')[-1]
+    new_filename = uuid4().hex + '.' +extension
+    return os.path.join('avatars/', new_filename)
 
 class CustomUser(AbstractUser):
     username = models.CharField(max_length=50, unique=True )
@@ -8,7 +14,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     status = models.CharField(max_length=120, blank=True, null=True, default='')
     is_confirmed = models.BooleanField(default=False)
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, default='avatars/default.png')
+    avatar = models.ImageField(upload_to=generate_avatar_name, blank=True, null=True, default='avatars/default.png')
 
     groups = models.ManyToManyField(
         'auth.Group',
