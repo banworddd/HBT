@@ -5,11 +5,8 @@ import re
 class GroupPostForm(forms.ModelForm):
     class Meta:
         model = GroupPosts
-        fields = ['title', 'post']
-        widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'post': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
-        }
+        fields = ['title', 'post','picture1','picture2', 'picture3']
+
 
 class GroupCreationForm(forms.ModelForm):
     class Meta:

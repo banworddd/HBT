@@ -27,6 +27,9 @@
                         {{ post.author_name }}
                 </small></p>
                 <p><small>Дата публикации: {{ post.pub_date }}</small></p>
+                {% if post.picture1 %}
+                    <p><img src="{{ post.picture1.url }}" width="100"></p>
+                {% endif %}
                 {% if post.is_edit %}
                     Пост был изменен - {{ post.edit_date }}
                 {% endif %}
@@ -39,7 +42,7 @@
     </ul>
     {% if is_admin %}
         <h1>Create a New Post</h1>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit">Submit</button>

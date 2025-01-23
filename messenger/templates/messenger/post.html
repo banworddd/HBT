@@ -13,6 +13,16 @@
     </small></p>
     <p><small>Дата публикации: {{ post.pub_date }}</small></p>
     <p>{{ post.post}}</p>
+    {% if post.picture1 %}
+    <p><img src="{{ post.picture1.url}}" width="200"> </p>
+    {% endif %}
+    {% if post.picture2 %}
+    <p><img src="{{ post.picture2.url}}" width="200"> </p>
+    {% endif %}
+    {% if post.picture3 %}
+    <p><img src="{{ post.picture3.url}}" width="200"> </p>
+
+    {% endif %}
     {% if is_admin %}
         <a href="{% url 'editpost' post_slug=post.slug %}">Изменить</a> <a href="{% url 'deletepost' post_slug=post.slug %}">X</a>
                 {% endif %}

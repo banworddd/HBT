@@ -96,7 +96,6 @@ def profileview(request, username):
             return redirect('profile', username=form.instance.username)
     else:
         form = CustomUserEditionForm(instance=user)
-
     user_data = {
         'avatar' : user.avatar,
         'public_name': user.public_name,

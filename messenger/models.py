@@ -3,6 +3,8 @@ from users.models import  CustomUser
 from django.utils.crypto import get_random_string
 from slugify import slugify
 from datetime import datetime
+import os
+from uuid import uuid4
 
 class Groups(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -26,6 +28,11 @@ class GroupSubscribers(models.Model):
     class Meta:
         unique_together = (('group', 'user'),)
 
+def generate_image_name(instance, filename):
+    extension = filename.split('.')[-1]
+    new_filename = uuid4().hex + '.' +extension
+    return os.path.join('pictures/', new_filename)
+
 class GroupPosts(models.Model):
     group = models.ForeignKey(Groups,on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
@@ -36,8 +43,9 @@ class GroupPosts(models.Model):
     pub_date = models.DateTimeField(auto_now_add=True)
     edit_date = models.DateTimeField(auto_now=True, blank=True, null=True)
     is_edit = models.BooleanField(default=False)
-    pictures = models.ForeignKey('GroupPostPictures', on_delete=models.SET_NULL, blank=True, null=True, related_name='pictures')
-    thumbnail = models.ImageField(upload_to='pictures/', blank=True, null=True)
+    picture1 = models.ImageField(upload_to=generate_image_name, blank=True, null=True)
+    picture2 = models.ImageField(upload_to=generate_image_name, blank=True, null=True)
+    picture3 = models.ImageField(upload_to=generate_image_name, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -60,13 +68,6 @@ class GroupPostsEdits(models.Model):
     class Meta:
         unique_together = (('post', 'edit_date'),)
 
-class GroupPostPictures(models.Model):
-    post = models.ForeignKey(GroupPosts, on_delete=models.CASCADE, related_name='post_pictures')
-    picture1 = models.ImageField(upload_to='pictures/')
-    picture2 = models.ImageField(upload_to='pictures/')
-    picture3 = models.ImageField(upload_to='pictures/')
-    picture4 = models.ImageField(upload_to='pictures/')
-    picture5 = models.ImageField(upload_to='pictures/')
 
 
 

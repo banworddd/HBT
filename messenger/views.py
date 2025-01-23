@@ -48,7 +48,7 @@ def group(request, group_name):
     is_admin = group_admins.filter(user=request.user).exists()
     is_subscriber = GroupSubscribers.objects.filter(group=group, user=request.user).exists()
     if request.method == 'POST':
-        form = GroupPostForm(request.POST)
+        form = GroupPostForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
             post.group = group
@@ -117,6 +117,7 @@ def postview(request, post_slug):
     post = GroupPosts.objects.get(slug=post_slug)
     post_edits = GroupPostsEdits.objects.filter(post = post)
     group = post.group
+    print(f'1{post.picture1}, 2{post.picture2}, 3{post.picture3}')
     is_admin = GroupSubscribers.objects.filter(group=group, user=request.user, is_admin=True).exists()
     return render(request, 'messenger/post.html', context={'post':post, 'is_admin':is_admin, 'post_edits':post_edits})
 
@@ -143,16 +144,15 @@ def editpost(request, post_slug):
         return redirect('startpage')
 
     if request.method == 'POST':
-        form = GroupPostForm(request.POST, instance=post)
+        post_previous = post.post
+        form = GroupPostForm(request.POST, request.FILES, instance=post)
         if form.is_valid():
-            post_previous = post
             post = form.save(commit=False)
             post.is_edit = True
-            post_edit = GroupPostsEdits.objects.create(post=post, edit_author=redactor, edit_author_name=redactor.user.username, post_previous=post_previous.post,post_next=post.post )
+            post_edit = GroupPostsEdits.objects.create(post=post, edit_author=redactor, edit_author_name=redactor.user.username, post_previous=post_previous, post_next=post.post )
             post_edit.save()
             post.save()
             return redirect('post', post_slug = post_slug)
-
     else:
         form = GroupPostForm(instance=post)
 
