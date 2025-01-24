@@ -1,9 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import CustomUserCreationForm, CustomUserEditionForm, CustomUserConfirmationForm, CustomLoginForm
 from django.contrib.auth import login, authenticate
-from .models import CustomUser, Chats, Message
-from django.db.models import Q
-from django.contrib.auth.forms import AuthenticationForm
+from .models import CustomUser
 from django.contrib import messages
 from django.contrib.auth import logout
 from groups.models import GroupSubscribers
@@ -110,47 +108,7 @@ def profileview(request, username):
     }
     return render(request, 'users/profile.html', user_data)
 
-def chatsview(request, username):
-    redirect_response = check_user_status(request)
-    if redirect_response:
-        return redirect_response
 
-    user = get_object_or_404(CustomUser, username=username)
-    user_id = user.id
-    chats = Chats.objects.filter(
-        Q(user_1=user_id) | Q(user_2=user_id)
-    ).select_related('user_1', 'user_2')
-
-    messages_dict = {}
-    for chat in chats:
-        other_user = chat.user_2 if chat.user_1.id == user_id else chat.user_1
-        last_message = Message.objects.filter(chat=chat).last()
-        messages_dict[other_user] = {
-            'chat_id': chat.id,
-            'message': last_message.text if last_message else None
-        }
-
-    return render(request, 'users/chats.html', {'username': username, 'messages': messages_dict})
-
-def messagesview(request, chat_id):
-    redirect_response = check_user_status(request)
-    if redirect_response:
-        return redirect_response
-
-    chat = get_object_or_404(Chats, id=chat_id)
-    messages = Message.objects.filter(chat=chat).order_by('send_time')
-    request.user = CustomUser.objects.get(id = 1)
-    return render(request, 'users/messages.html', {
-        "messages": messages,
-        "current_user": request.user
-    })
-def usersview(request):
-    redirect_response = check_user_status(request)
-    if redirect_response:
-        return redirect_response
-
-    users = CustomUser.objects.all()
-    return render(request, 'users/users.html', {"users": users})
 
 
 

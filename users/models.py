@@ -1,12 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from uuid import uuid4
-import os
 
-def generate_avatar_name(instance, filename):
-    extension = filename.split('.')[-1]
-    new_filename = uuid4().hex + '.' +extension
-    return os.path.join('avatars/', new_filename)
+from .utils import generate_avatar_name
+
 
 class CustomUser(AbstractUser):
     username = models.CharField(max_length=50, unique=True )
@@ -40,25 +36,6 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
-
-class Chats(models.Model):
-    user_1 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='chats_as_user_1')
-    user_2 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='chats_as_user_2')
-
-
-class Message(models.Model):
-    text = models.TextField()
-    recipient = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='recipient')
-    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='sender')
-    chat = models.ForeignKey(Chats, on_delete=models.CASCADE)
-    send_time = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = 'Сообщение'
-        verbose_name_plural = 'Сообщения'
-
-    def __str__(self):
-        return self.text
 
 
 
