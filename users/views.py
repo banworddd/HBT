@@ -6,8 +6,9 @@ from django.db.models import Q
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth import logout
-from messenger.models import GroupSubscribers
-from .utils import code_generation, check_user_status
+from groups.models import GroupSubscribers
+from common.utils import check_user_status
+from .utils import  code_generation
 
 
 def registration(request):

@@ -1,4 +1,4 @@
-from django.contrib import admin
+
 from django.urls import path
 from .views import login_view, registration, profileview, chatsview, messagesview, usersview, logout_view, email_confirmation
 from django.conf import settings

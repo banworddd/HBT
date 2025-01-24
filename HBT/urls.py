@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('messenger.urls'), name='messenger'),
+    path('groups/', include('groups.urls'), name='groups'),
     path('account/', include('users.urls'), name='account'),
 ]
 if settings.DEBUG:
