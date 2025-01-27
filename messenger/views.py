@@ -81,6 +81,21 @@ def messagesview(request, chat_id):
         "form" : form
     })
 
+def deletemessage(request, message_id):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    message = get_object_or_404(Message, pk=message_id)
+    if message.is_deleted:
+        return redirect('messages', chat_id=message.chat.id)
+    message.is_deleted = True
+    message.text = 'Сообщение удалено'
+    message.picture = None
+    message.save()
+    return redirect('messages', chat_id=message.chat.id)
+
+
 def usersview(request):
     redirect_response = check_user_status(request)
     if redirect_response:

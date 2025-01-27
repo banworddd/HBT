@@ -18,6 +18,9 @@
                                 {% endif %}
                                 <p style="font-size: 0.8em; color: #999;">{{ message.send_time|date:"d M Y, H:i" }}</p>
                                 <p style="font-size: 0.8em; color: #999;">{{ message.status }}</p>
+                                {% if not message.is_deleted %}
+                                <p><a href="{% url 'deletemessage' message_id=message.id %}">x</a></p>
+                                {% endif %}
                             </div>
                         </td>
                         <td width="30%"></td>
@@ -27,6 +30,12 @@
                             <div style="background-color: #ffffff; padding: 10px; border-radius: 10px;">
                                 <p>{{ message.text }}</p>
                                 <p style="font-size: 0.8em; color: #999;">{{ message.send_time|date:"d M Y, H:i" }}</p>
+                                    {% if message.picture %}
+                                    <p><img src="{{ message.picture.url }}" width="150"> </p>
+                                {% endif %}
+                                 {% if not message.is_deleted %}
+                                <p><a href="{% url 'deletemessage' message_id=message.id %}">x</a></p>
+                                {% endif %}
                             </div>
                         </td>
                     {% endif %}

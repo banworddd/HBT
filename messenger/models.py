@@ -28,6 +28,8 @@ class Message(models.Model):
     send_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='S')
     picture = models.ImageField(upload_to=generate_image_name, blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
+
 
     class Meta:
         verbose_name = 'Сообщение'
