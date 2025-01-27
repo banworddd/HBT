@@ -14,5 +14,10 @@
         {% empty %}
         <p>No messages in this chat.</p>
         {% endfor %}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Отправить</button>
+    </form>
     </div>
 {% endblock %}

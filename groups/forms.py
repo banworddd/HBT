@@ -23,3 +23,4 @@ class GroupCreationForm(forms.ModelForm):
         if Groups.objects.filter(name='@' + name.lower()).exists():
             raise forms.ValidationError('Группа с таким именем уже существует')
         return name
+

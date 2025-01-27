@@ -1,8 +1,11 @@
+from logging import raiseExceptions
+
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 
 from common.utils import check_user_status
 from users.models import CustomUser
+from .forms import MessageForm
 from .models import Chats, Message
 def startpage(request):
     if request.user.is_authenticated:
@@ -42,10 +45,23 @@ def messagesview(request, chat_id):
 
     chat = get_object_or_404(Chats, id=chat_id)
     messages = Message.objects.filter(chat=chat).order_by('send_time')
-    request.user = CustomUser.objects.get(id = 1)
+    if request.method == 'POST':
+        form = MessageForm(request.POST, request.FILES)
+        if form.is_valid():
+            sender = request.user
+            recipient = chat.user_2 if sender == chat.user_1 else chat.user_1
+            text = form.cleaned_data['text']
+            Message.objects.create(text = text, sender = sender, recipient = recipient, chat = chat)
+            return redirect('messages', chat_id=chat.id)
+        else:
+            return raiseExceptions
+    else:
+        form = MessageForm()
+
     return render(request, 'messenger/messages.html', {
         "messages": messages,
-        "current_user": request.user
+        "current_user": request.user,
+        "form" : form
     })
 
 def usersview(request):
