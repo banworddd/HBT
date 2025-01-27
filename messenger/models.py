@@ -16,11 +16,16 @@ class Chats(models.Model):
 
 
 class Message(models.Model):
+    STATUS_CHOICES = [
+        ('S', 'Sender'),
+        ('R', 'Read'),
+    ]
+
     text = models.TextField()
-    recipient = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='recipient')
-    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='sender')
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='author')
     chat = models.ForeignKey(Chats, on_delete=models.CASCADE)
     send_time = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='S')
 
     class Meta:
         verbose_name = 'Сообщение'

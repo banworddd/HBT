@@ -45,13 +45,28 @@ def messagesview(request, chat_id):
 
     chat = get_object_or_404(Chats, id=chat_id)
     messages = Message.objects.filter(chat=chat).order_by('send_time')
+    if messages and messages.last().author != request.user and messages.last().status == 'S':
+
+        last_messages = []
+        for message in reversed(messages):
+
+            if message.author != request.user:
+                last_messages.append(message)
+            else:
+                break
+
+        for message in last_messages:
+            message.status = 'R'
+            message.save()
+
+
+    other_user = chat.user_1 if chat.user_2 == request.user else chat.user_2
     if request.method == 'POST':
         form = MessageForm(request.POST, request.FILES)
         if form.is_valid():
-            sender = request.user
-            recipient = chat.user_2 if sender == chat.user_1 else chat.user_1
+            author = request.user
             text = form.cleaned_data['text']
-            Message.objects.create(text = text, sender = sender, recipient = recipient, chat = chat)
+            Message.objects.create(text = text, author = author, chat = chat)
             return redirect('messages', chat_id=chat.id)
         else:
             return raiseExceptions
@@ -60,6 +75,7 @@ def messagesview(request, chat_id):
 
     return render(request, 'messenger/messages.html', {
         "messages": messages,
+        "other_user": other_user,
         "current_user": request.user,
         "form" : form
     })
