@@ -1,6 +1,7 @@
 from django.db import models
 from users.models import CustomUser
 from django.core.exceptions import ValidationError
+from .utils import generate_image_name
 
 class Chats(models.Model):
     user_1 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='chats_as_user_1')
@@ -26,6 +27,7 @@ class Message(models.Model):
     chat = models.ForeignKey(Chats, on_delete=models.CASCADE)
     send_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='S')
+    picture = models.ImageField(upload_to=generate_image_name, blank=True, null=True)
 
     class Meta:
         verbose_name = 'Сообщение'

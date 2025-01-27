@@ -66,7 +66,8 @@ def messagesview(request, chat_id):
         if form.is_valid():
             author = request.user
             text = form.cleaned_data['text']
-            Message.objects.create(text = text, author = author, chat = chat)
+            picture = form.cleaned_data['picture']
+            Message.objects.create(text = text, author = author, chat = chat, picture = picture)
             return redirect('messages', chat_id=chat.id)
         else:
             return raiseExceptions
