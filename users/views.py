@@ -7,7 +7,7 @@ from django.contrib.auth import logout
 from groups.models import GroupSubscribers
 from common.utils import check_user_status
 from .utils import  code_generation
-
+from django.core.cache import cache
 
 
 def registration(request):
@@ -20,7 +20,6 @@ def registration(request):
         if form.is_valid():
             user = form.save()
             username = form.cleaned_data.get('username')
-            print(username)
             password = form.cleaned_data.get('password1')
             user = authenticate(request, username=username, password=password)
             if user is not None:
@@ -81,16 +80,24 @@ def logout_view(request):
     logout(request)
     return redirect('startpage')
 
+
 def profileview(request, username):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
 
+    # Пытаемся получить данные из кеша
+    cached_user_data = cache.get(f"profile_{username}")
+
+    if cached_user_data:
+        print("Получено из кеша")  # Для отладки
+        return render(request, 'users/profile.html', cached_user_data)
+
     user = get_object_or_404(CustomUser, username=username)
     groups = GroupSubscribers.objects.filter(user=user)
 
     user_data = {
-        'avatar' : user.avatar,
+        'avatar': user.avatar,
         'public_name': user.public_name,
         'username': user.username,
         'email': user.email,
@@ -99,8 +106,12 @@ def profileview(request, username):
         'groups': groups,
         'request_user': request.user,
     }
-    return render(request, 'users/profile.html', user_data)
 
+    # Кешируем данные на 15 минут
+    cache.set(f"profile_{username}", user_data, timeout=900)
+
+    print("Получено из базы данных")  # Для отладки
+    return render(request, 'users/profile.html', user_data)
 def edit_profile(request, username):
     redirect_response = check_user_status(request)
     if redirect_response:
