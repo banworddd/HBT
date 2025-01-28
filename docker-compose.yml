@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: django_app
+    ports:
+      - "8000:8000"  # Связь порта на хосте с портом в контейнере
+    volumes:
+      - .:/app  # Синхронизация текущей директории с /app в контейнере
+    environment:
+      - DEBUG=True  # Установка переменной окружения для режима отладки
+    command: python manage.py runserver 0.0.0.0:8000  # Команда для запуска сервера

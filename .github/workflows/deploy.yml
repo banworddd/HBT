@@ -1,0 +1,30 @@
+name: Deploy to Docker
+
+on:
+  push:
+    branches:
+      - main  # Указываем ветку, при пуше в которую будет происходить развертывание
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Рабочая среда для выполнения действий
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # Клонируем репозиторий
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1  # Настроим Buildx для работы с Docker
+
+      - name: Build Docker image
+        run: |
+          docker build -t my_django_app .  # Собираем образ Docker
+
+      - name: Stop existing container (if any)
+        run: |
+          docker stop django_app || true  # Останавливаем контейнер, если он уже работает
+          docker rm django_app || true  # Удаляем контейнер, если он существует
+
+      - name: Run Docker container
+        run: |
+          docker run -d --name django_app -p 8000:8000 my_django_app  # Запускаем новый контейнер с обновлённым образом
