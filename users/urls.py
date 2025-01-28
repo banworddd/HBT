@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import login_view, registration, profileview, logout_view, email_confirmation
+from .views import login_view, registration, profileview, logout_view, email_confirmation, edit_profile
 from django.conf import settings
 from django.conf.urls.static import static
 urlpatterns = [
@@ -8,6 +8,9 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('email_confrimation/', email_confirmation, name='emailconfirmation'),
     path('<str:username>/', profileview, name='profile'),
+    path('<str:username>/edit', edit_profile, name='edit_profile'),
+
+
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -6,44 +6,10 @@
     <section>
         <h1>Профиль пользователя: {{ public_name }}</h1>
         <p><strong>Никнейм:</strong> {{ username }}</p>
-        {% if username == request_user.username %}
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div>
-                    <label for="{{ form.username.id_for_label }}">Изменить никнейм:</label>
-                    {{ form.username }}
-                    {% if form.username.errors %}
-                        <div>
-                            {% for error in form.username.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <button type="submit">Сохранить</button>
-            </form>
-        {% endif %}
 
         <p><strong>Email:</strong> {{ email }}</p>
 
         <p><strong>Статус:</strong> {{ status }}</p>
-        {% if username == request_user.username %}
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div>
-                    <label for="{{ form.status.id_for_label }}">Изменить статус:</label>
-                    {{ form.status }}
-                    {% if form.status.errors %}
-                        <div>
-                            {% for error in form.status.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <button type="submit">Сохранить</button>
-            </form>
-        {% endif %}
 
         <p><strong>Дата регистрации:</strong> {{ reg_date }}</p>
 
@@ -52,23 +18,7 @@
         {% else %}
             <p>Аватарка не установлена</p>
         {% endif %}
-        {% if username == request_user.username %}
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div>
-                    <label for="{{ form.avatar.id_for_label }}">Изменить аватарку:</label>
-                    {{ form.avatar }}
-                    {% if form.avatar.errors %}
-                        <div>
-                            {% for error in form.avatar.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <button type="submit">Сохранить</button>
-            </form>
-        {% endif %}
+
     </section>
 
     {% if username == request_user.username %}
@@ -82,37 +32,12 @@
         </section>
 
         <section>
-            <h2>Редактировать профиль</h2>
 
-            <!-- Вывод ошибок формы -->
-            {% if form.errors %}
-                <div>
-                    <ul>
-                        {% for field, errors in form.errors.items %}
-                            {% for error in errors %}
-                                <li><strong>{{ field }}:</strong> {{ error }}</li>
-                            {% endfor %}
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% endif %}
+            <h2><a href="{%  url 'edit_profile' username=username %}">Редактировать профиль</a> </h2>
 
-            <!-- Форма -->
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div>
-                    <label for="{{ form.public_name.id_for_label }}">Изменить имя:</label>
-                    {{ form.public_name }}
-                    {% if form.public_name.errors %}
-                        <div>
-                            {% for error in form.public_name.errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <button type="submit">Сохранить</button>
-            </form>
+
+
+
         </section>
     {% endif %}
 {% endblock %}

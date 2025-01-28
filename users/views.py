@@ -88,13 +88,6 @@ def profileview(request, username):
     user = get_object_or_404(CustomUser, username=username)
     groups = GroupSubscribers.objects.filter(user=user)
 
-    if request.method == 'POST' and request.user.username == username:
-        form = CustomUserEditionForm(request.POST, request.FILES, instance=user)
-        if form.is_valid():
-            form.save()
-            return redirect('profile', username=form.instance.username)
-    else:
-        form = CustomUserEditionForm(instance=user)
     user_data = {
         'avatar' : user.avatar,
         'public_name': user.public_name,
@@ -104,9 +97,28 @@ def profileview(request, username):
         'reg_date': user.date_joined,
         'groups': groups,
         'request_user': request.user,
-        'form': form,
     }
     return render(request, 'users/profile.html', user_data)
+
+def edit_profile(request, username):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    user = get_object_or_404(CustomUser, username=username)
+    if user.id != request.user.id:
+        return redirect('profile', username=user.username)
+
+    if request.method == 'POST':
+        form = CustomUserEditionForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            form.save()
+            username = '@' + form.cleaned_data.get('username')
+            return redirect('profile', username=username)
+    else:
+        form = CustomUserEditionForm(instance=user)
+
+    return render (request, 'users/edit_profile.html', {'form': form})
 
 
 
