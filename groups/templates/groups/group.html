@@ -5,7 +5,9 @@
 
 {% block content %}
     <h1>{{ group.public_name }}</h1>
-    {{ group.name }}
+    <img src ='{{ group.avatar.url }}', width="100">
+    <p>{{ group.name }}</p>
+
     <p>{{ group.description }}</p>
     <p>Количество подписчиков: {{ subscribers }}</p>
 

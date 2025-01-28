@@ -84,7 +84,7 @@ def creategroup(request):
         return redirect_response
 
     if request.method == 'POST':
-        form = GroupCreationForm(request.POST)
+        form = GroupCreationForm(request.POST, request.FILES)
         if form.is_valid():
             group = form.save(commit=False)
             group.creator = request.user
@@ -156,7 +156,7 @@ def editgroup(request, group_name):
 
     if request.method == 'POST':
         # Обработка POST-запроса
-        form = GroupCreationForm(request.POST, instance=group)
+        form = GroupCreationForm(request.POST, request.FILES, instance=group)
         if form.is_valid():
             name = '@'+form.cleaned_data['name'].lower()
             form.save()

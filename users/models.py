@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     status = models.CharField(max_length=120, blank=True, null=True, default='')
     is_confirmed = models.BooleanField(default=False)
-    avatar = models.ImageField(upload_to=generate_avatar_name, blank=True, null=True, default='avatars/default.png')
+    avatar = models.ImageField(upload_to=generate_avatar_name, blank=True, null=True, default='users_avatars/default.png')
 
     groups = models.ManyToManyField(
         'auth.Group',

@@ -4,7 +4,7 @@ from django.utils.crypto import get_random_string
 from slugify import slugify
 from datetime import datetime
 
-from .utils import generate_image_name
+from .utils import generate_image_name, generate_avatar_name
 from .managers import ActiveGroupManager
 
 class Groups(models.Model):
@@ -12,6 +12,7 @@ class Groups(models.Model):
     public_name = models.CharField(max_length=100)
     creator = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='creator')
     description = models.TextField(blank=True)
+    avatar = models.ImageField(upload_to=generate_avatar_name, default='groups_avatars/default.png')
     is_active = models.BooleanField(default=True)
 
     objects = models.Manager()
