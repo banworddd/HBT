@@ -9,6 +9,7 @@ from common.utils import check_user_status
 from .utils import  code_generation
 
 
+
 def registration(request):
     if request.user.is_authenticated:
         user = CustomUser.objects.get(email=request.user.email)
