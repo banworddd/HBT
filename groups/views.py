@@ -158,9 +158,13 @@ def editgroup(request, group_name):
         # Обработка POST-запроса
         form = GroupCreationForm(request.POST, request.FILES, instance=group)
         if form.is_valid():
-            name = '@'+form.cleaned_data['name'].lower()
-            form.save()
-            return redirect('group', group_name=name)
+            group.name = form.cleaned_data['name'].lower()
+            group.public_name = form.cleaned_data['public_name']
+            group.description = form.cleaned_data['description']
+            group.is_active = form.cleaned_data['is_active']
+            group.avatar = form.cleaned_data['avatar']
+            group.save()
+            return redirect('group', group_name= group.name)
     else:
         # Обработка GET-запроса
         form = GroupCreationForm(instance=group)

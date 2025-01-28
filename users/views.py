@@ -113,7 +113,7 @@ def edit_profile(request, username):
         form = CustomUserEditionForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
-            username = '@' + form.cleaned_data.get('username')
+            username = '@' + form.cleaned_data.get('username').lower()
             return redirect('profile', username=username)
     else:
         form = CustomUserEditionForm(instance=user)
