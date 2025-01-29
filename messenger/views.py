@@ -1,7 +1,6 @@
-from logging import raiseExceptions
-
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
+from django.core.cache import cache
 
 from common.utils import check_user_status
 from users.models import CustomUser
@@ -42,44 +41,53 @@ def messagesview(request, chat_id):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
-
     chat = get_object_or_404(Chats, id=chat_id)
-    messages = Message.objects.filter(chat=chat).order_by('send_time')
-    if messages and messages.last().author != request.user and messages.last().status == 'S':
 
-        last_messages = []
-        for message in reversed(messages):
-
-            if message.author != request.user:
-                last_messages.append(message)
-            else:
-                break
-
-        for message in last_messages:
-            message.status = 'R'
-            message.save()
-
-
+    messages = Message.objects.filter(chat=chat).select_related('author', 'chat').order_by('send_time')
     other_user = chat.user_1 if chat.user_2 == request.user else chat.user_2
+
     if request.method == 'POST':
+        print('post')
         form = MessageForm(request.POST, request.FILES)
         if form.is_valid():
             author = request.user
             text = form.cleaned_data['text']
             picture = form.cleaned_data['picture']
-            Message.objects.create(text = text, author = author, chat = chat, picture = picture)
+            new_message = Message.objects.create(text=text, author=author, chat=chat, picture=picture)
+            new_message.save()
+            cache.delete(f"messages_{chat_id}")
             return redirect('messages', chat_id=chat.id)
         else:
-            return raiseExceptions
+            chat_data = {
+                "messages": list(messages.values()),
+                "other_user": other_user.username,
+                "current_user": request.user.username,
+            }
+            return render(request, 'messenger/messages.html', {
+                "chat_data": chat_data,
+                "form": form
+            })
     else:
         form = MessageForm()
 
-    return render(request, 'messenger/messages.html', {
-        "messages": messages,
-        "other_user": other_user,
-        "current_user": request.user,
-        "form" : form
-    })
+    cached_chat_data = cache.get(f"messages_{chat_id}")
+    if cached_chat_data:
+        print('кеш')
+        return render(request, 'messenger/messages.html', {'chat_data': cached_chat_data, 'form': form})
+
+    # Обновление статусов непрочитанных сообщений
+    unread_messages = messages.filter(author=other_user, status='S')
+    unread_messages.update(status='R')
+
+    chat_data = {
+        "messages": list(messages.values()),
+        "other_user": other_user.username,
+        "current_user": request.user.username,
+    }
+
+    cache.set(f"messages_{chat_id}", chat_data, timeout=600)
+    print('бд')
+    return render(request, 'messenger/messages.html', {'chat_data': chat_data, 'form': form})
 
 def deletemessage(request, message_id):
     redirect_response = check_user_status(request)

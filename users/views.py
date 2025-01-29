@@ -126,7 +126,20 @@ def edit_profile(request, username):
         if form.is_valid():
             form.save()
             username = '@' + form.cleaned_data.get('username').lower()
+
+            user_data = {
+                'avatar': user.avatar,
+                'public_name': user.public_name,
+                'username': user.username,
+                'status': user.status,
+                'request_user': request.user,
+            }
+
+            # Кешируем данные на 15 минут
+            cache.set(f"profile_{username}", user_data, timeout=900)
+
             return redirect('profile', username=username)
+
     else:
         form = CustomUserEditionForm(instance=user)
 
