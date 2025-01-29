@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, F
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.cache import cache
 
@@ -37,10 +37,14 @@ def chatsview(request, username):
 
     return render(request, 'messenger/chats.html', {'username': username, 'messages': messages_dict})
 
+from django.db.models import F
+from django.core.files.storage import default_storage
+
 def messagesview(request, chat_id):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
+
     chat = get_object_or_404(Chats, id=chat_id)
 
     messages = Message.objects.filter(chat=chat).select_related('author', 'chat').order_by('send_time')
@@ -59,7 +63,7 @@ def messagesview(request, chat_id):
             return redirect('messages', chat_id=chat.id)
         else:
             chat_data = {
-                "messages": list(messages.values()),
+                "messages": list(messages.values('id', 'text', 'send_time', 'status', 'is_deleted', 'author__username', picture_url=F('picture'))),
                 "other_user": other_user.username,
                 "current_user": request.user.username,
             }
@@ -72,7 +76,6 @@ def messagesview(request, chat_id):
 
     cached_chat_data = cache.get(f"messages_{chat_id}")
     if cached_chat_data:
-        print('кеш')
         return render(request, 'messenger/messages.html', {'chat_data': cached_chat_data, 'form': form})
 
     # Обновление статусов непрочитанных сообщений
@@ -80,13 +83,22 @@ def messagesview(request, chat_id):
     unread_messages.update(status='R')
 
     chat_data = {
-        "messages": list(messages.values()),
+        "messages": [
+            {
+                "id": msg.id,
+                "text": msg.text,
+                "send_time": msg.send_time,
+                "status": msg.status,
+                "is_deleted": msg.is_deleted,
+                "author__username": msg.author.username,
+                "picture_url": msg.picture.url if msg.picture else None,
+            }
+            for msg in messages
+        ],
         "other_user": other_user.username,
         "current_user": request.user.username,
     }
-
     cache.set(f"messages_{chat_id}", chat_data, timeout=600)
-    print('бд')
     return render(request, 'messenger/messages.html', {'chat_data': chat_data, 'form': form})
 
 def deletemessage(request, message_id):
@@ -101,6 +113,9 @@ def deletemessage(request, message_id):
     message.text = 'Сообщение удалено'
     message.picture = None
     message.save()
+    cached_chat_data = cache.get(f"messages_{message.chat_id}")
+    if cached_chat_data:
+        cache.delete(f"messages_{message.chat_id}")
     return redirect('messages', chat_id=message.chat.id)
 
 

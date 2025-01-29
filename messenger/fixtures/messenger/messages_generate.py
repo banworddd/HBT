@@ -7,7 +7,7 @@ author_ids = [16, 1]
 status = 'S'
 picture = None
 send_time_base = datetime.now()
-num_messages = 1500
+num_messages = 5000
 
 # Генерация данных
 messages = []
@@ -15,7 +15,7 @@ for i in range(num_messages):
     author_id = author_ids[i % len(author_ids)]
     send_time = send_time_base + timedelta(minutes=i)
     message = {
-        "model": "messenger.message",  # Замените 'your_app_name' на имя вашего приложения
+        "model": "messenger.message",
         "pk": i + 1,
         "fields": {
             "text": f"Message text {i + 1}",
