@@ -30,3 +30,7 @@ def check_user_session(request, user_id):
             pass
 
     return False
+
+def check_active_sessions(request):
+    active_sessions = Session.objects.filter(expire_date__gte=timezone.now()).count()
+    return active_sessions

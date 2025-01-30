@@ -2,21 +2,21 @@ from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.cache import cache
 
-from common.utils import check_user_status, check_user_session
+from common.utils import check_user_status, check_user_session, check_active_sessions
 from users.models import CustomUser
 from .forms import MessageForm
 from .models import Chats, Message
-from django.contrib.sessions.models import Session
-from django.contrib.sessions.backends.db import SessionStore
-from django.utils import timezone
+
 def startpage(request):
     if request.user.is_authenticated:
         user = CustomUser.objects.get(email=request.user.email)
         if user.is_confirmed is False:
             return redirect ('emailconfirmation')
         return redirect('chats', username=user.username)
-    count = CustomUser.objects.count()
-    return render(request, 'messenger/startpage.html', context={'count':count})
+    users_count = CustomUser.objects.count()
+    active_user_count = check_active_sessions(request)
+
+    return render(request, 'messenger/startpage.html', context={'users_count':users_count, 'active_user_count':active_user_count})
 
 def chatsview(request, username):
     redirect_response = check_user_status(request)
@@ -49,6 +49,7 @@ def messagesview(request, chat_id):
 
     messages = Message.objects.filter(chat=chat).select_related('author', 'chat').order_by('send_time')
     other_user = chat.user_1 if chat.user_2 == request.user else chat.user_2
+    other_user_status = check_user_session(request, other_user.id)
 
     if request.method == 'POST':
         form = MessageForm(request.POST, request.FILES)
@@ -58,7 +59,8 @@ def messagesview(request, chat_id):
             picture = form.cleaned_data['picture']
             new_message = Message.objects.create(text=text, author=author, chat=chat, picture=picture)
             new_message.save()
-            cache.delete(f"messages_{chat_id}")
+            cache.delete(f"messages_{chat_id}_{request.user.id}")
+            cache.delete(f"messages_{chat_id}_{other_user.id}")
             return redirect('messages', chat_id=chat.id)
         else:
             chat_data = {
@@ -75,6 +77,7 @@ def messagesview(request, chat_id):
                     for msg in messages
                 ],
                 "other_user": other_user.username,
+                "other_user_status": other_user_status,
                 "current_user": request.user.username,
             }
             return render(request, 'messenger/messages.html', {
@@ -84,7 +87,7 @@ def messagesview(request, chat_id):
     else:
         form = MessageForm()
 
-    cached_chat_data = cache.get(f"messages_{chat_id}")
+    cached_chat_data = cache.get(f"messages_{chat_id}_{request.user.id}")
     if cached_chat_data:
         return render(request, 'messenger/messages.html', {'chat_data': cached_chat_data, 'form': form})
 
@@ -106,9 +109,10 @@ def messagesview(request, chat_id):
             for msg in messages
         ],
         "other_user": other_user.username,
+        "other_user_status": other_user_status,
         "current_user": request.user.username,
     }
-    cache.set(f"messages_{chat_id}", chat_data, timeout=600)
+    cache.set(f"messages_{chat_id}_{request.user.id}", chat_data, timeout=600)
     return render(request, 'messenger/messages.html', {'chat_data': chat_data, 'form': form})
 
 def deletemessage(request, message_id):
@@ -117,15 +121,17 @@ def deletemessage(request, message_id):
         return redirect_response
 
     message = get_object_or_404(Message, pk=message_id)
+    chat = message.chat
+    other_user = chat.user_1 if chat.user_2 == request.user else chat.user_2
     if message.is_deleted:
         return redirect('messages', chat_id=message.chat.id)
     message.is_deleted = True
     message.text = 'Сообщение удалено'
     message.picture = None
     message.save()
-    cached_chat_data = cache.get(f"messages_{message.chat_id}")
-    if cached_chat_data:
-        cache.delete(f"messages_{message.chat_id}")
+    cache.delete(f"messages_{message.chat_id}_{other_user.id}")
+    print(other_user)
+    cache.delete(f"messages_{message.chat_id}_{request.user.id}")
     return redirect('messages', chat_id=message.chat.id)
 
 

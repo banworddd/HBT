@@ -6,6 +6,11 @@
     <section>
         <h1>Профиль пользователя: {{ public_name }}</h1>
         <p><strong>Никнейм:</strong> {{ username }}</p>
+        {% if user_online %}
+            <p>Онлайн</p>
+        {% else %}
+            <p>Оффлайн</p>
+        {% endif %}
 
         <p><strong>Email:</strong> {{ email }}</p>
 

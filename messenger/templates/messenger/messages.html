@@ -6,6 +6,11 @@
 {% block content %}
     <div class="chat-container">
         <h2>Chat Messages with {{ chat_data.other_user }}</h2>
+        {% if chat_data.other_user_status%}
+        <p>Онлайн</p>
+        {% else %}
+        <p>Оффлайн</p>
+        {% endif %}
         {% for message in chat_data.messages %}
             <table width="100%">
                 <tr>

@@ -5,7 +5,7 @@ from .models import CustomUser
 from django.contrib import messages
 from django.contrib.auth import logout
 from groups.models import GroupSubscribers
-from common.utils import check_user_status
+from common.utils import check_user_status, check_user_session
 from .utils import  code_generation
 from django.core.cache import cache
 
@@ -94,8 +94,9 @@ def profileview(request, username):
 
     user = get_object_or_404(CustomUser, username=username)
     groups = GroupSubscribers.objects.filter(user=user)
-
+    user_online = check_user_session(request, user.id)
     user_data = {
+        'user_online': user_online,
         'avatar': user.avatar,
         'public_name': user.public_name,
         'username': user.username,
@@ -125,7 +126,9 @@ def edit_profile(request, username):
             form.save()
             username = '@' + form.cleaned_data.get('username').lower()
 
+            user_online = check_user_session(request, user.id)
             user_data = {
+                'user_online': user_online,
                 'avatar': user.avatar,
                 'public_name': user.public_name,
                 'username': user.username,
