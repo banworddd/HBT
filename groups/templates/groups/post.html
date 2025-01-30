@@ -21,15 +21,22 @@
     {% endif %}
     {% if post.picture3 %}
     <p><img src="{{ post.picture3.url}}" width="200"> </p>
-
     {% endif %}
     {% if is_admin %}
         <a href="{% url 'editpost' post_slug=post.slug %}">Изменить</a> <a href="{% url 'deletepost' post_slug=post.slug %}">X</a>
-                {% endif %}
-    {% for edits in post_edits %}
-        <p>Дата изменения {{ edits.edit_date }} </p>
-        <p>Автор изменения  {{ edits.edit_author_name }}</p>
-        <p>Предыдущая версия поста {{ edits.post_previous }}</p>
-        <p>Текущая версия поста {{ edits.post_next }}</p>
-    {% endfor %}
+    {% endif %}
+
+    <details>
+        <summary>Показать изменения</summary>
+        {% if post_edits %}
+            {% for edits in post_edits %}
+                <p>Дата изменения: {{ edits.edit_date }}</p>
+                <p>Автор изменения: {{ edits.edit_author_name }}</p>
+                <p>Предыдущая версия поста: {{ edits.post_previous }}</p>
+                <p>Текущая версия поста: {{ edits.post_next }}</p>
+            {% endfor %}
+        {% else %}
+            <p>Изменений пока не было</p>
+        {% endif %}
+    </details>
 {% endblock %}
