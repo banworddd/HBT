@@ -153,6 +153,33 @@ def usersview(request):
 
     return render(request, 'messenger/users.html', {"chats_with_users": chats_with_users})
 
+def profileview(request, username):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    cached_user_data = cache.get(f"messenger_profile_{username}")
+    if cached_user_data:
+        return render(request, 'messenger/profile.html', cached_user_data)
+    user = get_object_or_404(CustomUser, username=username)
+    user_online = check_user_session(request, user.id)
+    if Chats.objects.filter(Q(user_1=request.user.id) & Q(user_2=request.user.id) & Q(user_2=request.user.id) & Q(user_1=request.user.id)).exists():
+        chat = Chats.objects.get(Q(user_1=request.user.id) & Q(user_2=request.user.id) & Q(user_2=request.user.id) & Q(user_1=request.user.id))
+        chat_id = chat.id
+    else:
+        chat_id = None
+    user_data = {
+        'user_online': user_online,
+        'avatar': user.avatar,
+        'public_name': user.public_name,
+        'username': user.username,
+        'status': user.status,
+        'reg_date': user.date_joined,
+        'chat_id': chat_id,
+    }
+    cache.set(f"messenger_profile_{username}", user_data, timeout=300)
+    return render(request, 'messenger/profile.html', user_data)
+
 def create_chat_view(request, username):
     redirect_response = check_user_status(request)
     if redirect_response:

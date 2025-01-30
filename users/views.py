@@ -81,18 +81,17 @@ def logout_view(request):
     return redirect('startpage')
 
 
-def profileview(request, username):
+def profileview(request):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
 
     # Пытаемся получить данные из кеша
-    cached_user_data = cache.get(f"profile_{username}")
+    cached_user_data = cache.get(f"profile_{request.user.username}")
 
     if cached_user_data:
         return render(request, 'users/profile.html', cached_user_data)
-
-    user = get_object_or_404(CustomUser, username=username)
+    user = get_object_or_404(CustomUser, username =request.user.username)
     groups = GroupSubscribers.objects.filter(user=user)
     user_online = check_user_session(request, user.id)
     user_data = {
@@ -104,21 +103,18 @@ def profileview(request, username):
         'status': user.status,
         'reg_date': user.date_joined,
         'groups': groups,
-        'request_user': request.user,
     }
 
     # Кешируем данные на 15 минут
-    cache.set(f"profile_{username}", user_data, timeout=900)
+    cache.set(f"profile_{request.user.username}", user_data, timeout=900)
 
     return render(request, 'users/profile.html', user_data)
-def edit_profile(request, username):
+def edit_profile(request):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
 
-    user = get_object_or_404(CustomUser, username=username)
-    if user.id != request.user.id:
-        return redirect('profile', username=user.username)
+    user = get_object_or_404(CustomUser, username=request.user.username)
 
     if request.method == 'POST':
         form = CustomUserEditionForm(request.POST, request.FILES, instance=user)
@@ -137,9 +133,9 @@ def edit_profile(request, username):
             }
 
             # Кешируем данные на 15 минут
-            cache.set(f"profile_{username}", user_data, timeout=900)
+            cache.set(f"profile_{request.user.username}", user_data, timeout=900)
 
-            return redirect('profile', username=username)
+            return redirect('profile')
 
     else:
         form = CustomUserEditionForm(instance=user)

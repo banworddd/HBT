@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+    <section>
+        <h1>Профиль: {{ public_name }}</h1>
+        <p><strong>Никнейм:</strong> {{ username }}</p>
+        {% if user_online %}
+            <p>Онлайн</p>
+        {% else %}
+            <p>Оффлайн</p>
+        {% endif %}
+
+        <p><strong>Статус:</strong> {{ status }}</p>
+
+        <p><strong>Дата регистрации:</strong> {{ reg_date }}</p>
+
+        {% if avatar %}
+            <p><img src="{{ avatar.url }}" alt="avatar" width="200"></p>
+        {% else %}
+            <p>Аватарка не установлена</p>
+        {% endif %}
+
+        {% if chat_id %}
+            <p><a href="{% url 'messages' chat_id=chat_id %}">Перейти к чату</a></p>
+        {% else %}
+            <p>Чата между пользователями нет</p>пше
+        {% endif %}
+    </section>
+{% endblock %}

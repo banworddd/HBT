@@ -7,8 +7,8 @@ urlpatterns = [
     path ('reg/', registration, name='reg'),
     path('logout/', logout_view, name='logout'),
     path('email_confrimation/', email_confirmation, name='emailconfirmation'),
-    path('<str:username>/', profileview, name='profile'),
-    path('<str:username>/edit', edit_profile, name='edit_profile'),
+    path('profile/', profileview, name='profile'),
+    path('editprofile', edit_profile, name='edit_profile'),
 
 
 ]
