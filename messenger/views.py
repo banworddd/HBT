@@ -59,8 +59,8 @@ def messagesview(request, chat_id):
             picture = form.cleaned_data['picture']
             new_message = Message.objects.create(text=text, author=author, chat=chat, picture=picture)
             new_message.save()
-            cache.delete(f"messages_{chat_id}_{request.user.id}")
-            cache.delete(f"messages_{chat_id}_{other_user.id}")
+            #cache.delete(f"messages_{chat_id}_{request.user.id}")
+            #cache.delete(f"messages_{chat_id}_{other_user.id}")
             return redirect('messages', chat_id=chat.id)
         else:
             chat_data = {
@@ -129,9 +129,6 @@ def deletemessage(request, message_id):
     message.text = 'Сообщение удалено'
     message.picture = None
     message.save()
-    cache.delete(f"messages_{message.chat_id}_{other_user.id}")
-    print(other_user)
-    cache.delete(f"messages_{message.chat_id}_{request.user.id}")
     return redirect('messages', chat_id=message.chat.id)
 
 

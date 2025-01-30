@@ -133,8 +133,6 @@ def edit_profile(request):
             }
 
             # Кешируем данные на 15 минут
-            cache.set(f"profile_{request.user.username}", user_data, timeout=900)
-
             return redirect('profile')
 
     else:
