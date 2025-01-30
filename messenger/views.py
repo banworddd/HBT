@@ -1,11 +1,14 @@
-from django.db.models import Q, F
+from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.cache import cache
 
-from common.utils import check_user_status
+from common.utils import check_user_status, check_user_session
 from users.models import CustomUser
 from .forms import MessageForm
 from .models import Chats, Message
+from django.contrib.sessions.models import Session
+from django.contrib.sessions.backends.db import SessionStore
+from django.utils import timezone
 def startpage(request):
     if request.user.is_authenticated:
         user = CustomUser.objects.get(email=request.user.email)
@@ -37,9 +40,6 @@ def chatsview(request, username):
 
     return render(request, 'messenger/chats.html', {'username': username, 'messages': messages_dict})
 
-from django.db.models import F
-from django.core.files.storage import default_storage
-
 def messagesview(request, chat_id):
     redirect_response = check_user_status(request)
     if redirect_response:
@@ -51,7 +51,6 @@ def messagesview(request, chat_id):
     other_user = chat.user_1 if chat.user_2 == request.user else chat.user_2
 
     if request.method == 'POST':
-        print('post')
         form = MessageForm(request.POST, request.FILES)
         if form.is_valid():
             author = request.user
@@ -63,7 +62,18 @@ def messagesview(request, chat_id):
             return redirect('messages', chat_id=chat.id)
         else:
             chat_data = {
-                "messages": list(messages.values('id', 'text', 'send_time', 'status', 'is_deleted', 'author__username', picture_url=F('picture'))),
+                "messages": [
+                    {
+                        "id": msg.id,
+                        "text": msg.text,
+                        "send_time": msg.send_time,
+                        "status": msg.status,
+                        "is_deleted": msg.is_deleted,
+                        "author__username": msg.author.username,
+                        "picture_url": msg.picture.url if msg.picture else None,
+                    }
+                    for msg in messages
+                ],
                 "other_user": other_user.username,
                 "current_user": request.user.username,
             }
@@ -124,13 +134,17 @@ def usersview(request):
     if redirect_response:
         return redirect_response
 
+
     users = CustomUser.objects.exclude(username=request.user.username)
     chats = Chats.objects.filter(Q(user_1=request.user.id) | Q(user_2=request.user.id))
-    chats_with_users = {item: None for item in users}
+    chats_with_users = {item: [None, False] for item in users}
     for chat in chats:
         for user in chats_with_users:
             if chat.user_1 == user or chat.user_2==user:
-                chats_with_users[user] = chat
+                chats_with_users[user][0]= chat
+    for user in chats_with_users.keys():
+        chats_with_users[user][1] = check_user_session(request, user.id)
+
     return render(request, 'messenger/users.html', {"chats_with_users": chats_with_users})
 
 def create_chat_view(request, username):

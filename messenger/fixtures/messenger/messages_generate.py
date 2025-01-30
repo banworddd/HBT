@@ -2,8 +2,8 @@ import json
 from datetime import datetime, timedelta
 
 # Параметры для генерации данных
-chat_id = 12
-author_ids = [16, 1]
+chat_id = 13
+author_ids = [17, 1]
 status = 'S'
 picture = None
 send_time_base = datetime.now()

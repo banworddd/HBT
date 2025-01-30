@@ -90,7 +90,6 @@ def profileview(request, username):
     cached_user_data = cache.get(f"profile_{username}")
 
     if cached_user_data:
-        print("Получено из кеша")  # Для отладки
         return render(request, 'users/profile.html', cached_user_data)
 
     user = get_object_or_404(CustomUser, username=username)
@@ -110,7 +109,6 @@ def profileview(request, username):
     # Кешируем данные на 15 минут
     cache.set(f"profile_{username}", user_data, timeout=900)
 
-    print("Получено из базы данных")  # Для отладки
     return render(request, 'users/profile.html', user_data)
 def edit_profile(request, username):
     redirect_response = check_user_status(request)
