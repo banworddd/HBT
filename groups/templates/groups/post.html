@@ -12,31 +12,57 @@
         {% endif %}
     </small></p>
     <p><small>Дата публикации: {{ post.pub_date }}</small></p>
-    <p>{{ post.post}}</p>
+    <p>{{ post.post }}</p>
     {% if post.picture1 %}
-    <p><img src="{{ post.picture1.url}}" width="200"> </p>
+        <p><img src="{{ post.picture1.url }}" width="200"></p>
     {% endif %}
     {% if post.picture2 %}
-    <p><img src="{{ post.picture2.url}}" width="200"> </p>
+        <p><img src="{{ post.picture2.url }}" width="200"></p>
     {% endif %}
     {% if post.picture3 %}
-    <p><img src="{{ post.picture3.url}}" width="200"> </p>
+        <p><img src="{{ post.picture3.url }}" width="200"></p>
     {% endif %}
     {% if is_admin %}
-        <a href="{% url 'editpost' post_slug=post.slug %}">Изменить</a> <a href="{% url 'deletepost' post_slug=post.slug %}">X</a>
+        <a href="{% url 'editpost' post_slug=post.slug %}">Изменить</a>
+        <a href="{% url 'deletepost' post_slug=post.slug %}">X</a>
     {% endif %}
 
     <details>
         <summary>Показать изменения</summary>
         {% if post_edits %}
-            {% for edits in post_edits %}
-                <p>Дата изменения: {{ edits.edit_date }}</p>
-                <p>Автор изменения: {{ edits.edit_author_name }}</p>
-                <p>Предыдущая версия поста: {{ edits.post_previous }}</p>
-                <p>Текущая версия поста: {{ edits.post_next }}</p>
+            {% for edit in post_edits %}
+                <p>Дата изменения: {{ edit.edit_date }}</p>
+                <p>Автор изменения: {{ edit.edit_author_name }}</p>
+                <p>Предыдущая версия поста: {{ edit.post_previous }}</p>
+                <p>Текущая версия поста: {{ edit.post_next }}</p>
             {% endfor %}
         {% else %}
             <p>Изменений пока не было</p>
         {% endif %}
     </details>
+
+    <!-- Отображение существующих комментариев -->
+    <h2>Комментарии</h2>
+    {% if comments %}
+        {% for comment in comments %}
+            <div class="comment">
+                <p><strong>{{ comment.comment_author.user.public_name }}</strong>: {{ comment.comment }}</p>
+                <p><small>{{ comment.comment_date }}</small></p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Пока нет комментариев.</p>
+    {% endif %}
+
+    <!-- Форма для добавления комментария -->
+    {% if is_subscriber %}
+        <h2>Добавить комментарий</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Отправить</button>
+        </form>
+    {% else %}
+        <p>Вы не являетесь подписчиком этой группы. Подпишитесь, чтобы оставлять комментарии.</p>
+    {% endif %}
 {% endblock %}

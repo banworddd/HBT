@@ -50,6 +50,13 @@
                                             </a>
                                         </span>
                                     </div>
+
+                                    <!-- Отображение реакций других пользователей -->
+                                    <div class="reactions-display">
+                                        {% for reaction in message.reactions %}
+                                            <span>{{ reaction.react_user }}: {{ reaction.status }}</span>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             </td>
                             <td width="30%"></td>
@@ -88,6 +95,13 @@
                                                 ❤️
                                             </a>
                                         </span>
+                                    </div>
+
+                                    <!-- Отображение реакций других пользователей -->
+                                    <div class="reactions-display">
+                                        {% for reaction in message.reactions %}
+                                            <span>{{ reaction.react_user }}: {{ reaction.status }}</span>
+                                        {% endfor %}
                                     </div>
                                 </div>
                             </td>

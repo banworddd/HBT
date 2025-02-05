@@ -68,3 +68,13 @@ class GroupPostsEdits(models.Model):
     post_next = models.TextField()
     class Meta:
         unique_together = (('post', 'edit_date'),)
+
+class GroupPostsComments(models.Model):
+    post = models.ForeignKey(GroupPosts, on_delete=models.CASCADE)
+    comment = models.TextField(max_length=240)
+    comment_author = models.ForeignKey('GroupSubscribers', on_delete=models.CASCADE)
+    comment_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.comment
+

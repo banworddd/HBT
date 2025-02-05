@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 
-from .models import Groups, GroupSubscribers, GroupPosts, GroupPostsEdits
-from .forms import GroupPostForm, GroupCreationForm
+from .models import Groups, GroupSubscribers, GroupPosts, GroupPostsEdits, GroupPostsComments
+from .forms import GroupPostForm, GroupCreationForm, GroupPostCommentForm
 from common.utils import check_user_status
 
 def groups(request):
@@ -98,12 +98,26 @@ def postview(request, post_slug):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
-
     post = GroupPosts.objects.get(slug=post_slug)
     post_edits = GroupPostsEdits.objects.filter(post = post)
+    comments = GroupPostsComments.objects.filter(post=post)
+
+    group = post.group
+    if request.method == 'POST':
+        form = GroupPostCommentForm(request.POST, request.FILES)
+        if form.is_valid():
+            text = form.cleaned_data['comment']
+            author = GroupSubscribers.objects.get(group=group, user=request.user)
+            comment_post = post
+            new_comment = GroupPostsComments.objects.create(comment=text, comment_author=author, post=comment_post)
+            new_comment.save()
+            return redirect('post', post_slug)
+    else:
+        form = GroupPostCommentForm()
     group = post.group
     is_admin = GroupSubscribers.objects.filter(group=group, user=request.user, is_admin=True).exists()
-    return render(request, 'groups/post.html', context={'post':post, 'is_admin':is_admin, 'post_edits':post_edits})
+    is_subscriber = GroupSubscribers.objects.filter(group=group, user=request.user).exists()
+    return render(request, 'groups/post.html', context={'post':post, 'is_admin':is_admin, 'post_edits':post_edits, 'form':form, 'is_subscriber':is_subscriber, 'comments':comments})
 
 def deletepost(request, post_slug):
     redirect_response = check_user_status(request)

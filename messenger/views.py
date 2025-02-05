@@ -4,7 +4,7 @@ from django.core.cache import cache
 
 from common.utils import check_user_status, check_user_session, check_active_sessions
 from users.models import CustomUser
-from .fixtures.messenger.messages_generate import chat_id
+
 from .forms import MessageForm
 from .models import Chats, Message, MessageReaction
 

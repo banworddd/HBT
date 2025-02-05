@@ -1,11 +1,16 @@
 from django import forms
-from .models import GroupPosts, Groups
+from .models import GroupPosts, Groups, GroupPostsComments
 import re
 
 class GroupPostForm(forms.ModelForm):
     class Meta:
         model = GroupPosts
         fields = ['title', 'post','picture1','picture2', 'picture3']
+
+class GroupPostCommentForm(forms.ModelForm):
+    class Meta:
+        model = GroupPostsComments
+        fields = ['comment']
 
 
 class GroupCreationForm(forms.ModelForm):
