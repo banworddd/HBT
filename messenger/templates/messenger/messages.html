@@ -26,6 +26,30 @@
                                     {% if not message.is_deleted %}
                                         <p><a href="{% url 'deletemessage' message_id=message.id %}">x</a></p>
                                     {% endif %}
+
+                                    <!-- Блок реакций -->
+                                    <div class="reaction-buttons">
+                                        <span class="reaction-group">
+                                            <a href="{% url 'sendreaction' message.id 'L' %}"
+                                               style="background-color: {% if message.user_reaction == 'L' %}green{% else %}grey{% endif %};">
+                                                👍
+                                            </a>
+                                        </span>
+
+                                        <span class="reaction-group">
+                                            <a href="{% url 'sendreaction' message.id 'D' %}"
+                                               style="background-color: {% if message.user_reaction == 'D' %}blue{% else %}grey{% endif %};">
+                                                👎
+                                            </a>
+                                        </span>
+
+                                        <span class="reaction-group">
+                                            <a href="{% url 'sendreaction' message.id 'H' %}"
+                                               style="background-color: {% if message.user_reaction == 'H' %}red{% else %}grey{% endif %};">
+                                                ❤️
+                                            </a>
+                                        </span>
+                                    </div>
                                 </div>
                             </td>
                             <td width="30%"></td>
@@ -41,6 +65,30 @@
                                     {% if not message.is_deleted %}
                                         <p><a href="{% url 'deletemessage' message_id=message.id %}">x</a></p>
                                     {% endif %}
+
+                                    <!-- Блок реакций -->
+                                    <div class="reaction-buttons">
+                                        <span class="reaction-group">
+                                            <a href="{% url 'sendreaction' message.id 'L' %}"
+                                               style="background-color: {% if message.user_reaction == 'L' %}green{% else %}grey{% endif %};">
+                                                👍
+                                            </a>
+                                        </span>
+
+                                        <span class="reaction-group">
+                                            <a href="{% url 'sendreaction' message.id 'D' %}"
+                                               style="background-color: {% if message.user_reaction == 'D' %}blue{% else %}grey{% endif %};">
+                                                👎
+                                            </a>
+                                        </span>
+
+                                        <span class="reaction-group">
+                                            <a href="{% url 'sendreaction' message.id 'H' %}"
+                                               style="background-color: {% if message.user_reaction == 'H' %}red{% else %}grey{% endif %};">
+                                                ❤️
+                                            </a>
+                                        </span>
+                                    </div>
                                 </div>
                             </td>
                         {% endif %}

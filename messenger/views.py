@@ -4,8 +4,9 @@ from django.core.cache import cache
 
 from common.utils import check_user_status, check_user_session, check_active_sessions
 from users.models import CustomUser
+from .fixtures.messenger.messages_generate import chat_id
 from .forms import MessageForm
-from .models import Chats, Message
+from .models import Chats, Message, MessageReaction
 
 def startpage(request):
     if request.user.is_authenticated:
@@ -51,6 +52,8 @@ def messagesview(request, chat_id):
     messages = Message.objects.filter(chat=chat).select_related('author', 'chat').order_by('send_time')
     other_user = chat.user_1 if chat.user_2 == request.user else chat.user_2
     other_user_status = check_user_session(request, other_user.id)
+    messages_reactions = MessageReaction.objects.filter(message__chat = chat)
+    user_reactions = {reaction.message_id: reaction.status for reaction in messages_reactions.filter(react_user=request.user)}
 
     if request.method == 'POST':
         form = MessageForm(request.POST, request.FILES)
@@ -74,6 +77,7 @@ def messagesview(request, chat_id):
                         "is_deleted": msg.is_deleted,
                         "author__username": msg.author.username,
                         "picture_url": msg.picture.url if msg.picture else None,
+                        'reactions': messages_reactions.filter(message = msg)
                     }
                     for msg in messages
                 ],
@@ -81,7 +85,9 @@ def messagesview(request, chat_id):
                 "other_user_status": other_user_status,
                 "current_user": request.user.username,
                 "chat_id": chat_id,
+                'user_reactions': user_reactions,
             }
+            print(chat_data.values())
             return render(request, 'messenger/messages.html', {
                 "chat_data": chat_data,
                 "form": form
@@ -107,6 +113,7 @@ def messagesview(request, chat_id):
                 "is_deleted": msg.is_deleted,
                 "author__username": msg.author.username,
                 "picture_url": msg.picture.url if msg.picture else None,
+                'reactions': messages_reactions.filter(message=msg),
             }
             for msg in messages
         ],
@@ -114,6 +121,7 @@ def messagesview(request, chat_id):
         "other_user_status": other_user_status,
         "current_user": request.user.username,
         "chat_id": chat_id,
+        'user_reactions': user_reactions,
     }
     cache.set(f"messages_{chat_id}_{request.user.id}", chat_data, timeout=600)
     return render(request, 'messenger/messages.html', {'chat_data': chat_data, 'form': form})
@@ -134,6 +142,23 @@ def deletemessage(request, message_id):
     message.picture = None
     message.save()
     return redirect('messages', chat_id=message.chat.id)
+
+def sendreaction(request, message_id, reaction):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+    message = get_object_or_404(Message, pk=message_id)
+    cache.delete(f"messages_{message.chat.id}_{request.user.id}")
+    reaction_exists = MessageReaction.objects.filter(message=message, react_user=request.user, status = reaction).exists()
+    if reaction_exists:
+        reaction_exists = MessageReaction.objects.filter(message=message, react_user=request.user, status=reaction)
+        reaction_exists.delete()
+        return redirect('messages', chat_id=message.chat.id)
+    else:
+        new_reaction = MessageReaction.objects.create(message = message, react_user=request.user, status = reaction)
+        new_reaction.save()
+        return redirect('messages', chat_id=message.chat.id)
+
 
 
 def usersview(request):
