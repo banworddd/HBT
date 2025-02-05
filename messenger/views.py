@@ -87,7 +87,6 @@ def messagesview(request, chat_id):
                 "chat_id": chat_id,
                 'user_reactions': user_reactions,
             }
-            print(chat_data.values())
             return render(request, 'messenger/messages.html', {
                 "chat_data": chat_data,
                 "form": form
@@ -149,15 +148,22 @@ def sendreaction(request, message_id, reaction):
         return redirect_response
     message = get_object_or_404(Message, pk=message_id)
     cache.delete(f"messages_{message.chat.id}_{request.user.id}")
-    reaction_exists = MessageReaction.objects.filter(message=message, react_user=request.user, status = reaction).exists()
+    reaction_exists = MessageReaction.objects.filter(message=message, react_user=request.user).exists()
     if reaction_exists:
-        reaction_exists = MessageReaction.objects.filter(message=message, react_user=request.user, status=reaction)
-        reaction_exists.delete()
-        return redirect('messages', chat_id=message.chat.id)
+        reaction_exists = MessageReaction.objects.get(message=message, react_user=request.user)
+        if reaction_exists.status == reaction:
+            reaction_exists.delete()
+            return redirect('messages', chat_id=message.chat.id)
+        else:
+            reaction_exists.delete()
+            new_reaction = MessageReaction.objects.create(message=message, react_user=request.user, status=reaction)
+            new_reaction.save()
+            return redirect('messages', chat_id=message.chat.id)
     else:
-        new_reaction = MessageReaction.objects.create(message = message, react_user=request.user, status = reaction)
+        new_reaction = MessageReaction.objects.create(message=message, react_user=request.user, status=reaction)
         new_reaction.save()
         return redirect('messages', chat_id=message.chat.id)
+
 
 
 

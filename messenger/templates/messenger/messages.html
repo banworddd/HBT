@@ -31,21 +31,21 @@
                                     <div class="reaction-buttons">
                                         <span class="reaction-group">
                                             <a href="{% url 'sendreaction' message.id 'L' %}"
-                                               style="background-color: {% if message.user_reaction == 'L' %}green{% else %}grey{% endif %};">
+                                               class="reaction-button" data-reaction="L" data-message-id="{{ message.id }}">
                                                 👍
                                             </a>
                                         </span>
 
                                         <span class="reaction-group">
                                             <a href="{% url 'sendreaction' message.id 'D' %}"
-                                               style="background-color: {% if message.user_reaction == 'D' %}blue{% else %}grey{% endif %};">
+                                               class="reaction-button" data-reaction="D" data-message-id="{{ message.id }}">
                                                 👎
                                             </a>
                                         </span>
 
                                         <span class="reaction-group">
                                             <a href="{% url 'sendreaction' message.id 'H' %}"
-                                               style="background-color: {% if message.user_reaction == 'H' %}red{% else %}grey{% endif %};">
+                                               class="reaction-button" data-reaction="H" data-message-id="{{ message.id }}">
                                                 ❤️
                                             </a>
                                         </span>
@@ -70,21 +70,21 @@
                                     <div class="reaction-buttons">
                                         <span class="reaction-group">
                                             <a href="{% url 'sendreaction' message.id 'L' %}"
-                                               style="background-color: {% if message.user_reaction == 'L' %}green{% else %}grey{% endif %};">
+                                               class="reaction-button" data-reaction="L" data-message-id="{{ message.id }}">
                                                 👍
                                             </a>
                                         </span>
 
                                         <span class="reaction-group">
                                             <a href="{% url 'sendreaction' message.id 'D' %}"
-                                               style="background-color: {% if message.user_reaction == 'D' %}blue{% else %}grey{% endif %};">
+                                               class="reaction-button" data-reaction="D" data-message-id="{{ message.id }}">
                                                 👎
                                             </a>
                                         </span>
 
                                         <span class="reaction-group">
                                             <a href="{% url 'sendreaction' message.id 'H' %}"
-                                               style="background-color: {% if message.user_reaction == 'H' %}red{% else %}grey{% endif %};">
+                                               class="reaction-button" data-reaction="H" data-message-id="{{ message.id }}">
                                                 ❤️
                                             </a>
                                         </span>
@@ -110,6 +110,8 @@
         const chatSocket = new WebSocket(
             'ws://' + window.location.host + '/ws/chat/' + chatId + '/'
         );
+
+        const userReactions = {{ chat_data.user_reactions|safe }};
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
@@ -152,6 +154,16 @@
                 </table>
             `;
             chatLog.appendChild(messageDiv);
+
+            // Обновление стилей реакций
+            const reactionButtons = messageDiv.querySelectorAll('.reaction-button');
+            reactionButtons.forEach(button => {
+                const messageId = button.getAttribute('data-message-id');
+                const reaction = button.getAttribute('data-reaction');
+                if (userReactions[messageId] === reaction) {
+                    button.style.backgroundColor = getReactionColor(reaction);
+                }
+            });
         };
 
         chatSocket.onclose = function(e) {
@@ -170,5 +182,30 @@
             }));
             messageInputDom.value = '';
         });
+
+        // Обновление стилей реакций при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            const reactionButtons = document.querySelectorAll('.reaction-button');
+            reactionButtons.forEach(button => {
+                const messageId = button.getAttribute('data-message-id');
+                const reaction = button.getAttribute('data-reaction');
+                if (userReactions[messageId] === reaction) {
+                    button.style.backgroundColor = getReactionColor(reaction);
+                }
+            });
+        });
+
+        function getReactionColor(reaction) {
+            switch (reaction) {
+                case 'L':
+                    return 'green';
+                case 'D':
+                    return 'blue';
+                case 'H':
+                    return 'red';
+                default:
+                    return 'grey';
+            }
+        }
     </script>
 {% endblock %}

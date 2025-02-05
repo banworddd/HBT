@@ -31,3 +31,11 @@ def message_reaction_post_save_handler(sender, instance, created, **kwargs):
     cache.delete(f"messages_{chat.id}_{user.id}")
     cache.delete(f"messages_{chat.id}_{other_user.id}")
 
+@receiver(post_delete, sender=MessageReaction)
+def message_reaction_post_save_handler(sender, instance, **kwargs):
+    user = CustomUser.objects.get(username=instance.react_user)
+    chat = Chats.objects.filter(id=instance.message.chat_id).first()
+    other_user = chat.user_1 if chat.user_2 == user else chat.user_2
+    cache.delete(f"messages_{chat.id}_{user.id}")
+    cache.delete(f"messages_{chat.id}_{other_user.id}")
+

@@ -51,6 +51,9 @@ class MessageReaction(models.Model):
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, blank=True)
     reaction_time = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = (('message', 'react_user'),)
+
     def __str__(self):
         return self.status
 
