@@ -40,6 +40,7 @@ def chatsview(request, username):
 
     return render(request, 'messenger/chats.html', {'username': username, 'messages': messages_dict})
 
+
 def messagesview(request, chat_id):
     redirect_response = check_user_status(request)
     if redirect_response:
@@ -59,8 +60,8 @@ def messagesview(request, chat_id):
             picture = form.cleaned_data['picture']
             new_message = Message.objects.create(text=text, author=author, chat=chat, picture=picture)
             new_message.save()
-            #cache.delete(f"messages_{chat_id}_{request.user.id}")
-            #cache.delete(f"messages_{chat_id}_{other_user.id}")
+            cache.delete(f"messages_{chat_id}_{request.user.id}")
+            cache.delete(f"messages_{chat_id}_{other_user.id}")
             return redirect('messages', chat_id=chat.id)
         else:
             chat_data = {
@@ -79,6 +80,7 @@ def messagesview(request, chat_id):
                 "other_user": other_user.username,
                 "other_user_status": other_user_status,
                 "current_user": request.user.username,
+                "chat_id": chat_id,
             }
             return render(request, 'messenger/messages.html', {
                 "chat_data": chat_data,
@@ -111,9 +113,11 @@ def messagesview(request, chat_id):
         "other_user": other_user.username,
         "other_user_status": other_user_status,
         "current_user": request.user.username,
+        "chat_id": chat_id,
     }
     cache.set(f"messages_{chat_id}_{request.user.id}", chat_data, timeout=600)
     return render(request, 'messenger/messages.html', {'chat_data': chat_data, 'form': form})
+
 
 def deletemessage(request, message_id):
     redirect_response = check_user_status(request)

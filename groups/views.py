@@ -102,7 +102,6 @@ def postview(request, post_slug):
     post = GroupPosts.objects.get(slug=post_slug)
     post_edits = GroupPostsEdits.objects.filter(post = post)
     group = post.group
-    print(f'1{post.picture1}, 2{post.picture2}, 3{post.picture3}')
     is_admin = GroupSubscribers.objects.filter(group=group, user=request.user, is_admin=True).exists()
     return render(request, 'groups/post.html', context={'post':post, 'is_admin':is_admin, 'post_edits':post_edits})
 

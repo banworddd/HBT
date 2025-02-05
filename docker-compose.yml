@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: uvicorn HBT.asgi:application --host 0.0.0.0 --port 8000
     volumes:
       - .:/app  # Монтируем текущую директорию в контейнер
     ports:
@@ -11,6 +11,7 @@ services:
     environment:
       - DEBUG=True
       - PYTHONUNBUFFERED=1
+      - DJANGO_SETTINGS_MODULE=HBT.settings
     networks:
       - backend
 

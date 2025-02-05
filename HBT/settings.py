@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'users',
     'messenger',
     'groups',
@@ -73,6 +74,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'HBT.wsgi.application'
+ASGI_APPLICATION = 'HBT.asgi.application'
 
 
 # Database
@@ -145,3 +147,14 @@ CACHES = {
 }
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('redis', 6379)],
+        }
+    }
+}
+
+
