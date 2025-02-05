@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import groups, user_subcriptions, group, subscribe, unsubscribe, creategroup, postview, deletepost, editpost, editgroup
+from .views import groups, user_subcriptions, group, subscribe, unsubscribe, creategroup, postview, deletepost, editpost, editgroup, sendreaction
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -13,6 +13,7 @@ urlpatterns = [
     path('post/<slug:post_slug>/', postview, name='post' ),
     path('deletepost/<slug:post_slug>/', deletepost, name='deletepost'),
     path('editpost/<slug:post_slug>/', editpost, name='editpost'),
+    path('addpostreaction/<slug:post_slug>/<str:reaction>/',sendreaction, name='sendreaction' ),
     path('editgroup/<str:group_name>/', editgroup, name='editgroup'),
 ]
 if settings.DEBUG:

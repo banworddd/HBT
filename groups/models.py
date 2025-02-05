@@ -78,3 +78,22 @@ class GroupPostsComments(models.Model):
     def __str__(self):
         return self.comment
 
+class GroupPostReaction(models.Model):
+    STATUS_CHOICES = [
+        ('L', 'Like'),
+        ('D', 'Dislike'),
+        ('H','Heart')
+    ]
+
+    post = models.ForeignKey(GroupPosts, on_delete=models.CASCADE)
+    react_user = models.ForeignKey('GroupSubscribers', on_delete=models.CASCADE)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, blank=True)
+    reaction_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (('post', 'react_user'),)
+
+    def __str__(self):
+        return self.status
+
+

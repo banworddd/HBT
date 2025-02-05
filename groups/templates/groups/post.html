@@ -27,6 +27,33 @@
         <a href="{% url 'deletepost' post_slug=post.slug %}">X</a>
     {% endif %}
 
+    <!-- Блок реакций -->
+    <div class="reaction-buttons">
+        <span class="reaction-group">
+            <a href="{% url 'sendreaction' post_slug=post.slug reaction='L' %}"
+               class="reaction-button" data-reaction="L"
+               style="background-color: {% if user_post_reaction.status == 'L' %}green{% else %}grey{% endif %};">
+                👍 {{ l_reactions }}
+            </a>
+        </span>
+
+        <span class="reaction-group">
+            <a href="{% url 'sendreaction' post_slug=post.slug reaction='D' %}"
+               class="reaction-button" data-reaction="D"
+               style="background-color: {% if user_post_reaction.status == 'D' %}green{% else %}grey{% endif %};">
+                👎 {{ d_reactions }}
+            </a>
+        </span>
+
+        <span class="reaction-group">
+            <a href="{% url 'sendreaction' post_slug=post.slug reaction='H' %}"
+               class="reaction-button" data-reaction="H"
+               style="background-color: {% if user_post_reaction.status == 'H' %}green{% else %}grey{% endif %};">
+                ❤️ {{ h_reactions }}
+            </a>
+        </span>
+    </div>
+
     <details>
         <summary>Показать изменения</summary>
         {% if post_edits %}
@@ -65,4 +92,26 @@
     {% else %}
         <p>Вы не являетесь подписчиком этой группы. Подпишитесь, чтобы оставлять комментарии.</p>
     {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const reactionButtons = document.querySelectorAll('.reaction-button');
+            reactionButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const url = button.getAttribute('href');
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                        },
+                    }).then(response => {
+                        if (response.ok) {
+                            window.location.reload();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 {% endblock %}
