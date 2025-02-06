@@ -69,14 +69,6 @@ class GroupPostsEdits(models.Model):
     class Meta:
         unique_together = (('post', 'edit_date'),)
 
-class GroupPostsComments(models.Model):
-    post = models.ForeignKey(GroupPosts, on_delete=models.CASCADE)
-    comment = models.TextField(max_length=240)
-    comment_author = models.ForeignKey('GroupSubscribers', on_delete=models.CASCADE)
-    comment_date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.comment
 
 class GroupPostReaction(models.Model):
     STATUS_CHOICES = [
@@ -95,5 +87,30 @@ class GroupPostReaction(models.Model):
 
     def __str__(self):
         return self.status
+
+class GroupPostsComments(models.Model):
+    post = models.ForeignKey(GroupPosts, on_delete=models.CASCADE)
+    comment = models.TextField(max_length=240)
+    comment_author = models.ForeignKey('GroupSubscribers', on_delete=models.CASCADE)
+    comment_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.comment
+
+class GroupPostsCommentsReactions(models.Model):
+    STATUS_CHOICES = [
+        ('L', 'Like'),
+        ('D', 'Dislike'),
+        ('H', 'Heart')
+    ]
+
+    comment = models.ForeignKey(GroupPostsComments, on_delete=models.CASCADE)
+    react_user = models.ForeignKey('GroupSubscribers', on_delete=models.CASCADE)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, blank=True)
+    reaction_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (('comment', 'react_user', 'status'),)
+
 
 

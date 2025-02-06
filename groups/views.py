@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 
-from .models import Groups, GroupSubscribers, GroupPosts, GroupPostsEdits, GroupPostsComments, GroupPostReaction
+from .models import Groups, GroupSubscribers, GroupPosts, GroupPostsEdits, GroupPostsComments, GroupPostReaction, GroupPostsCommentsReactions
 from .forms import GroupPostForm, GroupCreationForm, GroupPostCommentForm
 from common.utils import check_user_status
 
@@ -98,41 +98,75 @@ def postview(request, post_slug):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
-    post = GroupPosts.objects.get(slug=post_slug)
-    post_edits = GroupPostsEdits.objects.filter(post = post)
-    comments = GroupPostsComments.objects.filter(post=post)
+
+    # Получение поста и информации о группе
+    post = get_object_or_404(GroupPosts, slug=post_slug)
     group = post.group
     is_admin = GroupSubscribers.objects.filter(group=group, user=request.user, is_admin=True).exists()
     is_subscriber = GroupSubscribers.objects.filter(group=group, user=request.user).exists()
 
-    post_reactions = GroupPostReaction.objects.filter(post=post)
-    l_reactions = post_reactions.filter(status = 'L').count()
-    d_reactions = post_reactions.filter(status='D').count()
-    h_reactions = post_reactions.filter(status='H').count()
+    # Получение комментариев и реакций
+    comments = GroupPostsComments.objects.filter(post=post)
+    comments_reactions = {}
+    user_comment_reactions = {}
+
+    # Проверка и получение реакций пользователя
+    if is_subscriber:
+        user_sub = GroupSubscribers.objects.get(group=group, user=request.user)
+
+        for comment in comments:
+            reactions = GroupPostsCommentsReactions.objects.filter(comment=comment)
+            comments_reactions[comment.id] = {
+                'L': reactions.filter(status='L').count(),
+                'D': reactions.filter(status='D').count(),
+                'H': reactions.filter(status='H').count()
+            }
+            user_reaction = reactions.filter(react_user=user_sub).first()
+            user_comment_reactions[comment.id] = user_reaction.status if user_reaction else None
+
+    # Работа с реакциями к посту
+    l_reactions = GroupPostReaction.objects.filter(post=post, status='L').count()
+    d_reactions = GroupPostReaction.objects.filter(post=post, status='D').count()
+    h_reactions = GroupPostReaction.objects.filter(post=post, status='H').count()
+    user_post_reaction = None
 
     if is_subscriber:
         user_sub = GroupSubscribers.objects.get(group=group, user=request.user)
-        reaction_exists = GroupPostReaction.objects.filter(post=post, react_user=user_sub).exists()
-        if reaction_exists:
-            user_post_reaction = GroupPostReaction.objects.get(post=post, react_user=user_sub)
-        else:
-            user_post_reaction = None
-    else:
-        user_post_reaction = None
+        post_reaction = GroupPostReaction.objects.filter(post=post, react_user=user_sub).first()
+        user_post_reaction = post_reaction.status if post_reaction else None
 
+    # Форма добавления комментариев
     if request.method == 'POST':
-        form = GroupPostCommentForm(request.POST, request.FILES)
-        if form.is_valid():
-            text = form.cleaned_data['comment']
-            author = GroupSubscribers.objects.get(group=group, user=request.user)
-            comment_post = post
-            new_comment = GroupPostsComments.objects.create(comment=text, comment_author=author, post=comment_post)
-            new_comment.save()
-            return redirect('post', post_slug)
+        form = GroupPostCommentForm(request.POST)
+        if form.is_valid() and is_subscriber:
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.comment_author = GroupSubscribers.objects.get(group=group, user=request.user)
+            comment.save()
+            return redirect('post', post_slug=post_slug)
     else:
         form = GroupPostCommentForm()
 
-    return render(request, 'groups/post.html', context={'post':post, 'is_admin':is_admin, 'post_edits':post_edits, 'form':form, 'is_subscriber':is_subscriber, 'comments':comments,'l_reactions':l_reactions, 'd_reactions':d_reactions, 'h_reactions':h_reactions, 'user_post_reaction':user_post_reaction})
+    # Получение истории изменений поста
+    post_edits = GroupPostsEdits.objects.filter(post=post)
+
+    # Контекст для шаблона
+    context = {
+        'post': post,
+        'is_admin': is_admin,
+        'post_edits': post_edits,
+        'is_subscriber': is_subscriber,
+        'comments': comments,
+        'form': form,
+        'l_reactions': l_reactions,
+        'd_reactions': d_reactions,
+        'h_reactions': h_reactions,
+        'user_post_reaction': user_post_reaction,
+        'comments_reactions': comments_reactions,
+        'user_comment_reactions': user_comment_reactions,
+    }
+
+    return render(request, 'groups/post.html', context)
 
 def sendreaction(request, post_slug, reaction):
     redirect_response = check_user_status(request)
@@ -156,6 +190,33 @@ def sendreaction(request, post_slug, reaction):
         new_reaction = GroupPostReaction.objects.create(post=post, react_user=user_sub, status=reaction)
         new_reaction.save()
         return redirect('post', post_slug=post.slug)
+
+def commentreaction(request, comment_id, reaction):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    is_subscriber = get_object_or_404(GroupSubscribers, user=request.user)
+    comment = get_object_or_404(GroupPostsComments, id=comment_id)
+    post = GroupPosts.objects.get(id=comment.post_id)
+    reaction_exists = GroupPostsCommentsReactions.objects.filter(comment=comment, react_user=is_subscriber).exists()
+    if reaction_exists:
+        existing_reactions = GroupPostsCommentsReactions.objects.get(comment=comment, react_user=is_subscriber)
+        if existing_reactions.status == reaction:
+            existing_reactions.delete()
+            return redirect('post', post_slug=post.slug)
+        else:
+            existing_reactions.delete()
+            new_reaction = GroupPostsCommentsReactions.objects.create(comment=comment, react_user=is_subscriber, status=reaction)
+            new_reaction.save()
+            return redirect('post', post_slug=post.slug)
+    else:
+        new_reaction = GroupPostsCommentsReactions.objects.create(comment=comment, react_user=is_subscriber, status=reaction)
+        new_reaction.save()
+        return redirect('post', post_slug=post.slug)
+
+
+
 
 def deletepost(request, post_slug):
     redirect_response = check_user_status(request)

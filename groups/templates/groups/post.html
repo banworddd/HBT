@@ -27,12 +27,12 @@
         <a href="{% url 'deletepost' post_slug=post.slug %}">X</a>
     {% endif %}
 
-    <!-- Блок реакций -->
+    <!-- Блок реакций для поста -->
     <div class="reaction-buttons">
         <span class="reaction-group">
             <a href="{% url 'sendreaction' post_slug=post.slug reaction='L' %}"
                class="reaction-button" data-reaction="L"
-               style="background-color: {% if user_post_reaction.status == 'L' %}green{% else %}grey{% endif %};">
+               style="background-color: {% if user_post_reaction.status == 'L' %}green{% else %}grey{% endif %}; {% if not is_subscriber %}pointer-events: none;{% endif %}">
                 👍 {{ l_reactions }}
             </a>
         </span>
@@ -40,7 +40,7 @@
         <span class="reaction-group">
             <a href="{% url 'sendreaction' post_slug=post.slug reaction='D' %}"
                class="reaction-button" data-reaction="D"
-               style="background-color: {% if user_post_reaction.status == 'D' %}green{% else %}grey{% endif %};">
+               style="background-color: {% if user_post_reaction.status == 'D' %}green{% else %}grey{% endif %}; {% if not is_subscriber %}pointer-events: none;{% endif %}">
                 👎 {{ d_reactions }}
             </a>
         </span>
@@ -48,7 +48,7 @@
         <span class="reaction-group">
             <a href="{% url 'sendreaction' post_slug=post.slug reaction='H' %}"
                class="reaction-button" data-reaction="H"
-               style="background-color: {% if user_post_reaction.status == 'H' %}green{% else %}grey{% endif %};">
+               style="background-color: {% if user_post_reaction.status == 'H' %}green{% else %}grey{% endif %}; {% if not is_subscriber %}pointer-events: none;{% endif %}">
                 ❤️ {{ h_reactions }}
             </a>
         </span>
@@ -75,6 +75,66 @@
             <div class="comment">
                 <p><strong>{{ comment.comment_author.user.public_name }}</strong>: {{ comment.comment }}</p>
                 <p><small>{{ comment.comment_date }}</small></p>
+
+                <!-- Блок реакций для комментария -->
+                <div class="reaction-buttons">
+                    <span class="reaction-group">
+                        <a href="{% url 'commentreaction' comment_id=comment.id reaction='L' %}"
+                           class="reaction-button" data-reaction="L"
+                           style="background-color: {% for reaction_item in user_comment_reactions %}
+                                {% if reaction_item.0 == comment.id and reaction_item.1 == 'L' %}
+                                    green
+                                {% else %}
+                                    grey
+                                {% endif %}
+                            {% endfor %}; {% if not is_subscriber %}pointer-events: none;{% endif %}">
+                            👍
+                            {% for reaction_item in comments_reactions %}
+                                {% if reaction_item.0 == comment.id %}
+                                    {{ reaction_item.1.L|default:0 }}
+                                {% endif %}
+                            {% endfor %}
+                        </a>
+                    </span>
+
+                    <span class="reaction-group">
+                        <a href="{% url 'commentreaction' comment_id=comment.id reaction='D' %}"
+                           class="reaction-button" data-reaction="D"
+                           style="background-color: {% for reaction_item in user_comment_reactions %}
+                                {% if reaction_item.0 == comment.id and reaction_item.1 == 'D' %}
+                                    green
+                                {% else %}
+                                    grey
+                                {% endif %}
+                            {% endfor %}; {% if not is_subscriber %}pointer-events: none;{% endif %}">
+                            👎
+                            {% for reaction_item in comments_reactions %}
+                                {% if reaction_item.0 == comment.id %}
+                                    {{ reaction_item.1.D|default:0 }}
+                                {% endif %}
+                            {% endfor %}
+                        </a>
+                    </span>
+
+                    <span class="reaction-group">
+                        <a href="{% url 'commentreaction' comment_id=comment.id reaction='H' %}"
+                           class="reaction-button" data-reaction="H"
+                           style="background-color: {% for reaction_item in user_comment_reactions %}
+                                {% if reaction_item.0 == comment.id and reaction_item.1 == 'H' %}
+                                    green
+                                {% else %}
+                                    grey
+                                {% endif %}
+                            {% endfor %}; {% if not is_subscriber %}pointer-events: none;{% endif %}">
+                            ❤️
+                            {% for reaction_item in comments_reactions %}
+                                {% if reaction_item.0 == comment.id %}
+                                    {{ reaction_item.1.H|default:0 }}
+                                {% endif %}
+                            {% endfor %}
+                        </a>
+                    </span>
+                </div>
             </div>
         {% endfor %}
     {% else %}
