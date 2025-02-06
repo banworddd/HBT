@@ -2,17 +2,23 @@ from django.db import models
 from users.models import CustomUser
 from django.core.exceptions import ValidationError
 
-from .utils import generate_image_name
+from .utils import generate_image_name, generate_avatar_name
 
 class Chats(models.Model):
-    user_1 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='chats_as_user_1')
-    user_2 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='chats_as_user_2')
+    user_1 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='chats_as_user_1', blank=True, null=True)
+    user_2 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='chats_as_user_2', blank=True, null=True)
+
+    is_group = models.BooleanField(default=False)
+    users = models.ManyToManyField(CustomUser, related_name='chats', blank=True)
+    admins = models.ManyToManyField(CustomUser, related_name='chats_as_admin', blank=True)
+    name = models.CharField(max_length=120,blank=True, null=True)
+    avatar = models.ImageField(upload_to=generate_avatar_name, blank=True, null=True)
 
     class Meta:
         unique_together = (('user_1', 'user_2'),)
 
     def save(self, *args, **kwargs):
-        if Chats.objects.filter(user_1=self.user_2, user_2=self.user_1).exists():
+        if Chats.objects.filter(user_1=self.user_2, user_2=self.user_1).exists() and not self.is_group:
             raise ValidationError('Chat with these users already exists.')
         super().save(*args, **kwargs)
 
