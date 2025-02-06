@@ -8,6 +8,7 @@
         {% for user, values in chats_with_users.items %}
             <li>
                 <a href="{% url 'profile' username=user.username %}">{{ user }}</a>
+                <a href="{% url 'addcontact' user.id %}">Добавить в контакты</a>
                 {% if values.0 %}
                     <!-- Если чат существует, выводим ссылку на чат -->
                     <a href="{% url 'messages' chat_id=values.0.id %}">Перейти к чату</a>
@@ -21,6 +22,7 @@
                 {% else %}
                     <span style="color: red;">Оффлайн</span>
                 {% endif %}
+
             </li>
         {% endfor %}
     </ul>

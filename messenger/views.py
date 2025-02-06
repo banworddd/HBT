@@ -172,7 +172,6 @@ def usersview(request):
     if redirect_response:
         return redirect_response
 
-
     users = CustomUser.objects.exclude(username=request.user.username)
     chats = Chats.objects.filter(Q(user_1=request.user.id) | Q(user_2=request.user.id))
     chats_with_users = {item: [None, False] for item in users}
@@ -182,8 +181,25 @@ def usersview(request):
                 chats_with_users[user][0]= chat
     for user in chats_with_users.keys():
         chats_with_users[user][1] = check_user_session(request, user.id)
+    print(chats_with_users)
 
     return render(request, 'messenger/users.html', {"chats_with_users": chats_with_users})
+
+def addcontact(request, contact_id):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    contact = get_object_or_404(CustomUser, pk=contact_id)
+    user = get_object_or_404(CustomUser, pk=request.user.id)
+    for value in user.contacts:
+        if value == contact.username:
+            return redirect('users')
+    user.contacts.append(contact.username)
+    user.save()
+    return redirect('users')
+
+
 
 def profileview(request, username):
     redirect_response = check_user_status(request)

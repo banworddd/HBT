@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import startpage, chatsview, messagesview, usersview, create_chat_view, deletemessage, profileview, sendreaction
+from .views import startpage, chatsview, messagesview, usersview, create_chat_view, deletemessage, profileview, sendreaction, addcontact
 from django.conf import settings
 from django.conf.urls.static import static
 urlpatterns = [
@@ -11,6 +11,7 @@ urlpatterns = [
     path('deletemessage/<int:message_id>/', deletemessage, name='deletemessage'),
     path('profile/<str:username>/', profileview, name='profile'),
     path('sendreaction/<int:message_id>/<str:reaction>/',sendreaction, name='sendreaction' ),
+    path('addcontact/<int:contact_id>/', addcontact, name='addcontact'),
 
 ]
 if settings.DEBUG:
