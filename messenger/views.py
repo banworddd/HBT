@@ -29,6 +29,7 @@ def chatsview(request, username):
     chats = Chats.objects.filter(
         Q(user_1=user_id) | Q(user_2=user_id)
     ).select_related('user_1', 'user_2')
+    group_chats = Chats.objects.filter(users = user)
 
     messages_dict = {}
     for chat in chats:
@@ -39,7 +40,7 @@ def chatsview(request, username):
             'message': last_message.text if last_message else None
         }
 
-    return render(request, 'messenger/chats.html', {'username': username, 'messages': messages_dict})
+    return render(request, 'messenger/chats.html', {'username': username, 'messages': messages_dict, 'group_chats': group_chats})
 
 def messagesview(request, chat_id):
     redirect_response = check_user_status(request)
@@ -280,9 +281,8 @@ def create_group_chat(request):
             name = form.cleaned_data['name']
             users = form.cleaned_data['users']
             all_users = users.union(user_set)
-            print(all_users)
             new_chat = Chats.objects.create(name = name, is_group = True)
-            new_chat.users.set(users)
+            new_chat.users.set(all_users)
             new_chat.admins.add(request.user)
             new_chat.save()
             return redirect('group_messages', chat_id = new_chat.id)
