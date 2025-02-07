@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block title %}Chat Messages{% endblock %}
+
+{% block content %}
+<div>
+    <h1>{{ chat_data.chat.name }}</h1>
+    <div>
+        <h2>Messages</h2>
+        <ul>
+            {% for message in chat_data.messages %}
+                <li>
+                    <strong>{{ message.author.username }}</strong>: {{ message.text }}
+                    {% if message.picture %}
+                        <br>
+                        <img src="{{ message.picture.url }}" alt="Message Image" style="max-width: 200px;">
+                    {% endif %}
+                    <br>
+                    <small>{{ message.send_time }} - {{ message.get_status_display }}</small>
+                </li>
+            {% empty %}
+                <li>No messages yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div>
+        <h2>Send a Message</h2>
+        <form method="post" enctype="multipart/form-data" action="">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Send</button>
+        </form>
+        {% if form.errors %}
+            <div>
+                <p>Please correct the following errors:</p>
+                <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

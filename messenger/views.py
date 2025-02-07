@@ -124,6 +124,32 @@ def messagesview(request, chat_id):
     cache.set(f"messages_{chat_id}_{request.user.id}", chat_data, timeout=600)
     return render(request, 'messenger/messages.html', {'chat_data': chat_data, 'form': form})
 
+def group_messages(request, chat_id):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+
+    chat = get_object_or_404(Chats, id = chat_id)
+    messages = Message.objects.filter(chat=chat)
+    chat_data = {'chat': chat, 'messages': messages}
+    if request.method == 'POST':
+        form = MessageForm(request.POST, request.FILES)
+        if form.is_valid():
+            author = request.user
+            text = form.cleaned_data['text']
+            picture = form.cleaned_data['picture']
+            new_message = Message.objects.create(text=text, author=author, chat=chat, picture=picture)
+            new_message.save()
+            return redirect('group_messages', chat_id=chat.id)
+        else:
+            chat_data = {'chat': chat, 'messages': messages}
+            return render (request, 'messenger/group_messages.html', chat_data)
+    else:
+        form = MessageForm()
+    chat_data = {'chat': chat, 'messages': messages}
+    print(messages)
+    return render(request, 'messenger/group_messages.html', {'chat_data':chat_data, 'form': form})
+
 
 def deletemessage(request, message_id):
     redirect_response = check_user_status(request)
@@ -247,22 +273,26 @@ def create_group_chat(request):
     if redirect_response:
         return redirect_response
     user = get_object_or_404(CustomUser, username = request.user.username)
+    user_set = CustomUser.objects.filter(username=request.user.username)
     if request.method == "POST":
         form = GroupChatForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
             users = form.cleaned_data['users']
+            all_users = users.union(user_set)
+            print(all_users)
             new_chat = Chats.objects.create(name = name, is_group = True)
             new_chat.users.set(users)
             new_chat.admins.add(request.user)
             new_chat.save()
-            return redirect('messages', chat_id = new_chat.id)
+            return redirect('group_messages', chat_id = new_chat.id)
         else:
             return render (request, 'messenger/group_chat.html', {'form': form})
     else:
         form = GroupChatForm()
 
     return render (request, 'messenger/group_chat.html', {'form': form})
+
 
 
 

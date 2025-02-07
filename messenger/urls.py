@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import startpage, chatsview, messagesview, contactsview, create_chat_view, deletemessage, profileview, \
-    sendreaction, deletecontact, create_group_chat
+    sendreaction, deletecontact, create_group_chat, group_messages
 from django.conf import settings
 from django.conf.urls.static import static
 urlpatterns = [
@@ -14,6 +14,7 @@ urlpatterns = [
     path('sendreaction/<int:message_id>/<str:reaction>/',sendreaction, name='sendreaction' ),
     path('deletecontact/<str:contact_name>/', deletecontact, name='deletecontact'),
     path('create_group_chat', create_group_chat, name = 'create_group_chat' ),
+    path('group_messages/<int:chat_id>/', group_messages, name = 'group_messages' ),
 
 ]
 if settings.DEBUG:
