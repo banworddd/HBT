@@ -5,7 +5,7 @@ from django.core.cache import cache
 from common.utils import check_user_status, check_user_session, check_active_sessions
 from users.models import CustomUser
 
-from .forms import MessageForm
+from .forms import MessageForm, GroupChatForm
 from .models import Chats, Message, MessageReaction
 
 def startpage(request):
@@ -40,7 +40,6 @@ def chatsview(request, username):
         }
 
     return render(request, 'messenger/chats.html', {'username': username, 'messages': messages_dict})
-
 
 def messagesview(request, chat_id):
     redirect_response = check_user_status(request)
@@ -167,37 +166,33 @@ def sendreaction(request, message_id, reaction):
 
 
 
-def usersview(request):
+def contactsview(request):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
 
-    users = CustomUser.objects.exclude(username=request.user.username)
-    chats = Chats.objects.filter(Q(user_1=request.user.id) | Q(user_2=request.user.id))
-    chats_with_users = {item: [None, False] for item in users}
-    for chat in chats:
-        for user in chats_with_users:
-            if chat.user_1 == user or chat.user_2==user:
-                chats_with_users[user][0]= chat
-    for user in chats_with_users.keys():
-        chats_with_users[user][1] = check_user_session(request, user.id)
-    print(chats_with_users)
+    user = get_object_or_404(CustomUser, pk=request.user.id)
+    contacts = {}
+    for contact in user.contacts:
+        contact_user = get_object_or_404(CustomUser, username = contact)
+        if Chats.objects.filter(Q(user_1 = request.user) & Q(user_2 = contact_user) | Q(user_2 = request.user) & Q(user_1 = contact_user)).exists():
+            contacts[contact_user] = Chats.objects.get(Q(user_1 = request.user) & Q(user_2 = contact_user) | Q(user_2 = request.user) & Q(user_1 = contact_user))
+        else:
+            contacts[contact_user] = None
 
-    return render(request, 'messenger/users.html', {"chats_with_users": chats_with_users})
+    return render(request, 'messenger/contacts.html', {'contacts': contacts})
 
-def addcontact(request, contact_id):
+def deletecontact(request, contact_name):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
 
-    contact = get_object_or_404(CustomUser, pk=contact_id)
     user = get_object_or_404(CustomUser, pk=request.user.id)
     for value in user.contacts:
-        if value == contact.username:
-            return redirect('users')
-    user.contacts.append(contact.username)
+        if value == contact_name:
+            user.contacts[contact_name].delete()
     user.save()
-    return redirect('users')
+    return redirect('profile', username=contact_name)
 
 
 
@@ -205,6 +200,11 @@ def profileview(request, username):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
+    request_user = get_object_or_404(CustomUser, pk=request.user.id)
+    is_contact = False
+    for contact in request_user.contacts:
+        if contact == username:
+            is_contact = True
 
     cached_user_data = cache.get(f"messenger_profile_{username}")
     if cached_user_data:
@@ -224,6 +224,7 @@ def profileview(request, username):
         'status': user.status,
         'reg_date': user.date_joined,
         'chat_id': chat_id,
+        'is_contact': is_contact,
     }
     cache.set(f"messenger_profile_{username}", user_data, timeout=300)
     return render(request, 'messenger/profile.html', user_data)
@@ -240,6 +241,32 @@ def create_chat_view(request, username):
     new_chat = Chats.objects.create(user_1=request.user, user_2=other_user)
     new_chat.save()
     return redirect('messages', chat_id = new_chat.id)
+
+def create_group_chat(request):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+    user = get_object_or_404(CustomUser, username = request.user.username)
+    if request.method == "POST":
+        form = GroupChatForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            users = form.cleaned_data['users']
+            new_chat = Chats.objects.create(name = name, is_group = True)
+            new_chat.users.set(users)
+            new_chat.admins.add(request.user)
+            new_chat.save()
+            return redirect('messages', chat_id = new_chat.id)
+        else:
+            return render (request, 'messenger/group_chat.html', {'form': form})
+    else:
+        form = GroupChatForm()
+
+    return render (request, 'messenger/group_chat.html', {'form': form})
+
+
+
+
 
 
 

@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}Create Group Chat{% endblock %}
+
+{% block content %}
+<div>
+    <h1>Create a New Group Chat</h1>
+    <form method="post" action="{% url 'create_group_chat' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Create Chat</button>
+    </form>
+    {% if form.errors %}
+        <div>
+            <p>Please correct the following errors:</p>
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

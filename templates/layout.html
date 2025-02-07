@@ -12,11 +12,12 @@
             <nav>
                 <ul style="list-style-type: none; display: flex; gap: 10px;">
                     <li><button onclick="location.href='{% url 'chats' username=user.username %}'">Чаты</button></li>
-                    <li><button onclick="location.href='{% url 'users' %}'">Пользователи</button></li>
+                    <li><button onclick="location.href='{% url 'contacts' %}'">Контакты</button></li>
                     <li><button onclick="location.href='{% url 'profile' %}'">Мой профиль</button></li>
                     <li><button onclick="location.href='{% url 'user_subs' %}'">Мои группы</button></li>
                     <li><button onclick="location.href='{% url 'groups' %}'">Все группы</button></li>
                     <li><button onclick="location.href='{% url 'create_group' %}'">Создать группу</button></li>
+                    <li><button onclick="location.href='{% url 'create_group_chat' %}'">Создать групповой чат</button></li>
                     <li><button onclick="location.href='{% url 'logout' %}'">Выход</button></li>
                 </ul>
             </nav>

@@ -1,6 +1,9 @@
 from django.db import models
+from django.db.models import Q
+
 from users.models import CustomUser
 from django.core.exceptions import ValidationError
+
 
 from .utils import generate_image_name, generate_avatar_name
 
@@ -14,12 +17,14 @@ class Chats(models.Model):
     name = models.CharField(max_length=120,blank=True, null=True)
     avatar = models.ImageField(upload_to=generate_avatar_name, blank=True, null=True)
 
-    class Meta:
-        unique_together = (('user_1', 'user_2'),)
 
     def save(self, *args, **kwargs):
-        if Chats.objects.filter(user_1=self.user_2, user_2=self.user_1).exists() and not self.is_group:
-            raise ValidationError('Chat with these users already exists.')
+        if self.user_1 and self.user_2 and not self.is_group:
+            if Chats.objects.filter(Q(user_1=self.user_2) & Q(user_2=self.user_1) | Q(user_1=self.user_1) & Q(user_2=self.user_2)).exists() and not self.is_group:
+                raise ValidationError('Chat with these users already exists.')
+        if self.user_1 and self.user_2 and self.is_group:
+            raise ValidationError('Wrong fields')
+
         super().save(*args, **kwargs)
 
 

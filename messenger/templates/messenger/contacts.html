@@ -5,23 +5,17 @@
 {% block content %}
     <h1>Список пользователей</h1>
     <ul>
-        {% for user, values in chats_with_users.items %}
+        {% for user, chat in contacts.items %}
             <li>
                 <a href="{% url 'profile' username=user.username %}">{{ user }}</a>
-                <a href="{% url 'addcontact' user.id %}">Добавить в контакты</a>
-                {% if values.0 %}
+                {% if chat %}
                     <!-- Если чат существует, выводим ссылку на чат -->
-                    <a href="{% url 'messages' chat_id=values.0.id %}">Перейти к чату</a>
+                    <a href="{% url 'messages' chat_id=chat.id %}">Перейти к чату</a>
                 {% else %}
                     <!-- Если чата нет, выводим кнопку для создания чата -->
                     <a href="{% url 'create_chat' username=user.username %}" class="btn btn-primary">Создать чат</a>
                 {% endif %}
                 <!-- Выводим статус онлайна пользователя -->
-                {% if values.1 %}
-                    <span style="color: green;">Онлайн</span>
-                {% else %}
-                    <span style="color: red;">Оффлайн</span>
-                {% endif %}
 
             </li>
         {% endfor %}
