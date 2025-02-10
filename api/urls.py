@@ -1,6 +1,6 @@
-from django.urls import path
-from .views import ChatsListAPIView
+from django.urls import path, include
 
 urlpatterns = [
-    path('chats/', ChatsListAPIView.as_view(), name='chats-list'),
+    path('', include('api.messenger_api_urls')),
+
 ]

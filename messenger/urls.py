@@ -1,13 +1,13 @@
 from django.urls import path
-from .views import startpage, chatsview, messagesview, contactsview, create_chat_view, deletemessage, profileview, \
+from .views import startpage, chatsview, chat_detail_view, contactsview, create_chat_view, deletemessage, profileview, \
     sendreaction, deletecontact, create_group_chat, group_messages
 from django.conf import settings
 from django.conf.urls.static import static
 urlpatterns = [
     path ('', startpage, name='startpage'),
     path('contacts/', contactsview, name='contacts'),
-    path('chats/<str:username>/', chatsview, name='chats' ),
-    path('messages/<int:chat_id>/', messagesview, name='messages'),
+    path('chats/', chatsview, name='chats'),
+    path('chat/<int:chat_id>/', chat_detail_view, name='chat'),
     path('create_chat/<str:username>/', create_chat_view, name='create_chat'),
     path('deletemessage/<int:message_id>/', deletemessage, name='deletemessage'),
     path('profile/<str:username>/', profileview, name='profile'),

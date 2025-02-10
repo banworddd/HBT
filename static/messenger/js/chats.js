@@ -8,7 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const chatsList = document.getElementById('chats-list');
       data.forEach(chat => {
         const listItem = document.createElement('li');
-        listItem.innerHTML = `
+        const chatLink = document.createElement('a');
+        chatLink.href = `http://localhost:8000/chat/${chat.id}/`; // Обновленный URL
+        chatLink.innerHTML = `
           <strong>ID:</strong> ${chat.id}<br>
           <strong>Is Group:</strong> ${chat.is_group}<br>
           ${chat.is_group ? `
@@ -21,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
           `}
           <strong>Last Message Time:</strong> ${chat.last_message_time}<br>
         `;
+        listItem.appendChild(chatLink);
         chatsList.appendChild(listItem);
       });
     })

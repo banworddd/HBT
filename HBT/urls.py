@@ -7,7 +7,7 @@ urlpatterns = [
     path('', include('messenger.urls'), name='messenger'),
     path('groups/', include('groups.urls'), name='groups'),
     path('account/', include('users.urls'), name='account'),
-    path('api/', include('api.urls'), name='api'),
+    path('api/', include('api.messenger_api_urls'), name='api'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

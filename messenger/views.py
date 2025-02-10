@@ -21,95 +21,21 @@ def startpage(request):
 
     return render(request, 'messenger/startpage.html', context={'users_count':users_count, 'active_user_count':active_user_count})
 
-def chatsview(request, username):
+def chatsview(request):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
+
+    username = request.user.username
 
     return render(request, 'messenger/chats.html', {'username': username})
 
-def messagesview(request, chat_id):
+def chat_detail_view(request, chat_id):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
 
-    chat = get_object_or_404(Chats, id=chat_id)
-
-    messages = Message.objects.filter(chat=chat).select_related('author', 'chat').order_by('send_time')
-    other_user = chat.user_1 if chat.user_2 == request.user else chat.user_2
-    other_user_status = check_user_session(request, other_user.id)
-    messages_reactions = MessageReaction.objects.filter(message__chat = chat)
-    user_reactions = {reaction.message_id: reaction.status for reaction in messages_reactions.filter(react_user=request.user)}
-
-    if request.method == 'POST':
-        form = MessageForm(request.POST, request.FILES)
-        if form.is_valid():
-            author = request.user
-            text = form.cleaned_data['text']
-            picture = form.cleaned_data['picture']
-            new_message = Message.objects.create(text=text, author=author, chat=chat, picture=picture)
-            new_message.save()
-            cache.delete(f"messages_{chat_id}_{request.user.id}")
-            cache.delete(f"messages_{chat_id}_{other_user.id}")
-            return redirect('messages', chat_id=chat.id)
-        else:
-            chat_data = {
-                "messages": [
-                    {
-                        "id": msg.id,
-                        "text": msg.text,
-                        "send_time": msg.send_time,
-                        "status": msg.status,
-                        "is_deleted": msg.is_deleted,
-                        "author__username": msg.author.username,
-                        "picture_url": msg.picture.url if msg.picture else None,
-                        'reactions': messages_reactions.filter(message = msg)
-                    }
-                    for msg in messages
-                ],
-                "other_user": other_user.username,
-                "other_user_status": other_user_status,
-                "current_user": request.user.username,
-                "chat_id": chat_id,
-                'user_reactions': user_reactions,
-            }
-            return render(request, 'messenger/messages.html', {
-                "chat_data": chat_data,
-                "form": form
-            })
-    else:
-        form = MessageForm()
-
-    cached_chat_data = cache.get(f"messages_{chat_id}_{request.user.id}")
-    if cached_chat_data:
-        return render(request, 'messenger/messages.html', {'chat_data': cached_chat_data, 'form': form})
-
-    # Обновление статусов непрочитанных сообщений
-    unread_messages = messages.filter(author=other_user, status='S')
-    unread_messages.update(status='R')
-
-    chat_data = {
-        "messages": [
-            {
-                "id": msg.id,
-                "text": msg.text,
-                "send_time": msg.send_time,
-                "status": msg.status,
-                "is_deleted": msg.is_deleted,
-                "author__username": msg.author.username,
-                "picture_url": msg.picture.url if msg.picture else None,
-                'reactions': messages_reactions.filter(message=msg),
-            }
-            for msg in messages
-        ],
-        "other_user": other_user.username,
-        "other_user_status": other_user_status,
-        "current_user": request.user.username,
-        "chat_id": chat_id,
-        'user_reactions': user_reactions,
-    }
-    cache.set(f"messages_{chat_id}_{request.user.id}", chat_data, timeout=600)
-    return render(request, 'messenger/messages.html', {'chat_data': chat_data, 'form': form})
+    return render(request, 'messenger/chat_detail.html', {'chat_id': chat_id})
 
 def group_messages(request, chat_id):
     redirect_response = check_user_status(request)

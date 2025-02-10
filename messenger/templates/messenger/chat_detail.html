@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+  <h1>Chat Information</h1>
+  <div id="chat-info" data-chat-id="{{ chat_id }}">
+  </div>
+
+  <h2>Messages</h2>
+  <ul id="messages-list">
+  </ul>
+
+  <script src="{% static 'messenger/js/chat_detail.js' %}"></script>
+{% endblock %}
