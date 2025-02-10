@@ -48,6 +48,13 @@ class MessagesCreateListAPIView(ListCreateAPIView):
 
         queryset = Message.objects.filter(chat=chat_obj).order_by('send_time')
 
+        for msg in queryset.reverse():
+            if msg.author == self.request.user:
+                break
+            else:
+                msg.status = 'R'
+                msg.save()
+
         return queryset
 
     def perform_create(self, serializer):
