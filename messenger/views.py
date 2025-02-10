@@ -21,7 +21,7 @@ def startpage(request):
 
     return render(request, 'messenger/startpage.html', context={'users_count':users_count, 'active_user_count':active_user_count})
 
-def chatsview(request):
+def chats_view(request):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response

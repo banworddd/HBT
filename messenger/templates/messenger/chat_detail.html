@@ -4,11 +4,20 @@
 {% block content %}
   <h1>Chat Information</h1>
   <div id="chat-info" data-chat-id="{{ chat_id }}">
+    <!-- Информация о чате будет добавлена сюда с помощью JavaScript -->
   </div>
 
   <h2>Messages</h2>
   <ul id="messages-list">
+    <!-- Сообщения будут добавлены сюда с помощью JavaScript -->
   </ul>
+
+  <h2>Send a Message</h2>
+  <form id="message-form">
+    <textarea id="message-text" name="text" placeholder="Enter your message" required></textarea><br>
+    <input type="file" id="message-image" name="picture"><br>
+    <button type="submit">Send</button>
+  </form>
 
   <script src="{% static 'messenger/js/chat_detail.js' %}"></script>
 {% endblock %}
