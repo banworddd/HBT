@@ -1,5 +1,5 @@
 from django.db.models import Q
-from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView, RetrieveUpdateAPIView
 from messenger.models import Chats, Message
 from users.models import CustomUser
 from .messenger_serializers import ChatsSerializer, MessageSerializer
@@ -32,7 +32,6 @@ class ChatDetailAPIView(RetrieveAPIView):
     serializer_class = ChatsSerializer
     lookup_field = 'pk'
 
-
 class MessagesCreateListAPIView(ListCreateAPIView):
     serializer_class = MessageSerializer
 
@@ -59,10 +58,13 @@ class MessagesCreateListAPIView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-class MessageDetailAPIView(RetrieveAPIView):
-    queryset = Message.objects.all()
-    serializer_class = MessageSerializer
-    lookup_field = 'pk'
+
+
+
+
+
+
+
 
 
 

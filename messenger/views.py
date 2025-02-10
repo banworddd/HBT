@@ -8,7 +8,7 @@ from common.utils import check_user_status, check_user_session, check_active_ses
 from users.models import CustomUser
 
 from .forms import MessageForm, GroupChatForm
-from .models import Chats, Message, MessageReaction
+from .models import Chats, Message
 
 def startpage(request):
     if request.user.is_authenticated:
@@ -82,27 +82,7 @@ def deletemessage(request, message_id):
     message.save()
     return redirect('messages', chat_id=message.chat.id)
 
-def sendreaction(request, message_id, reaction):
-    redirect_response = check_user_status(request)
-    if redirect_response:
-        return redirect_response
-    message = get_object_or_404(Message, pk=message_id)
-    cache.delete(f"messages_{message.chat.id}_{request.user.id}")
-    reaction_exists = MessageReaction.objects.filter(message=message, react_user=request.user).exists()
-    if reaction_exists:
-        reaction_exists = MessageReaction.objects.get(message=message, react_user=request.user)
-        if reaction_exists.status == reaction:
-            reaction_exists.delete()
-            return redirect('messages', chat_id=message.chat.id)
-        else:
-            reaction_exists.delete()
-            new_reaction = MessageReaction.objects.create(message=message, react_user=request.user, status=reaction)
-            new_reaction.save()
-            return redirect('messages', chat_id=message.chat.id)
-    else:
-        new_reaction = MessageReaction.objects.create(message=message, react_user=request.user, status=reaction)
-        new_reaction.save()
-        return redirect('messages', chat_id=message.chat.id)
+
 
 
 
