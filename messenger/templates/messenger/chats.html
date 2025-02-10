@@ -1,41 +1,9 @@
 {% extends 'layout.html' %}
-
-{% block title %}Чаты пользователя {{ username }}{% endblock %}
-
+{% load static %}
 {% block content %}
-    <h1>Чаты пользователя {{ username }}</h1>
-    <div>
-        <h2>Чаты с пользователями:</h2>
-        <ul>
-            {% for user, chat_info in messages.items %}
-                <li>
-                    <ul>
-                        <li>
-                            <a href="{% url 'messages' chat_id=chat_info.chat_id %}">Чат с: {{ user }}</a>
-                        </li>
-                        <li>
-                            Последнее сообщение:
-                            {% if chat_info.message %}
-                                {{ chat_info.message }}
-                            {% else %}
-                                Сообщений пока нет
-                            {% endif %}
-                        </li>
-                    </ul>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-    <div>
-        <h2>Групповые чаты:</h2>
-        <ul>
-            {% for group_chat in group_chats %}
-                <li>
-                    <a href="{% url 'group_messages' chat_id=group_chat.id %}">{{ group_chat.name }}</a>
-                </li>
-            {% empty %}
-                <li>Нет групповых чатов</li>
-            {% endfor %}
-        </ul>
-    </div>
+  <h1>Chats for {{ username }}</h1>
+  <ul id="chats-list" data-username="{{ username }}">
+  </ul>
+
+  <script src="{% static 'messenger/js/chats.js' %}"></script>
 {% endblock %}

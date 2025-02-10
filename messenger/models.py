@@ -17,6 +17,8 @@ class Chats(models.Model):
     name = models.CharField(max_length=120,blank=True, null=True)
     avatar = models.ImageField(upload_to=generate_avatar_name, blank=True, null=True)
 
+    last_message_time = models.DateTimeField(auto_now_add=True)
+
 
     def save(self, *args, **kwargs):
         if self.user_1 and self.user_2 and not self.is_group:

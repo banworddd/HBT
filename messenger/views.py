@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.cache import cache
@@ -24,23 +26,7 @@ def chatsview(request, username):
     if redirect_response:
         return redirect_response
 
-    user = get_object_or_404(CustomUser, username=username)
-    user_id = user.id
-    chats = Chats.objects.filter(
-        Q(user_1=user_id) | Q(user_2=user_id)
-    ).select_related('user_1', 'user_2')
-    group_chats = Chats.objects.filter(users = user)
-
-    messages_dict = {}
-    for chat in chats:
-        other_user = chat.user_2 if chat.user_1.id == user_id else chat.user_1
-        last_message = Message.objects.filter(chat=chat).last()
-        messages_dict[other_user] = {
-            'chat_id': chat.id,
-            'message': last_message.text if last_message else None
-        }
-
-    return render(request, 'messenger/chats.html', {'username': username, 'messages': messages_dict, 'group_chats': group_chats})
+    return render(request, 'messenger/chats.html', {'username': username})
 
 def messagesview(request, chat_id):
     redirect_response = check_user_status(request)
@@ -141,6 +127,8 @@ def group_messages(request, chat_id):
             picture = form.cleaned_data['picture']
             new_message = Message.objects.create(text=text, author=author, chat=chat, picture=picture)
             new_message.save()
+            chat.last_message_time = timezone.now()
+            chat.save()
             return redirect('group_messages', chat_id=chat.id)
         else:
             chat_data = {'chat': chat, 'messages': messages}
