@@ -221,8 +221,6 @@ def deletecontact(request, contact_name):
     user.save()
     return redirect('profile', username=contact_name)
 
-
-
 def profileview(request, username):
     redirect_response = check_user_status(request)
     if redirect_response:
