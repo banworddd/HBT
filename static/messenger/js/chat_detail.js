@@ -1,30 +1,45 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const chatId = document.getElementById('chat-info').dataset.chatId;
+  const chatInfo = document.getElementById('chat-info');
+  const chatId = chatInfo.dataset.chatId;
+  const currentUsername = chatInfo.dataset.username; // Имя текущего пользователя
   const messagesListUrl = `/api/chat_messages_list/`;
   const messageForm = document.getElementById('message-form');
 
-  // Получение списка сообщений
+  // Загрузка сообщений
   fetch(`${messagesListUrl}?chat_id=${chatId}`)
     .then(response => response.json())
     .then(data => {
       const messagesList = document.getElementById('messages-list');
       data.forEach(message => {
         const listItem = document.createElement('li');
-        listItem.dataset.messageId = message.id; // Устанавливаем data-message-id на элемент li
+        listItem.dataset.messageId = message.id;
         listItem.innerHTML = `
           <strong>ID:</strong> ${message.id}<br>
-          <strong>Text:</strong> ${message.text}<br>
+          <strong>Text:</strong> <span class="message-text">${message.text}</span><br>
           <strong>Send Time:</strong> ${message.send_time}<br>
           <strong>Status:</strong> ${message.status}<br>
           <strong>Author:</strong> ${message.author_name}<br>
+          ${message.author_name === currentUsername ? `<button class="edit-button" data-message-id="${message.id}">Редактировать</button>` : ''}
           <button class="delete-button" data-message-id="${message.id}">Удалить</button>
         `;
         messagesList.appendChild(listItem);
-      });
 
-      // Добавление обработчика события для кнопок удаления
-      document.querySelectorAll('.delete-button').forEach(button => {
-        button.addEventListener('click', function () {
+        // Обработчики для кнопок редактирования (если они есть)
+        if (message.author_name === currentUsername) {
+          listItem.querySelector('.edit-button').addEventListener('click', function () {
+            const messageId = this.dataset.messageId;
+            const messageTextElement = this.closest('li').querySelector('.message-text');
+            const currentText = messageTextElement.textContent;
+
+            const newText = prompt('Введите новый текст сообщения:', currentText);
+            if (newText !== null && newText.trim() !== '') {
+              updateMessage(messageId, newText.trim());
+            }
+          });
+        }
+
+        // Обработчики для кнопок удаления
+        listItem.querySelector('.delete-button').addEventListener('click', function () {
           const messageId = this.dataset.messageId;
           deleteMessage(messageId);
         });
@@ -32,10 +47,9 @@ document.addEventListener('DOMContentLoaded', function () {
     })
     .catch(error => console.error('Error fetching messages:', error));
 
-  // Обработка отправки формы
+  // Отправка нового сообщения
   messageForm.addEventListener('submit', function (event) {
     event.preventDefault();
-
     const textInput = document.getElementById('message-text');
     const imageInput = document.getElementById('message-image');
 
@@ -70,18 +84,33 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(data => {
         const messagesList = document.getElementById('messages-list');
         const listItem = document.createElement('li');
-        listItem.dataset.messageId = data.id; // Устанавливаем data-message-id на элемент li
+        listItem.dataset.messageId = data.id;
         listItem.innerHTML = `
           <strong>ID:</strong> ${data.id}<br>
-          <strong>Text:</strong> ${data.text}<br>
+          <strong>Text:</strong> <span class="message-text">${data.text}</span><br>
           <strong>Send Time:</strong> ${data.send_time}<br>
           <strong>Status:</strong> ${data.status}<br>
           <strong>Author:</strong> ${data.author_name}<br>
+          ${data.author_name === currentUsername ? `<button class="edit-button" data-message-id="${data.id}">Редактировать</button>` : ''}
           <button class="delete-button" data-message-id="${data.id}">Удалить</button>
         `;
         messagesList.appendChild(listItem);
 
-        // Добавление обработчика события для новой кнопки удаления
+        // Обработчик для новой кнопки редактирования (если она есть)
+        if (data.author_name === currentUsername) {
+          listItem.querySelector('.edit-button').addEventListener('click', function () {
+            const messageId = this.dataset.messageId;
+            const messageTextElement = this.closest('li').querySelector('.message-text');
+            const currentText = messageTextElement.textContent;
+
+            const newText = prompt('Введите новый текст сообщения:', currentText);
+            if (newText !== null && newText.trim() !== '') {
+              updateMessage(messageId, newText.trim());
+            }
+          });
+        }
+
+        // Обработчик для новой кнопки удаления
         listItem.querySelector('.delete-button').addEventListener('click', function () {
           const messageId = this.dataset.messageId;
           deleteMessage(messageId);
@@ -95,47 +124,86 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   });
 
-  function deleteMessage(messageId) {
-  const deleteUrl = `/api/chat_message_delete/${messageId}/`;
-  const data = {
-    text: 'Сообщение удалено',
-    chat: chatId,
-    is_deleted: true,
-    picture: null
-  };
+  // Функция для обновления сообщения
+  function updateMessage(messageId, newText) {
+    const updateUrl = `/api/chat_message_update/${messageId}/`;
+    const data = {
+      text: newText,
+    };
 
-  fetch(deleteUrl, {
-    method: 'PUT',
-    headers: {
-      'X-CSRFToken': getCookie('csrftoken'),
-      'Content-Type': 'application/json',
-    },
-    credentials: 'same-origin',
-    body: JSON.stringify(data),
-  })
-    .then(response => {
-      if (!response.ok) {
-        return response.text().then(errorText => {
-          throw new Error(errorText);
-        });
-      }
-      return response.json();
+    fetch(updateUrl, {
+      method: 'PATCH',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(data),
     })
-    .then(data => {
-      // Удаляем элемент сообщения из DOM
-      const messageItem = document.querySelector(`li[data-message-id="${messageId}"]`);
-      if (messageItem) {
-        messageItem.remove(); // Удаляем элемент из DOM
-      } else {
-        console.error('Message item not found:', messageId);
-      }
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(errorText => {
+            throw new Error(errorText);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        const messageTextElement = document.querySelector(`li[data-message-id="${messageId}"] .message-text`);
+        if (messageTextElement) {
+          messageTextElement.textContent = data.text;
+        } else {
+          console.error('Message text element not found:', messageId);
+        }
+      })
+      .catch(error => {
+        console.error('Error updating message:', error);
+        alert('Failed to update message. Please try again.');
+      });
+  }
+
+  // Функция для удаления сообщения
+  function deleteMessage(messageId) {
+    const deleteUrl = `/api/chat_message_delete/${messageId}/`;
+    const data = {
+      text: 'Сообщение удалено',
+      chat: chatId,
+      is_deleted: true,
+      picture: null
+    };
+
+    fetch(deleteUrl, {
+      method: 'PUT',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(data),
     })
-    .catch(error => {
-      console.error('Error deleting message:', error);
-      alert('Failed to delete message. Please try again.');
-    });
-}
-  // Функция для получения CSRF-токена из куки
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(errorText => {
+            throw new Error(errorText);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        const messageItem = document.querySelector(`li[data-message-id="${messageId}"]`);
+        if (messageItem) {
+          messageItem.remove();
+        } else {
+          console.error('Message item not found:', messageId);
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting message:', error);
+        alert('Failed to delete message. Please try again.');
+      });
+  }
+
+  // Функция для получения CSRF-токена
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {

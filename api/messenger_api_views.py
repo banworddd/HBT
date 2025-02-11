@@ -1,6 +1,7 @@
 from django.db.models import Q
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView, UpdateAPIView
+from rest_framework.response import Response
 
 from messenger.models import Chats, Message
 from users.models import CustomUser
@@ -78,6 +79,14 @@ class MessageUpdateAPIView(UpdateAPIView):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
     lookup_field = 'pk'
+
+    def perform_update(self, serializer):
+        message = self.get_object()
+        if message.author == self.request.user or self.request.user.is_superuser:
+            serializer.save(is_edited=True)
+        else:
+            raise PermissionDenied('Вы не можете редактировать это сообщение')
+
 
 
 

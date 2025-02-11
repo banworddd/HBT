@@ -43,6 +43,7 @@ class Message(models.Model):
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='S')
     picture = models.ImageField(upload_to=generate_image_name, blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
+    is_edited = models.BooleanField(default=False)
     likes = models.ManyToManyField(CustomUser, related_name='likes', blank=True)
     dislikes = models.ManyToManyField(CustomUser, related_name='dislikes', blank=True)
     hearts = models.ManyToManyField(CustomUser, related_name='hearts', blank=True)
