@@ -2,7 +2,6 @@ from django.db.models import Q
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView, UpdateAPIView
 
-from messenger.fixtures.messenger.messages_generate import picture
 from messenger.models import Chats, Message
 from users.models import CustomUser
 from .messenger_serializers import ChatsSerializer, MessageSerializer
@@ -48,7 +47,7 @@ class MessagesCreateListAPIView(ListCreateAPIView):
         if not chat_obj:
             return Chats.objects.none()
 
-        queryset = Message.objects.filter(chat=chat_obj).order_by('send_time')
+        queryset = Message.objects.filter(chat=chat_obj, is_deleted=False).order_by('send_time')
 
         for msg in queryset.reverse():
             if msg.author == self.request.user:
@@ -71,9 +70,16 @@ class MessageDeleteAPIView(UpdateAPIView):
     def perform_update(self, serializer):
         message = self.get_object()
         if message.author == self.request.user or self.request.user.is_superuser:
-            serializer.save(is_deleted=True, text='Сообщение удалено', picture=None)
+            serializer.save(is_deleted=True, text=message.text ,picture=None)
         else:
             raise PermissionDenied('Вы не можете удалить это сообщение')
+
+class MessageUpdateAPIView(UpdateAPIView):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+    lookup_field = 'pk'
+
+
 
 
 
