@@ -15,7 +15,7 @@ def startpage(request):
         user = CustomUser.objects.get(email=request.user.email)
         if user.is_confirmed is False:
             return redirect ('emailconfirmation')
-        return redirect('chats', username=user.username)
+        return redirect('chats')
     users_count = CustomUser.objects.count()
     active_user_count = check_active_sessions(request)
 

@@ -34,7 +34,7 @@ def email_confirmation(request):
     if request.user.is_authenticated:
         user = CustomUser.objects.get(email=request.user.email)
         if user.is_confirmed is True:
-            return redirect('chats', username=user.username)
+            return redirect('chats')
         if 'confirmation_code' not in request.session:
             request.session['confirmation_code'] = code_generation(user.email, user.username)
         if request.method == 'POST':
@@ -44,7 +44,7 @@ def email_confirmation(request):
                 if user_code == request.session['confirmation_code']:
                     user.is_confirmed = True
                     user.save()
-                    return redirect('chats', username=user.username)
+                    return redirect('chats')
                 else:
                     messages.error(request, 'Неправильный код подтверждения')
         else:
@@ -58,7 +58,7 @@ def login_view(request):
         user = CustomUser.objects.get(email=request.user.email)
         if not user.is_confirmed:
             return redirect('emailconfirmation')
-        return redirect('chats', username=user.username)
+        return redirect('chats')
 
     if request.method == 'POST':
         form = CustomLoginForm(request, data=request.POST)
@@ -68,7 +68,7 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('chats', username=user.username)
+                return redirect('chats')
             else:
                 messages.error(request, 'Invalid username or password')
     else:

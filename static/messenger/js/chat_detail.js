@@ -10,14 +10,24 @@ document.addEventListener('DOMContentLoaded', function () {
       const messagesList = document.getElementById('messages-list');
       data.forEach(message => {
         const listItem = document.createElement('li');
+        listItem.dataset.messageId = message.id; // Устанавливаем data-message-id на элемент li
         listItem.innerHTML = `
           <strong>ID:</strong> ${message.id}<br>
           <strong>Text:</strong> ${message.text}<br>
           <strong>Send Time:</strong> ${message.send_time}<br>
           <strong>Status:</strong> ${message.status}<br>
           <strong>Author:</strong> ${message.author_name}<br>
+          <button class="delete-button" data-message-id="${message.id}">Удалить</button>
         `;
         messagesList.appendChild(listItem);
+      });
+
+      // Добавление обработчика события для кнопок удаления
+      document.querySelectorAll('.delete-button').forEach(button => {
+        button.addEventListener('click', function () {
+          const messageId = this.dataset.messageId;
+          deleteMessage(messageId);
+        });
       });
     })
     .catch(error => console.error('Error fetching messages:', error));
@@ -60,14 +70,23 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(data => {
         const messagesList = document.getElementById('messages-list');
         const listItem = document.createElement('li');
+        listItem.dataset.messageId = data.id; // Устанавливаем data-message-id на элемент li
         listItem.innerHTML = `
           <strong>ID:</strong> ${data.id}<br>
           <strong>Text:</strong> ${data.text}<br>
           <strong>Send Time:</strong> ${data.send_time}<br>
           <strong>Status:</strong> ${data.status}<br>
           <strong>Author:</strong> ${data.author_name}<br>
+          <button class="delete-button" data-message-id="${data.id}">Удалить</button>
         `;
         messagesList.appendChild(listItem);
+
+        // Добавление обработчика события для новой кнопки удаления
+        listItem.querySelector('.delete-button').addEventListener('click', function () {
+          const messageId = this.dataset.messageId;
+          deleteMessage(messageId);
+        });
+
         messageForm.reset();
       })
       .catch(error => {
@@ -76,6 +95,46 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   });
 
+  function deleteMessage(messageId) {
+  const deleteUrl = `/api/chat_message_delete/${messageId}/`;
+  const data = {
+    text: 'Сообщение удалено',
+    chat: chatId,
+    is_deleted: true,
+    picture: null
+  };
+
+  fetch(deleteUrl, {
+    method: 'PUT',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/json',
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(data),
+  })
+    .then(response => {
+      if (!response.ok) {
+        return response.text().then(errorText => {
+          throw new Error(errorText);
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Удаляем элемент сообщения из DOM
+      const messageItem = document.querySelector(`li[data-message-id="${messageId}"]`);
+      if (messageItem) {
+        messageItem.remove(); // Удаляем элемент из DOM
+      } else {
+        console.error('Message item not found:', messageId);
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting message:', error);
+      alert('Failed to delete message. Please try again.');
+    });
+}
   // Функция для получения CSRF-токена из куки
   function getCookie(name) {
     let cookieValue = null;
