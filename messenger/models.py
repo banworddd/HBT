@@ -44,9 +44,6 @@ class Message(models.Model):
     picture = models.ImageField(upload_to=generate_image_name, blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
     is_edited = models.BooleanField(default=False)
-    likes = models.ManyToManyField(CustomUser, related_name='likes', blank=True)
-    dislikes = models.ManyToManyField(CustomUser, related_name='dislikes', blank=True)
-    hearts = models.ManyToManyField(CustomUser, related_name='hearts', blank=True)
 
 
     class Meta:
@@ -55,6 +52,25 @@ class Message(models.Model):
 
     def __str__(self):
         return self.text
+
+class MessageReaction(models.Model):
+    STATUS_CHOICES = [
+        ('L', 'Like'),
+        ('D', 'Dislike'),
+        ('H', 'Heart'),
+        ('B', 'BrokenHeart'),
+    ]
+
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    reaction = models.CharField(max_length=1, choices=STATUS_CHOICES)
+    reaction_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (('reaction', 'message', 'author'),)
+
+    def __str__(self):
+        return self.reaction
 
 
 

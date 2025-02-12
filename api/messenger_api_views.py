@@ -1,11 +1,11 @@
 from django.db.models import Q
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView, UpdateAPIView
-from rest_framework.response import Response
+from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView, UpdateAPIView, \
+RetrieveDestroyAPIView
 
-from messenger.models import Chats, Message
+from messenger.models import Chats, Message, MessageReaction
 from users.models import CustomUser
-from .messenger_serializers import ChatsSerializer, MessageSerializer
+from .messenger_serializers import ChatsSerializer, MessageSerializer, MessageReactionSerializer
 
 class ChatsListAPIView(ListAPIView):
     serializer_class = ChatsSerializer
@@ -86,6 +86,35 @@ class MessageUpdateAPIView(UpdateAPIView):
             serializer.save(is_edited=True)
         else:
             raise PermissionDenied('Вы не можете редактировать это сообщение')
+
+class MessageReactionAPIView(ListCreateAPIView):
+    serializer_class = MessageReactionSerializer
+
+    def get_queryset(self):
+        message_id = self.request.query_params.get('message_id')
+
+        if not message_id:
+            return MessageReaction.objects.none()
+
+        message_obj = Message.objects.filter(id=message_id).first()
+
+        if not message_obj:
+            return MessageReaction.objects.none()
+
+        queryset = MessageReaction.objects.filter(message=message_obj)
+        return queryset
+
+
+class MessageReactionDetailAPIView(RetrieveDestroyAPIView):
+    queryset = MessageReaction.objects.all()
+    serializer_class = MessageReactionSerializer
+    lookup_field = 'pk'
+
+
+
+
+
+
 
 
 
