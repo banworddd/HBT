@@ -1,10 +1,13 @@
 from django.urls import path
 from .messenger_api_views import ChatsListAPIView, ChatDetailAPIView, MessagesCreateListAPIView, MessageDeleteAPIView, \
-    MessageUpdateAPIView, MessageReactionAPIView, MessageReactionDetailAPIView
+    MessageUpdateAPIView, MessageReactionAPIView, MessageReactionDetailAPIView, ContactsChatDetailAPIView, \
+    ContactsAPIView
 
 urlpatterns = [
     path('chats/', ChatsListAPIView.as_view(), name='chats-list'),
     path('chat_info/<int:pk>/', ChatDetailAPIView.as_view(), name='chat-detail'),
+    path('contacts/<int:pk>/', ContactsAPIView.as_view(), name='contacts-chat-detail'),
+    path('contacts_chat_detail/<int:user_id1>/<int:user_id2>/', ContactsChatDetailAPIView.as_view(), name='contacts-chat-detail'),
     path('chat_messages_list/', MessagesCreateListAPIView.as_view(), name='chat-messages-list'),
     path('chat_message_delete/<int:pk>/', MessageDeleteAPIView.as_view(), name='chat-message-delete'),
     path('chat_message_update/<int:pk>/', MessageUpdateAPIView.as_view(), name='chat-message-update'),

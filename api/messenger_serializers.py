@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from messenger.models import Chats, Message, MessageReaction
+from users.models import CustomUser
 
 class ChatsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -38,4 +39,17 @@ class MessageReactionSerializer(serializers.ModelSerializer):
 
     def get_message_text(self, obj):
         return obj.message.text if obj.message else None
+
+class ContactsSerializer(serializers.ModelSerializer):
+    contact_id = serializers.SerializerMethodField()
+    class Meta:
+        model = CustomUser
+        fields = ['contacts', 'contact_id']
+
+    def get_contact_id(self, obj):
+        contact_id = []
+        for contact in obj.contacts:
+            contact_id.append(CustomUser.objects.filter(username = contact).first().id)
+        return contact_id
+
 

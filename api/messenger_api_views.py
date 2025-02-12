@@ -1,11 +1,14 @@
 from django.db.models import Q
+from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView, UpdateAPIView, \
 RetrieveDestroyAPIView
+from rest_framework.response import Response
 
 from messenger.models import Chats, Message, MessageReaction
 from users.models import CustomUser
-from .messenger_serializers import ChatsSerializer, MessageSerializer, MessageReactionSerializer
+from .messenger_serializers import ChatsSerializer, MessageSerializer, MessageReactionSerializer, ContactsSerializer
+
 
 class ChatsListAPIView(ListAPIView):
     serializer_class = ChatsSerializer
@@ -34,6 +37,51 @@ class ChatDetailAPIView(RetrieveAPIView):
     queryset = Chats.objects.all()
     serializer_class = ChatsSerializer
     lookup_field = 'pk'
+
+class ContactsChatDetailAPIView(RetrieveAPIView):
+    serializer_class = ChatsSerializer
+
+    def get(self, request, *args, **kwargs):
+        user_id1 = self.kwargs.get('user_id1')
+        user_id2 = self.kwargs.get('user_id2')
+
+        try:
+            user_1_obj = CustomUser.objects.filter(id=user_id1).first()
+            user_2_obj = CustomUser.objects.filter(id=user_id2).first()
+
+        except CustomUser.DoesNotExist:
+            return Response(
+                {"error": "Объект не найден"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        try:
+            chat = Chats.objects.filter(
+                (Q(user_1=user_1_obj) & Q(user_2=user_2_obj)) | (Q(user_1=user_2_obj) & Q(user_2=user_1_obj))).first()
+
+            if chat is None:
+                return Response(
+                    {"error": "Чата не существует"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            return Response(self.get_serializer(chat).data)
+
+        except Chats.DoesNotExist:
+            return Response(
+                {"error": "Чата не существует"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+class ContactsAPIView(RetrieveAPIView):
+    serializer_class = ContactsSerializer
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs.get('pk')
+        user_obj = CustomUser.objects.filter(id=id).first()
+        if not user_obj:
+            return Response({"error": "Пользователя не существует"},
+                    status=status.HTTP_404_NOT_FOUND)
+        return Response(self.get_serializer(user_obj).data)
+
 
 class MessagesCreateListAPIView(ListCreateAPIView):
     serializer_class = MessageSerializer
