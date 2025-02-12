@@ -3,7 +3,7 @@
 
 {% block content %}
   <h1>Chat Information</h1>
-  <div id="chat-info" data-chat-id="{{ chat_id }}" data-username="{{ request.user.username }}">
+ <div id="chat-info" data-chat-id="{{ chat_id }}" data-username="{{ request.user.username }}" data-user-id="{{ request.user.id }}">
     <!-- Информация о чате будет добавлена сюда с помощью JavaScript -->
   </div>
 
