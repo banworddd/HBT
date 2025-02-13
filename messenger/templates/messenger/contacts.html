@@ -1,23 +1,12 @@
 {% extends 'layout.html' %}
-
-{% block title %}Список контактов{% endblock %}
-
+{% load static %}
 {% block content %}
-    <h1>Список контактов</h1>
-    <ul>
-        {% for user, chat in contacts.items %}
-            <li>
-                <a href="{% url 'profile' username=user.username %}">{{ user }}</a>
-                {% if chat %}
-                    <!-- Если чат существует, выводим ссылку на чат -->
-                    <a href="{% url 'messages' chat_id=chat.id %}">Перейти к чату</a>
-                {% else %}
-                    <!-- Если чата нет, выводим кнопку для создания чата -->
-                    <a href="{% url 'create_chat' username=user.username %}" class="btn btn-primary">Создать чат</a>
-                {% endif %}
-                <!-- Выводим статус онлайна пользователя -->
-
-            </li>
-        {% endfor %}
+  <div id="contacts-container" data-user-id="{{ user_id }}">
+    <h2>Список контактов</h2>
+    <ul id="contacts-list">
+      <!-- Контакты будут добавлены сюда с помощью JavaScript -->
     </ul>
+  </div>
+
+    <script src="{% static 'messenger/js/contacts.js' %}"></script>
 {% endblock %}

@@ -2,7 +2,7 @@ from django.db.models import Q
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView, UpdateAPIView, \
-RetrieveDestroyAPIView
+    RetrieveDestroyAPIView, CreateAPIView
 from rest_framework.response import Response
 
 from messenger.models import Chats, Message, MessageReaction
@@ -38,13 +38,27 @@ class ChatDetailAPIView(RetrieveAPIView):
     serializer_class = ChatsSerializer
     lookup_field = 'pk'
 
+class ChatCreateAPIView(CreateAPIView):
+    queryset = Chats.objects.all()
+    serializer_class = ChatsSerializer
+
+    def perform_create(self, serializer):
+        user_2 = serializer.validated_data['user_2']
+        user_1 = serializer.validated_data['user_1']
+
+        if not user_2 or not user_1:
+            return Response('Переданы не все пользователи')
+
+        serializer.save(user_1=user_1, user_2=user_2, is_group = False)
+        print(serializer.data)
+        return Response(serializer.data)
+
 class ContactsChatDetailAPIView(RetrieveAPIView):
     serializer_class = ChatsSerializer
 
     def get(self, request, *args, **kwargs):
         user_id1 = self.kwargs.get('user_id1')
         user_id2 = self.kwargs.get('user_id2')
-
         try:
             user_1_obj = CustomUser.objects.filter(id=user_id1).first()
             user_2_obj = CustomUser.objects.filter(id=user_id2).first()

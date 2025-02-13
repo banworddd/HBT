@@ -91,17 +91,8 @@ def contactsview(request):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
-
-    user = get_object_or_404(CustomUser, pk=request.user.id)
-    contacts = {}
-    for contact in user.contacts:
-        contact_user = get_object_or_404(CustomUser, username = contact)
-        if Chats.objects.filter(Q(user_1 = request.user) & Q(user_2 = contact_user) | Q(user_2 = request.user) & Q(user_1 = contact_user)).exists():
-            contacts[contact_user] = Chats.objects.get(Q(user_1 = request.user) & Q(user_2 = contact_user) | Q(user_2 = request.user) & Q(user_1 = contact_user))
-        else:
-            contacts[contact_user] = None
-
-    return render(request, 'messenger/contacts.html', {'contacts': contacts})
+    user_id = request.user.id
+    return render(request, 'messenger/contacts.html', {'user_id': user_id})
 
 def deletecontact(request, contact_name):
     redirect_response = check_user_status(request)
