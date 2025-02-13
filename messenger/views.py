@@ -37,6 +37,13 @@ def chat_detail_view(request, chat_id):
 
     return render(request, 'messenger/chat_detail.html', {'chat_id': chat_id})
 
+def contactsview(request):
+    redirect_response = check_user_status(request)
+    if redirect_response:
+        return redirect_response
+    user_id = request.user.id
+    return render(request, 'messenger/contacts.html', {'user_id': user_id})
+
 def group_messages(request, chat_id):
     redirect_response = check_user_status(request)
     if redirect_response:
@@ -83,17 +90,6 @@ def deletemessage(request, message_id):
     return redirect('messages', chat_id=message.chat.id)
 
 
-
-
-
-
-def contactsview(request):
-    redirect_response = check_user_status(request)
-    if redirect_response:
-        return redirect_response
-    user_id = request.user.id
-    return render(request, 'messenger/contacts.html', {'user_id': user_id})
-
 def deletecontact(request, contact_name):
     redirect_response = check_user_status(request)
     if redirect_response:
@@ -139,18 +135,6 @@ def profileview(request, username):
     cache.set(f"messenger_profile_{username}", user_data, timeout=300)
     return render(request, 'messenger/profile.html', user_data)
 
-def create_chat_view(request, username):
-    redirect_response = check_user_status(request)
-    if redirect_response:
-        return redirect_response
-
-    other_user = get_object_or_404(CustomUser, username=username)
-    if Chats.objects.filter(Q(user_1=request.user.id) & Q(user_2 = other_user.id ) |Q(user_2=request.user.id) & Q(user_1 = other_user.id )).exists():
-        chat = Chats.objects.filter(Q(user_1=request.user.id) & Q(user_2 = other_user.id ) |Q(user_2=request.user.id) & Q(user_1 = other_user.id ))
-        return redirect ('messages', chat_id = chat.id)
-    new_chat = Chats.objects.create(user_1=request.user, user_2=other_user)
-    new_chat.save()
-    return redirect('messages', chat_id = new_chat.id)
 
 def create_group_chat(request):
     redirect_response = check_user_status(request)

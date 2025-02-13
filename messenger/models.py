@@ -16,8 +16,8 @@ class Chats(models.Model):
     admins = models.ManyToManyField(CustomUser, related_name='chats_as_admin', blank=True)
     name = models.CharField(max_length=120,blank=True, null=True)
     avatar = models.ImageField(upload_to=generate_avatar_name, blank=True, null=True)
+    last_messaging_time = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
-    last_message_time = models.DateTimeField(auto_now_add=True)
 
 
     def save(self, *args, **kwargs):

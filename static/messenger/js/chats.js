@@ -1,31 +1,28 @@
-document.addEventListener('DOMContentLoaded', function() {
-  const username = document.getElementById('chats-list').dataset.username;
-  const apiUrl = `http://localhost:8000/api/chats/?user=${username}`;
+document.addEventListener('DOMContentLoaded', function () {
+  const chatsListElement = document.getElementById('chats-list');
+  const username = chatsListElement.dataset.username;
+  const chatItems = document.getElementById('chat-items');
 
-  fetch(apiUrl)
+  fetch(`/api/chats/?user=${username}`)
     .then(response => response.json())
     .then(data => {
-      const chatsList = document.getElementById('chats-list');
       data.forEach(chat => {
-        const listItem = document.createElement('li');
-        const chatLink = document.createElement('a');
-        chatLink.href = `http://localhost:8000/chat/${chat.id}/`; // Обновленный URL
-        chatLink.innerHTML = `
-          <strong>ID:</strong> ${chat.id}<br>
-          <strong>Is Group:</strong> ${chat.is_group}<br>
-          ${chat.is_group ? `
-            <strong>Name:</strong> ${chat.name}<br>
-            <strong>Users:</strong> ${chat.users.join(", ")}<br>
-            <strong>Admins:</strong> ${chat.admins.join(", ")}<br>
-          ` : `
-            <strong>User 1:</strong> ${chat.user_1}<br>
-            <strong>User 2:</strong> ${chat.user_2}<br>
-          `}
-          <strong>Last Message Time:</strong> ${chat.last_message_time}<br>
-        `;
-        listItem.appendChild(chatLink);
-        chatsList.appendChild(listItem);
+        let listItem = document.createElement('li');
+        let link = document.createElement('a');
+        link.href = `/chat/${chat.id}/`;
+
+        const messageText = chat.last_message_text ? chat.last_message_text : "сообщений еще нет";
+        const messageTime = chat.last_message_time ? `(${new Date(chat.last_message_time).toLocaleString()})` : '';
+
+        if (chat.is_group) {
+          link.textContent = `${chat.name} - ${messageText} ${messageTime}`;
+        } else {
+          link.textContent = `${chat.username2} - ${messageText} ${messageTime}`;
+        }
+
+        listItem.appendChild(link);
+        chatItems.appendChild(listItem);
       });
     })
-    .catch(error => console.error('Error fetching chats:', error));
+    .catch(error => console.error('Error fetching chat data:', error));
 });

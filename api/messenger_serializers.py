@@ -4,14 +4,51 @@ from messenger.models import Chats, Message, MessageReaction
 from users.models import CustomUser
 
 class ChatsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Chats
-        fields = '__all__'
+    last_message_text = serializers.SerializerMethodField()
+    last_message_picture = serializers.SerializerMethodField()
+    last_message_time = serializers.SerializerMethodField()
+    username1 = serializers.SerializerMethodField()
+    username2 = serializers.SerializerMethodField()
 
-class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chats
-        fields = ['user_1', 'user_2']
+        fields = ['id','user_1', 'user_2','username1','username2', 'is_group', 'users','admins','name','avatar','last_message_time', 'last_message_text', 'last_message_picture']
+
+    def get_last_message_text(self, obj):
+        try:
+            message = Message.objects.filter(chat = obj).last()
+            return message.text
+        except:
+            return None
+
+    def get_last_message_picture(self, obj):
+        try:
+            message = Message.objects.filter(chat = obj).last()
+            return message.picture.url
+        except:
+            return None
+
+    def get_last_message_time(self, obj):
+        try:
+            message = Message.objects.filter(chat=obj).last()
+            return message.send_time
+        except:
+            return None
+
+    def get_username1(self, obj):
+        try:
+            user_obj = CustomUser.objects.get(pk=obj.user_1.id)
+            return user_obj.username
+        except:
+            return None
+
+    def get_username2(self, obj):
+        try:
+            user_obj = CustomUser.objects.get(pk=obj.user_2.id)
+            return user_obj.username
+        except:
+            return None
+
 
 class MessageSerializer(serializers.ModelSerializer):
     author_name = serializers.SerializerMethodField()
@@ -27,6 +64,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
     def get_author_avatar(self, obj):
         return obj.author.avatar.url if obj.author.avatar else None
+
 
 class MessageReactionSerializer(serializers.ModelSerializer):
     author_name = serializers.SerializerMethodField()
@@ -45,6 +83,7 @@ class MessageReactionSerializer(serializers.ModelSerializer):
 
     def get_message_text(self, obj):
         return obj.message.text if obj.message else None
+
 
 class ContactsSerializer(serializers.ModelSerializer):
     chat_id = serializers.SerializerMethodField()

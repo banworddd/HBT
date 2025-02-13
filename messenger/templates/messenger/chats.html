@@ -1,9 +1,14 @@
 {% extends 'layout.html' %}
 {% load static %}
+
 {% block content %}
-  <h1>Chats for {{ username }}</h1>
-  <ul id="chats-list" data-username="{{ username }}">
-  </ul>
+  <div id="chats-list" data-username="{{ username }}">
+    <h1>Chats for {{ username }}</h1>
+    <ul id="chat-items">
+      <!-- Chat items will be injected here by JavaScript -->
+    </ul>
+  </div>
 
   <script src="{% static 'messenger/js/chats.js' %}"></script>
 {% endblock %}
+
