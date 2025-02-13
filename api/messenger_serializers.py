@@ -1,5 +1,7 @@
+from django.db.models import Q
 from rest_framework import serializers
 from messenger.models import Chats, Message, MessageReaction
+from messenger.views import chats_view
 from users.models import CustomUser
 
 class ChatsSerializer(serializers.ModelSerializer):
@@ -41,15 +43,20 @@ class MessageReactionSerializer(serializers.ModelSerializer):
         return obj.message.text if obj.message else None
 
 class ContactsSerializer(serializers.ModelSerializer):
-    contact_id = serializers.SerializerMethodField()
+    chat_id = serializers.SerializerMethodField()
     class Meta:
         model = CustomUser
-        fields = ['contacts', 'contact_id']
+        fields = ['contacts', 'chat_id']
 
-    def get_contact_id(self, obj):
-        contact_id = []
+    def get_chat_id(self, obj):
+        chat_ids = []
         for contact in obj.contacts:
-            contact_id.append(CustomUser.objects.filter(username = contact).first().id)
-        return contact_id
+            contact_obj = CustomUser.objects.get(username=contact)
+            try:
+                chat = Chats.objects.get(Q(user_1 = contact_obj) & Q(user_1 = obj) | Q(user_1 = obj) & Q(user_2 = contact_obj))
+                chat_ids.append(chat.id)
+            except:
+                chat_ids.append(None)
+        return chat_ids
 
 
