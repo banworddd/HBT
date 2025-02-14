@@ -143,7 +143,7 @@ class UpdateContactsAPIView(UpdateAPIView):
         serializer.save(user=user_obj, contacts=contacts)
         return Response('Пользователь добавлен в друзья')
 
-class UsersListAPIView(ListAPIView):
+class UsersSearchAPIView(ListAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
