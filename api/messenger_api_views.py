@@ -149,11 +149,26 @@ class UsersSearchAPIView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.query_params.get('user')
+        user_obj = self.request.user
 
         if not user:
             return CustomUser.objects.none()
 
         queryset = CustomUser.objects.filter(username__icontains=user).order_by('username')
+        for _ in queryset:
+            if _.username in user_obj.contacts:
+                _.is_contact = True
+            else:
+                _.is_contact = False
+            if Chats.objects.filter(Q(user_1=user_obj)& Q(user_2=_) | Q(user_2=user_obj)& Q(user_1=_)).exists():
+                _.is_chat = True
+                _.chat_id = Chats.objects.filter(Q(user_1=user_obj)& Q(user_2=_) | Q(user_2=user_obj)& Q(user_1=_)).first().id
+                _.last_chat_message_text = Message.objects.filter(chat_id = _.chat_id).last().text if Message.objects.filter(chat_id = _.chat_id).exists() else None
+                _.last_chat_message_time = Message.objects.filter(chat_id = _.chat_id).last().send_time if Message.objects.filter(chat_id = _.chat_id).exists() else None
+            else:
+                _.is_chat = False
+                _.chat_id = None
+
         return queryset
 
 

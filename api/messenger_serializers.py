@@ -113,9 +113,31 @@ class ContactsSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    is_contact = serializers.SerializerMethodField()
+    is_chat = serializers.SerializerMethodField()
+    chat_id = serializers.SerializerMethodField()
+    last_chat_message_text = serializers.SerializerMethodField()
+    last_chat_message_time = serializers.SerializerMethodField()
     class Meta:
         model = CustomUser
-        fields = ['username', 'public_name', 'avatar', 'status']
+        fields = ['username', 'public_name', 'avatar', 'status','is_contact', 'is_chat', 'chat_id', 'last_chat_message_text', 'last_chat_message_time']
+
+    def get_is_contact(self, obj):
+        return obj.is_contact
+
+    def get_is_chat(self,obj):
+        return obj.is_chat
+
+    def get_chat_id(self,obj):
+        return obj.chat_id
+
+    def get_last_chat_message_text(self, obj):
+        return obj.last_chat_message_text
+
+    def get_last_chat_message_time(self, obj):
+        return obj.last_chat_message_time
+
+
 
 
 
