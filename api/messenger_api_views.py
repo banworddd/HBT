@@ -7,7 +7,8 @@ from rest_framework.response import Response
 
 from messenger.models import Chats, Message, MessageReaction
 from users.models import CustomUser
-from .messenger_serializers import ChatsSerializer, MessageSerializer, MessageReactionSerializer, ContactsSerializer
+from .messenger_serializers import ChatsSerializer, MessageSerializer, MessageReactionSerializer, ContactsSerializer, \
+    UserSerializer
 
 
 class ChatsListAPIView(ListAPIView):
@@ -141,6 +142,19 @@ class UpdateContactsAPIView(UpdateAPIView):
         contacts.append(contact)
         serializer.save(user=user_obj, contacts=contacts)
         return Response('Пользователь добавлен в друзья')
+
+class UsersListAPIView(ListAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        user = self.request.query_params.get('user')
+
+        if not user:
+            return CustomUser.objects.none()
+
+        queryset = CustomUser.objects.filter(username__icontains=user).order_by('username')
+        return queryset
 
 
 class MessagesCreateListAPIView(ListCreateAPIView):

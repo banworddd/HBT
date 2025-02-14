@@ -1,5 +1,6 @@
 from django.db.models import Q
 from rest_framework import serializers
+
 from messenger.models import Chats, Message, MessageReaction
 from users.models import CustomUser
 
@@ -109,6 +110,13 @@ class ContactsSerializer(serializers.ModelSerializer):
             contact_obj = CustomUser.objects.get(username=contact)
             contact_ids.append(contact_obj.id)
         return contact_ids
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'public_name', 'avatar', 'status']
+
 
 
 
