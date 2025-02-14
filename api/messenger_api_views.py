@@ -40,10 +40,6 @@ class ChatsListAPIView(ListAPIView):
         return queryset
 
 
-
-
-
-
 class ChatDetailAPIView(RetrieveAPIView):
     queryset = Chats.objects.all()
     serializer_class = ChatsSerializer
@@ -61,7 +57,6 @@ class ChatCreateAPIView(CreateAPIView):
             return Response('Переданы не все пользователи')
 
         serializer.save(user_1=user_1, user_2=user_2, is_group = False)
-        print(serializer.data)
         return Response(serializer.data)
 
 class ContactsChatDetailAPIView(RetrieveAPIView):
@@ -97,15 +92,55 @@ class ContactsChatDetailAPIView(RetrieveAPIView):
             )
 
 class ContactsAPIView(RetrieveAPIView):
+
+    queryset = CustomUser.objects.all()
     serializer_class = ContactsSerializer
 
-    def get(self, request, *args, **kwargs):
+    def get_object(self):
         id = self.kwargs.get('pk')
         user_obj = CustomUser.objects.filter(id=id).first()
         if not user_obj:
-            return Response({"error": "Пользователя не существует"},
-                    status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Пользователя не существует"}, status=status.HTTP_404_NOT_FOUND)
+        return user_obj
+
+    def get(self, request, *args, **kwargs):
+        user_obj = self.get_object()
+
+        if isinstance(user_obj, Response):
+            return user_obj
+
         return Response(self.get_serializer(user_obj).data)
+
+class UpdateContactsAPIView(UpdateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = ContactsSerializer
+
+    def perform_update(self, serializer):
+        id = self.kwargs.get('pk')
+        user_obj = CustomUser.objects.filter(id=id).first()
+
+        if not user_obj:
+            return Response({"error": "Пользователя не существует"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        contact = serializer.validated_data['contacts']
+        contact_obj = CustomUser.objects.filter(username = contact).first()
+
+        if not contact_obj:
+            return Response({"error": "Контакта не существует"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        contacts = user_obj.contacts
+
+        for _ in range(len(contacts)):
+            if contacts[_] == contact:
+                contacts.remove(contact)
+                serializer.save(contacts = contacts)
+                return Response ('Пользователь удален из друзей ')
+
+        contacts.append(contact)
+        serializer.save(user=user_obj, contacts=contacts)
+        return Response('Пользователь добавлен в друзья')
 
 
 class MessagesCreateListAPIView(ListCreateAPIView):

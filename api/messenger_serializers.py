@@ -96,7 +96,6 @@ class ContactsSerializer(serializers.ModelSerializer):
         chat_ids = []
         for contact in obj.contacts:
             contact_obj = CustomUser.objects.get(username=contact)
-            print(contact_obj, obj)
             try:
                 chat = Chats.objects.get((Q(user_1 = contact_obj) & Q(user_2 = obj) )| (Q(user_1 = obj) & Q(user_2 = contact_obj)))
                 chat_ids.append(chat.id)
