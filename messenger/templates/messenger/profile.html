@@ -1,12 +1,12 @@
 {% extends 'layout.html' %}
 {% load static %}
 {% block content %}
-<div id="profile-container" data-username="{{ username }}">
+<div id="profile-container" data-username="{{ username }}" data-current-user-id="{{ request.user.id }}">
     <h1>Профиль пользователя</h1>
     <div id="profile-info">
         <p>Загрузка данных...</p>
     </div>
 </div>
-    
+
 <script src="{% static 'messenger/js/profile.js' %}"></script>
 {% endblock %}
