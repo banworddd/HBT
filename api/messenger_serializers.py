@@ -123,19 +123,19 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['username', 'public_name', 'avatar', 'status','is_contact', 'is_chat', 'chat_id', 'last_chat_message_text', 'last_chat_message_time']
 
     def get_is_contact(self, obj):
-        return obj.is_contact
+        return obj.is_contact if obj.is_contact else None
 
     def get_is_chat(self,obj):
-        return obj.is_chat
+        return obj.is_chat if obj.is_chat else None
 
     def get_chat_id(self,obj):
-        return obj.chat_id
+        return obj.chat_id if obj.chat_id else None
 
     def get_last_chat_message_text(self, obj):
-        return obj.last_chat_message_text
+        return obj.last_chat_message_text if obj.last_chat_message_text else None
 
     def get_last_chat_message_time(self, obj):
-        return obj.last_chat_message_time
+        return obj.last_chat_message_time if obj.last_chat_message_time else None
 
 
 

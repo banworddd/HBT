@@ -1,35 +1,12 @@
 {% extends 'layout.html' %}
-
-{% block title %}Profile{% endblock %}
-
+{% load static %}
 {% block content %}
-    <section>
-        <h1>Профиль: {{ public_name }}</h1>
-        <p><strong>Никнейм:</strong> {{ username }}</p>
-        {% if user_online %}
-            <p>Онлайн</p>
-        {% else %}
-            <p>Оффлайн</p>
-        {% endif %}
-
-        <p><strong>Статус:</strong> {{ status }}</p>
-
-        <p><strong>Дата регистрации:</strong> {{ reg_date }}</p>
-        {% if is_contact %}
-            <p>{{ username }} у вас в контактах</p>
-            <p><a href="{% url 'deletecontact' contact_name=username %}">Удалить контакт</a></p>
-        {% else %}
-        {% endif %}
-        {% if avatar %}
-            <p><img src="{{ avatar.url }}" alt="avatar" width="200"></p>
-        {% else %}
-            <p>Аватарка не установлена</p>
-        {% endif %}
-
-        {% if chat_id %}
-            <p><a href="{% url 'messages' chat_id=chat_id %}">Перейти к чату</a></p>
-        {% else %}
-            <p>Чата между пользователями нет</p>пше
-        {% endif %}
-    </section>
+<div id="profile-container" data-username="{{ username }}">
+    <h1>Профиль пользователя</h1>
+    <div id="profile-info">
+        <p>Загрузка данных...</p>
+    </div>
+</div>
+    
+<script src="{% static 'messenger/js/profile.js' %}"></script>
 {% endblock %}
