@@ -60,6 +60,23 @@ class ChatCreateAPIView(CreateAPIView):
         serializer.save(user_1=user_1, user_2=user_2, is_group = False)
         return Response(serializer.data)
 
+class GroupChatCreateAPIView(CreateAPIView):
+    queryset = Chats.objects.all()
+    serializer_class = ChatsSerializer
+
+    def perform_create(self ,serializer):
+        users = serializer.validated_data['users']
+        admins = serializer.validated_data['admins']
+
+        for admin in admins:
+            users.append(admin)
+
+        name = serializer.validated_data['name']
+
+        serializer.save(is_group = True, admins = admins, users = users, name = name)
+        return Response(serializer.data)
+
+
 class ContactsChatDetailAPIView(RetrieveAPIView):
     serializer_class = ChatsSerializer
 

@@ -5,6 +5,8 @@ from messenger.models import Chats, Message, MessageReaction
 from users.models import CustomUser
 
 class ChatsSerializer(serializers.ModelSerializer):
+    users = serializers.PrimaryKeyRelatedField(many=True, queryset=CustomUser.objects.all())
+    admins = serializers.PrimaryKeyRelatedField(many=True, queryset=CustomUser.objects.all())
     last_message_text = serializers.SerializerMethodField()
     last_message_picture = serializers.SerializerMethodField()
     last_message_time = serializers.SerializerMethodField()
