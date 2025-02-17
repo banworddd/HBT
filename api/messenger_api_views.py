@@ -2,7 +2,7 @@ from django.db.models import Q
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView, UpdateAPIView, \
-    RetrieveDestroyAPIView, CreateAPIView
+    RetrieveDestroyAPIView, CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.response import Response
 
 from messenger.models import Chats, Message, MessageReaction
@@ -66,15 +66,49 @@ class GroupChatCreateAPIView(CreateAPIView):
 
     def perform_create(self ,serializer):
         users = serializer.validated_data['users']
+        for user in users:
+            if not CustomUser.objects.filter(username=user).exists():
+                return Response('Один из добавляемых пользователей не существует')
+
         admins = serializer.validated_data['admins']
 
         for admin in admins:
             users.append(admin)
 
         name = serializer.validated_data['name']
-
         serializer.save(is_group = True, admins = admins, users = users, name = name)
         return Response(serializer.data)
+
+class GroupChatUpdateAPIView(RetrieveUpdateAPIView):
+    queryset = Chats.objects.all()
+    serializer_class = ChatsSerializer
+    lookup_field = 'pk'
+
+    def perform_update(self, serializer):
+        users = serializer.validated_data['users']
+        chat_object = self.get_object()
+        users_now = chat_object.users.all()
+        users_set = CustomUser.objects.filter(Q(username__in=users_now) | Q(username__in = users))
+
+
+        name = serializer.validated_data['name']
+        if not name:
+            name = chat_object.name
+
+        try:
+            admins = serializer.validated_data['admins']
+        except:
+            admins = chat_object.admins.all()
+
+        serializer.save(is_group = True, admins = admins, users = users_set, name = name)
+
+
+
+
+
+
+
+
 
 
 class ContactsChatDetailAPIView(RetrieveAPIView):
