@@ -8,27 +8,6 @@
     <ul id="chat-items">
       <!-- Chat items will be injected here by JavaScript -->
     </ul>
-    <button id="create-group-chat-btn">Create Group Chat</button>
-
-    <!-- Form for creating group chat (Initially hidden) -->
-    <div id="create-group-chat-form" style="display: none;">
-      <h2>Create Group Chat</h2>
-      <form id="group-chat-form">
-        <label for="group-name">Group Name:</label>
-        <input type="text" id="group-name" name="group-name" required><br>
-
-        <label for="group-users">Add Users:</label>
-        <select id="group-users" name="group-users" multiple required>
-          <!-- Users will be populated here by JavaScript -->
-        </select><br>
-
-        <label for="group-avatar">Upload Avatar:</label>
-        <input type="file" id="group-avatar" name="group-avatar"><br>
-
-        <button type="submit">Create Group</button>
-        <button type="button" id="cancel-create-group">Cancel</button>
-      </form>
-    </div>
   </div>
 
   <script src="{% static 'messenger/js/chats.js' %}"></script>

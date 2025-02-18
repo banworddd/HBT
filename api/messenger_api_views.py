@@ -65,18 +65,16 @@ class GroupChatCreateAPIView(CreateAPIView):
     serializer_class = ChatsSerializer
 
     def perform_create(self ,serializer):
+        request_user = self.request.user
+
         users = serializer.validated_data['users']
-        for user in users:
-            if not CustomUser.objects.filter(username=user).exists():
-                return Response('Один из добавляемых пользователей не существует')
-
         admins = serializer.validated_data['admins']
-
-        for admin in admins:
-            users.append(admin)
-
         name = serializer.validated_data['name']
-        serializer.save(is_group = True, admins = admins, users = users, name = name)
+
+        users_set = CustomUser.objects.filter(Q(username__in=users) | Q(username=request_user.username)).distinct()
+        admins_set = CustomUser.objects.filter(Q(username__in=admins) | Q(username=request_user.username)).distinct()
+
+        serializer.save(is_group = True, admins = admins_set, users = users_set, name = name)
         return Response(serializer.data)
 
 class GroupChatUpdateAPIView(RetrieveUpdateAPIView):
