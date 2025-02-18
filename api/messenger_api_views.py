@@ -31,13 +31,6 @@ class ChatsListAPIView(ListAPIView):
             (Q(is_group=True) & Q(users__username=user))
         ).order_by('-last_messaging_time')
 
-        for chat in queryset:
-            if chat.user_1 == user_obj:
-                pass
-            if chat.user_2 == user_obj:
-                chat.user_2 = chat.user_1
-                chat.user_1 = user_obj
-
         return queryset
 
 

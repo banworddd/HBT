@@ -3,7 +3,7 @@ from .views import login_page, registration, profileview, logout_view, email_con
 from django.conf import settings
 from django.conf.urls.static import static
 urlpatterns = [
-    path ('login/', login_page, name='login'),
+    path ('login/', login_page, name='login_page'),
     path ('reg/', registration, name='reg'),
     path('logout/', logout_view, name='logout'),
     path('email_confirmation/', email_confirmation, name='emailconfirmation'),

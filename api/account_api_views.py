@@ -43,7 +43,6 @@ class RegistrationView(APIView):
             return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class EmailConfirmationView(APIView):
     permission_classes = [AllowAny]
 

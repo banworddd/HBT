@@ -12,13 +12,15 @@ from django.core.cache import cache
 def registration(request):
     if request.user.is_authenticated:
         user = CustomUser.objects.get(email=request.user.email)
-        return redirect('chats', username=user.username)
+        return redirect('chats')
+
+
 
     return render(request, 'users/registration.html')
 
 
 def email_confirmation(request):
-
+    print(request.session['confirmation_code'])
     return render(request, 'users/email_confirmation.html')
 
 def login_page(request):

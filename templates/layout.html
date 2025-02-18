@@ -5,30 +5,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}HBT{% endblock %}</title>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="{% static 'layout/css/layout.css' %}">
+    {% block extra_css %}{% endblock %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {% block extra_js %}{% endblock %}
 </head>
 <body>
     {% if user.is_authenticated and user.is_confirmed %}
         <header>
-            <nav>
-                <ul style="list-style-type: none; display: flex; gap: 10px;">
-                    <li><button onclick="location.href='{% url 'chats' %}'">Чаты</button></li>
-                    <li><button onclick="location.href='{% url 'contacts' %}'">Контакты</button></li>
-                    <li><button onclick="location.href='{% url 'profile' %}'">Мой профиль</button></li>
-                    <li><button onclick="location.href='{% url 'user_subs' %}'">Мои группы</button></li>
-                    <li><button onclick="location.href='{% url 'groups' %}'">Все группы</button></li>
-                    <li><button onclick="location.href='{% url 'create_group' %}'">Создать группу</button></li>
-                    <li><button onclick="location.href='{% url 'create_group_chat' %}'">Создать групповой чат</button></li>
-                    <li><button onclick="location.href='{% url 'logout' %}'">Выход</button></li>
-                </ul>
-            </nav>
+            <!-- Навигация слева -->
+            <div class="nav-left">
+                <a href="{% url 'chats' %}">Чаты</a>
+                <a href="{% url 'contacts' %}">Контакты</a>
+                <a href="{% url 'create_group_chat' %}">Создать групповой чат</a>
+            </div>
+
+            <!-- Навигация справа -->
+            <div class="nav-right">
+                <a href="{% url 'profile' %}" class="profile-link">{{ user.username }}</a>
+                <a href="{% url 'logout' %}" class="logout">Выход</a>
+            </div>
         </header>
     {% endif %}
+
     <main>
         {% block content %}
         <!-- Контент будет вставлен здесь -->
         {% endblock %}
     </main>
+
     <footer>
         <p>&copy; 2025 HBT</p>
     </footer>

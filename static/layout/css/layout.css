@@ -1,0 +1,99 @@
+/* Общие стили */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Шапка */
+header {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Тень для шапки */
+}
+
+/* Навигация слева */
+.nav-left {
+    display: flex;
+    gap: 10px;
+}
+
+.nav-left a {
+    text-decoration: none;
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    transition: all 0.3s ease; /* Плавный переход */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Тень для кнопок */
+}
+
+.nav-left a:hover {
+    background-color: #0056b3;
+    transform: scale(1.05); /* Увеличение при наведении */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Увеличенная тень при наведении */
+}
+
+/* Навигация справа */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-right a {
+    text-decoration: none;
+    color: #007bff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Стили для никнейма */
+.nav-right a.profile-link {
+    background-color: transparent; /* Прозрачный фон */
+    padding: 0; /* Убираем отступы */
+    box-shadow: none; /* Убираем тень у блока */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Тень для текста */
+    display: inline-block; /* Чтобы transform работал */
+}
+
+.nav-right a.profile-link:hover {
+    background-color: transparent; /* Прозрачный фон при наведении */
+    transform: scale(1.05); /* Увеличение при наведении */
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3); /* Увеличенная тень при наведении */
+}
+
+/* Стили для кнопки "Выход" */
+.nav-right .logout {
+    background-color: #dc3545;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Тень для кнопки */
+}
+
+.nav-right .logout:hover {
+    background-color: #c82333;
+    transform: scale(1.05); /* Увеличение при наведении */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Увеличенная тень при наведении */
+}
+
+/* Основной контент */
+main {
+    flex: 1;
+    padding: 20px;
+}
+
+/* Футер */
+footer {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1); /* Тень для футера */
+}

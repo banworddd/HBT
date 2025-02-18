@@ -52,6 +52,18 @@ class ChatsSerializer(serializers.ModelSerializer):
         except:
             return None
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context.get('request')
+
+        if request and request.user.is_authenticated:
+            if instance.user_2 == request.user:
+                representation['user_1'], representation['user_2'] = representation['user_2'], representation['user_1']
+                representation['username1'], representation['username2'] = representation['username2'], representation[
+                    'username1']
+
+        return representation
+
 
 class MessageSerializer(serializers.ModelSerializer):
     author_name = serializers.SerializerMethodField()
