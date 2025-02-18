@@ -1,19 +1,17 @@
-{% extends 'layout.html' %}
-
-{% block title %}Email Confirmation{% endblock %}
+{% extends "layout.html" %}
+{% load static %}
 
 {% block content %}
-    <h2>Email Confirmation</h2>
-    <form method="post">
+    <h1>Подтверждение Email</h1>
+
+    <form id="confirmation-form">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Confirm</button>
+        <label for="confirmation_code">Введите код подтверждения:</label>
+        <input type="text" id="confirmation_code" name="confirmation_code" required><br><br>
+
+        <button type="submit">Подтвердить</button>
     </form>
-    {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+
+    <div id="error-message" style="color: red; display: none;"></div>
+    <script src="{% static 'users/js/email_confirmation.js' %}"></script>
 {% endblock %}

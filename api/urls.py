@@ -1,6 +1,7 @@
 from django.urls import path, include
 
 urlpatterns = [
-    path('', include('api.messenger_api_urls')),
+    path('messenger/', include('api.messenger_api_urls')),
+    path('account/', include('api.account_api_urls')),
 
 ]

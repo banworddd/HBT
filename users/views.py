@@ -6,7 +6,6 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from groups.models import GroupSubscribers
 from common.utils import check_user_status, check_user_session
-from .utils import  code_generation
 from django.core.cache import cache
 
 
@@ -15,66 +14,19 @@ def registration(request):
         user = CustomUser.objects.get(email=request.user.email)
         return redirect('chats', username=user.username)
 
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-            return redirect('emailconfirmation')
-    else:
-        form = CustomUserCreationForm()
-    return render(request, 'users/registration.html', {'form': form})
+    return render(request, 'users/registration.html')
 
 
 def email_confirmation(request):
-    if request.user.is_authenticated:
-        user = CustomUser.objects.get(email=request.user.email)
-        if user.is_confirmed is True:
-            return redirect('chats')
-        if 'confirmation_code' not in request.session:
-            request.session['confirmation_code'] = code_generation(user.email, user.username)
-        if request.method == 'POST':
-            form = CustomUserConfirmationForm(request.POST)
-            if form.is_valid():
-                user_code = form.cleaned_data.get('confirmation_code')
-                if user_code == request.session['confirmation_code']:
-                    user.is_confirmed = True
-                    user.save()
-                    return redirect('chats')
-                else:
-                    messages.error(request, 'Неправильный код подтверждения')
-        else:
-            form = CustomUserConfirmationForm()
-        return render(request, 'users/email_confirmation.html', {'form': form})
-    else:
-        return redirect('reg')
 
-def login_view(request):
+    return render(request, 'users/email_confirmation.html')
+
+def login_page(request):
+
     if request.user.is_authenticated:
-        user = CustomUser.objects.get(email=request.user.email)
-        if not user.is_confirmed:
-            return redirect('emailconfirmation')
         return redirect('chats')
 
-    if request.method == 'POST':
-        form = CustomLoginForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('chats')
-            else:
-                messages.error(request, 'Invalid username or password')
-    else:
-        form = CustomLoginForm()
-
-    return render(request, 'users/login.html', {'form': form})
+    return render(request, 'users/login.html')
 
 def logout_view(request):
     logout(request)

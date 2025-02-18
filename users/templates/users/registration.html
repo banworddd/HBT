@@ -1,16 +1,27 @@
-{% extends 'layout.html' %}
-
-{% block title %}Регистрация{% endblock %}
+{% extends "layout.html" %}
+{% load static %}
 
 {% block content %}
     <h1>Регистрация</h1>
-    {% if user.is_authenticated %}
-        <p>Вы уже зарегистрированы и авторизованы.</p>
-    {% else %}
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Зарегистрироваться</button>
-        </form>
-    {% endif %}
+
+    <form id="registration-form">
+        {% csrf_token %}
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <label for="password1">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+
+        <label for="password2">Confirm Password:</label>
+        <input type="password" id="password2" name="password2" required><br><br>
+
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+
+    <div id="error-message" style="color: red; display: none;"></div>
+    <script src="{% static 'users/js/registration.js' %}"></script>
 {% endblock %}
+
