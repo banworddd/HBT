@@ -164,6 +164,7 @@ CACHES = {
 }
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_NAME = 'sessionid'
 
 CHANNEL_LAYERS = {
     'default': {

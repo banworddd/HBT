@@ -1,14 +1,10 @@
-from django.utils import timezone
-
-from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
-from django.core.cache import cache
 
-from common.utils import check_user_status, check_user_session, check_active_sessions
+from common.utils import check_user_status, check_active_sessions
 from users.models import CustomUser
 
-from .forms import MessageForm, GroupChatForm
-from .models import Chats, Message
+from .forms import  GroupChatForm
+from .models import Chats
 
 def startpage(request):
     if request.user.is_authenticated:

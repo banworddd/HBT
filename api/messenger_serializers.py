@@ -89,29 +89,23 @@ class MessageReactionSerializer(serializers.ModelSerializer):
 
 
 class ContactsSerializer(serializers.ModelSerializer):
-    chat_id = serializers.SerializerMethodField()
-    contact_ids = serializers.SerializerMethodField()
+    contacts_usernames = serializers.SerializerMethodField()
+    contacts_chats = serializers.SerializerMethodField()
     class Meta:
         model = CustomUser
-        fields = ['contacts','contact_ids', 'chat_id']
+        fields = ['contacts', 'contacts_usernames', 'contacts_chats']
 
-    def get_chat_id(self, obj):
-        chat_ids = []
-        for contact in obj.contacts:
-            contact_obj = CustomUser.objects.get(username=contact)
-            try:
-                chat = Chats.objects.get((Q(user_1 = contact_obj) & Q(user_2 = obj) )| (Q(user_1 = obj) & Q(user_2 = contact_obj)))
-                chat_ids.append(chat.id)
-            except:
-                chat_ids.append(None)
-        return chat_ids
+    def get_contacts_usernames(self, obj):
+        queryset = obj.contacts.all()
+        return queryset.values_list('username', flat=True)
 
-    def get_contact_ids(self, obj):
-        contact_ids = []
-        for contact in obj.contacts:
-            contact_obj = CustomUser.objects.get(username=contact)
-            contact_ids.append(contact_obj.id)
-        return contact_ids
+    def get_contacts_chats(self, obj):
+        queryset = obj.contacts.all()
+        chats_queryset = Chats.objects.filter(Q(user_1__in = queryset) & Q(user_2 = obj) | Q(user_2__in = queryset) & Q(user_1 = obj))
+        return chats_queryset.values_list('id', flat=True)
+
+
+
 
 
 class UserSerializer(serializers.ModelSerializer):

@@ -146,21 +146,8 @@ class ContactsAPIView(RetrieveAPIView):
 
     queryset = CustomUser.objects.all()
     serializer_class = ContactsSerializer
+    lookup_field = 'pk'
 
-    def get_object(self):
-        id = self.kwargs.get('pk')
-        user_obj = CustomUser.objects.filter(id=id).first()
-        if not user_obj:
-            return Response({"error": "Пользователя не существует"}, status=status.HTTP_404_NOT_FOUND)
-        return user_obj
-
-    def get(self, request, *args, **kwargs):
-        user_obj = self.get_object()
-
-        if isinstance(user_obj, Response):
-            return user_obj
-
-        return Response(self.get_serializer(user_obj).data)
 
 class UpdateContactsAPIView(UpdateAPIView):
     queryset = CustomUser.objects.all()
