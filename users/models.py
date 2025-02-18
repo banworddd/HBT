@@ -34,15 +34,6 @@ class CustomUser(AbstractUser):
         super().save(*args, **kwargs)
 
 
-class ConfirmationCode(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    code = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Confirmation code for {self.user.username}"
-
-
 
 
 
