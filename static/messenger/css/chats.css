@@ -1,0 +1,47 @@
+#chats-list {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#search-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#chat-items {
+    list-style: none;
+    padding: 0;
+}
+
+.chat-item {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.chat-item:hover {
+    background-color: #f9f9f9;
+}
+
+.chat-info h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.last-message {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #666;
+}
+
+.last-message small {
+    display: block;
+    margin-top: 5px;
+    color: #999;
+}

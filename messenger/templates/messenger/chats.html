@@ -1,12 +1,15 @@
 {% extends 'layout.html' %}
 {% load static %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'messenger/css/chats.css' %}">
+{% endblock %}
+
 {% block content %}
   <div id="chats-list" data-username="{{ username }}">
-    <h1>Chats for {{ username }}</h1>
-    <input type="text" id="search-input" placeholder="Search users...">
+    <h1>Чаты для {{ username }}</h1>
+    <input type="text" id="search-input" placeholder="Поиск пользователей...">
     <ul id="chat-items">
-      <!-- Chat items will be injected here by JavaScript -->
     </ul>
   </div>
 

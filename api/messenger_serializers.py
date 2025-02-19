@@ -1,3 +1,5 @@
+from types import NoneType
+
 from django.db.models import Q
 from rest_framework import serializers
 
@@ -12,10 +14,11 @@ class ChatsSerializer(serializers.ModelSerializer):
     last_message_time = serializers.SerializerMethodField()
     username1 = serializers.SerializerMethodField()
     username2 = serializers.SerializerMethodField()
+    chat_avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = Chats
-        fields = ['id','user_1', 'user_2','username1','username2', 'is_group', 'users','admins','name','avatar','last_message_time', 'last_message_text', 'last_message_picture']
+        fields = ['id','user_1', 'user_2','username1','username2', 'is_group', 'users','admins','name','chat_avatar','last_message_time', 'last_message_text', 'last_message_picture']
 
     def get_last_message_text(self, obj):
         try:
@@ -51,6 +54,13 @@ class ChatsSerializer(serializers.ModelSerializer):
             return user_obj.username
         except:
             return None
+
+    def get_chat_avatar(self, obj):
+        if obj.is_group:
+            return obj.avatar.url if obj.avatar else None
+        else:
+            return obj.user_2.avatar.url if obj.user_2.avatar else None
+
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
