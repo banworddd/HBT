@@ -10,7 +10,6 @@ from .utils import generate_image_name, generate_avatar_name
 class Chats(models.Model):
     user_1 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='chats_as_user_1', blank=True, null=True)
     user_2 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='chats_as_user_2', blank=True, null=True)
-    last_messaging_time = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     is_group = models.BooleanField(default=False)
     users = models.ManyToManyField(CustomUser, related_name='chats', blank=True)

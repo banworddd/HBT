@@ -61,7 +61,6 @@ class ChatsSerializer(serializers.ModelSerializer):
         else:
             return obj.user_2.avatar.url if obj.user_2.avatar else None
 
-
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         request = self.context.get('request')
@@ -127,50 +126,41 @@ class ContactsSerializer(serializers.ModelSerializer):
         return chats_queryset.values_list('id', flat=True)
 
 
-
-
-
 class UserSerializer(serializers.ModelSerializer):
     is_contact = serializers.SerializerMethodField()
-    is_chat = serializers.SerializerMethodField()
     chat_id = serializers.SerializerMethodField()
     last_chat_message_text = serializers.SerializerMethodField()
     last_chat_message_time = serializers.SerializerMethodField()
     class Meta:
         model = CustomUser
-        fields = ['username', 'public_name', 'avatar', 'status','is_contact', 'is_chat', 'chat_id', 'last_chat_message_text', 'last_chat_message_time']
+        fields = ['username', 'public_name', 'avatar', 'status','is_contact', 'chat_id', 'last_chat_message_text', 'last_chat_message_time']
 
     def get_is_contact(self, obj):
-        try:
-            return obj.is_contact
-        except:
-            return None
+        request = self.context.get('request')
+        if request.user.contacts.filter(username=obj.username).exists():
+            return True
+        else:
+            return False
 
-    def get_is_chat(self,obj):
-        try:
-            return obj.is_chat
-        except:
-            return None
-
-    def get_chat_id(self,obj):
-        try:
-            return obj.last_chat_id
-        except:
-            return None
+    def get_chat_id(self, obj):
+        request = self.context.get('request')
+        return Chats.objects.filter(
+                Q(user_1=obj) & Q(user_2=request.user) | Q(user_1=request.user) & Q(user_2=obj)).first().id if  Chats.objects.filter(
+                Q(user_1=obj) & Q(user_2=request.user) | Q(user_1=request.user) & Q(user_2=obj)).exists() else None
 
     def get_last_chat_message_text(self, obj):
-        try:
-            return obj.last_chat_message_text
-        except:
-            return None
+        request = self.context.get('request')
+        chat_id = self.get_chat_id(obj)
+        if chat_id:
+            return Message.objects.filter(chat__id = chat_id ).last().text if Message.objects.filter(chat__id = chat_id).exists() else None
 
     def get_last_chat_message_time(self, obj):
-        try:
-            return obj.last_chat_message_time
-        except:
-            return None
+        request = self.context.get('request')
 
-
+        chat_id = self.get_chat_id(obj)
+        if chat_id:
+            return Message.objects.filter(chat__id=chat_id).last().send_time if Message.objects.filter(
+                chat__id=chat_id).exists() else None
 
 
 
