@@ -2,25 +2,19 @@
 {% load static %}
 
 {% block chat_information %}
-  <div class="messenger-container">
-    <div class="chats-list">
+<div id="chat-info" data-chat-id="{{ chat_id }}" data-username="{{ user.username }}">
+    <h2>{{ chat_name }}</h2>
+</div>
 
+<ul id="messages-list"></ul>
 
-    <div class="chat-info">
-      <h2>{{ chat_name }}</h2>
-      <ul id="messages-list">
-        <!-- Сообщения чата будут добавляться сюда через JavaScript -->
-      </ul>
-
-      <form id="message-form">
-        <textarea id="message-text" name="text" placeholder="Enter your message" required></textarea><br>
-        <input type="file" id="message-image" name="picture"><br>
-        <button type="submit">Send</button>
-      </form>
-    </div>
-  </div>
-  </div>
-    <script src="{% static 'messenger/js/chat_detail.js' %}"></script>
+<form id="message-form">
+    <textarea id="message-text" placeholder="Введите сообщение" required></textarea>
+    <input type="file" id="message-image" accept="image/*">
+    <button type="submit">Send</button>
+</form>
 {% endblock %}
 
-
+{% block extra_js %}
+<script src="{% static 'messenger/js/chat_detail.js' %}"></script>
+{% endblock %}
