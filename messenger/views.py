@@ -30,8 +30,8 @@ def chat_detail_view(request, chat_id):
     redirect_response = check_user_status(request)
     if redirect_response:
         return redirect_response
-
-    return render(request, 'messenger/chat_detail.html', {'chat_id': chat_id})
+    username = request.user.username
+    return render(request, 'messenger/chat_detail.html', {'chat_id': chat_id, 'username': username})
 
 def contactsview(request):
     redirect_response = check_user_status(request)

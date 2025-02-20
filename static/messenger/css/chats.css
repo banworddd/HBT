@@ -1,35 +1,79 @@
+/* Основной контейнер для чатов */
+#chats-container {
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Левый блок для списка чатов */
 #chats-list {
-    max-width: 800px;
-    margin: 0 auto;
+    width: 30%;
+    min-width: 300px;
+    max-width: 400px;
+    height: 100%;
     padding: 20px;
+    background-color: #ffffff;
+    border-right: 1px solid #ddd;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden; /* Убираем горизонтальную прокрутку */
+    scrollbar-width: none; /* Для Firefox */
+    -ms-overflow-style: none; /* Для Internet Explorer и Edge */
+}
+
+/* Скрытие скроллбара в WebKit-браузерах (Chrome, Safari) */
+#chats-list::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* Поисковая строка */
+.search-container {
+    margin-bottom: 15px;
 }
 
 #search-input {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
+    padding: 10px 15px;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 20px;
+    background-color: #f9f9f9;
+    font-size: 16px;
+    transition: border-color 0.3s;
 }
 
+#search-input:focus {
+    border-color: #888;
+    outline: none;
+}
+
+/* Список чатов */
 #chat-items {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
+/* Элемент чата */
 .chat-item {
     display: flex;
     align-items: center;
-    padding: 15px;
+    padding: 12px 10px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    border-bottom: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    border-bottom: 1px solid #f1f1f1;
 }
 
 .chat-item:hover {
-    background-color: #f9f9f9;
+    background-color: #f1f1f1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Аватарка чата */
 .chat-avatar {
     width: 50px;
     height: 50px;
@@ -37,6 +81,10 @@
     overflow: hidden;
     margin-right: 15px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ddd;
 }
 
 .chat-avatar img {
@@ -45,76 +93,78 @@
     object-fit: cover;
 }
 
-.chat-avatar.default-avatar {
-    background-color: #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 20px;
-}
-
+/* Информация о чате */
 .chat-info {
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .chat-info h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 16px;
     color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .chat-info p {
-    margin: 5px 0 0;
+    margin: 4px 0 0;
     font-size: 14px;
     color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
+/* Последнее сообщение */
 .last-message {
-    margin-top: 5px;
-    font-size: 14px;
-    color: #666;
-}
-
-.last-message small {
-    display: block;
-    margin-top: 5px;
+    font-size: 13px;
     color: #999;
+    margin-top: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
+/* Имя пользователя */
 .username {
-    font-size: 12px; /* Меньший размер шрифта */
-    color: #aaa; /* Более светлый цвет */
-    margin: 0; /* Убираем отступы */
+    font-size: 12px;
+    color: #aaa;
+    margin: 0;
 }
 
-.search-container {
-    position: relative; /* Для позиционирования значка поиска */
-    max-width: 800px; /* Ширина контейнера */
-    margin: 0 auto; /* Центрирование */
+/* Блок информации о чате справа */
+#chat-information {
+    flex-grow: 1;
+    height: 100%;
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    overflow-y: auto;
+    min-width: 400px;
 }
 
-#search-input {
-    width: 100%;
-    padding: 10px 40px 10px 20px; /* Увеличиваем отступ справа для значка */
-    border: 1px solid #ddd; /* Цвет границы */
-    border-radius: 20px; /* Скругленные края */
-    background-color: #f5f5f5; /* Серый фон */
-    font-size: 16px; /* Размер шрифта */
-    transition: border-color 0.3s; /* Плавный переход цвета границы */
-}
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    #chats-container {
+        flex-direction: column;
+        height: auto;
+    }
 
-#search-input:focus {
-    border-color: #aaa; /* Цвет границы при фокусе */
-    outline: none; /* Убираем стандартное обводка */
-}
+    #chats-list {
+        width: 100%;
+        max-width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        height: 40vh;
+    }
 
-.search-icon {
-    position: absolute; /* Позиционируем значок */
-    left: 15px; /* Отступ от левого края */
-    top: 50%; /* Центрирование по вертикали */
-    transform: translateY(-50%); /* Центрируем значок по вертикали */
-    color: #aaa; /* Цвет значка */
-    font-size: 18px; /* Размер значка */
-    pointer-events: none; /* Чтобы не мешал взаимодействию с полем ввода */
+    #chat-information {
+        width: 100%;
+        height: 60vh;
+    }
 }

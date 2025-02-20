@@ -1,23 +1,26 @@
-{% extends 'layout.html' %}
+{% extends 'messenger/chats.html' %}
 {% load static %}
 
-{% block content %}
-  <h1>Chat Information</h1>
- <div id="chat-info" data-chat-id="{{ chat_id }}" data-username="{{ request.user.username }}" data-user-id="{{ request.user.id }}">
-    <!-- Информация о чате будет добавлена сюда с помощью JavaScript -->
+{% block chat_information %}
+  <div class="messenger-container">
+    <div class="chats-list">
+
+
+    <div class="chat-info">
+      <h2>{{ chat_name }}</h2>
+      <ul id="messages-list">
+        <!-- Сообщения чата будут добавляться сюда через JavaScript -->
+      </ul>
+
+      <form id="message-form">
+        <textarea id="message-text" name="text" placeholder="Enter your message" required></textarea><br>
+        <input type="file" id="message-image" name="picture"><br>
+        <button type="submit">Send</button>
+      </form>
+    </div>
   </div>
-
-  <h2>Messages</h2>
-  <ul id="messages-list">
-    <!-- Сообщения будут добавлены сюда с помощью JavaScript -->
-  </ul>
-
-  <h2>Send a Message</h2>
-  <form id="message-form">
-    <textarea id="message-text" name="text" placeholder="Enter your message" required></textarea><br>
-    <input type="file" id="message-image" name="picture"><br>
-    <button type="submit">Send</button>
-  </form>
-
-  <script src="{% static 'messenger/js/chat_detail.js' %}"></script>
+  </div>
+    <script src="{% static 'messenger/js/chat_detail.js' %}"></script>
 {% endblock %}
+
+

@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const chatInfo = document.getElementById('chat-info');
   const chatId = chatInfo.dataset.chatId;
   const currentUsername = chatInfo.dataset.username; // Имя текущего пользователя
-  const messagesListUrl = `/api/chat_messages_list/`;
+  const messagesListUrl = `/api/messenger/chat_messages_list/`;
   const messageForm = document.getElementById('message-form');
 
   // Загрузка сообщений
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // 🔹 Функция загрузки реакций
   function loadReactions(messageId) {
-    fetch(`/api/message_reactions/?message_id=${messageId}`)
+    fetch(`/api/messenger/message_reactions/?message_id=${messageId}`)
       .then(response => response.json())
       .then(data => {
         const reactionsDiv = document.querySelector(`.reactions[data-message-id="${messageId}"]`);
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // 🔹 Функция добавления/удаления реакции
   function toggleReaction(messageId, reaction) {
-    fetch(`/api/message_reactions/?message_id=${messageId}`)
+    fetch(`/api/messenger/message_reactions/?message_id=${messageId}`)
       .then(response => response.json())
       .then(data => {
         const existingReaction = data.find(r => r.author === getCurrentUserId() && r.reaction === reaction);
@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // 🔹 Добавление реакции
   function addReaction(messageId, reaction) {
-    fetch(`/api/message_reactions/`, {
+    fetch(`/api/messenger/message_reactions/`, {
       method: 'POST',
       headers: {
         'X-CSRFToken': getCookie('csrftoken'),
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // 🔹 Удаление реакции
   function deleteReaction(reactionId, messageId) {
-    fetch(`/api/message_reactions_detail/${reactionId}/`, {
+    fetch(`/api/messenger/message_reactions_detail/${reactionId}/`, {
       method: 'DELETE',
       headers: {
         'X-CSRFToken': getCookie('csrftoken'),
