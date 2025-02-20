@@ -17,8 +17,17 @@
 
     <!-- Правый блок: Информация о чате -->
     <div id="chat-information">
-        {% block chat_information %}
-        {% endblock %}
+        <div id="chat-header">
+            <h2>Выберите чат</h2>
+            <p>Чтобы начать общение, выберите чат слева.</p>
+        </div>
+        <ul id="message-list"></ul>
+
+        <!-- Форма для отправки сообщений -->
+        <form id="message-form">
+            <textarea id="message-text" placeholder="Введите сообщение..."></textarea>
+            <button type="submit">Отправить</button>
+        </form>
     </div>
 </div>
 

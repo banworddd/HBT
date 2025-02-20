@@ -32,9 +32,6 @@ class Chats(models.Model):
         verbose_name = 'Чат'
         verbose_name_plural = 'Чаты'
 
-    def __str__(self):
-        return self.id
-
 
 class Message(models.Model):
     STATUS_CHOICES = [
@@ -42,7 +39,7 @@ class Message(models.Model):
         ('R', 'Read'),
     ]
 
-    text = models.TextField()
+    text = models.TextField(blank=True, null=True)
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='author')
     chat = models.ForeignKey(Chats, on_delete=models.CASCADE)
     send_time = models.DateTimeField(auto_now_add=True)

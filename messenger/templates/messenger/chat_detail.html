@@ -1,6 +1,11 @@
 {% extends 'messenger/chats.html' %}
 {% load static %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'messenger/css/chats.css' %}">
+        <link rel="stylesheet" href="{% static 'messenger/css/chat_detail.css' %}">
+{% endblock %}
+
 {% block chat_information %}
 <div id="chat-info" data-chat-id="{{ chat_id }}" data-username="{{ user.username }}">
     <h2>{{ chat_name }}</h2>

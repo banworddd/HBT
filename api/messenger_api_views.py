@@ -174,33 +174,49 @@ class UserProfileAPIView(RetrieveAPIView):
         return Response(self.get_serializer(user_obj).data)
 
 
+class MessagePagination(PageNumberPagination):
+    page_size = 20  # Количество сообщений на странице
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class MessagesCreateListAPIView(ListCreateAPIView):
     serializer_class = MessageSerializer
+    pagination_class = MessagePagination
 
     def get_queryset(self):
         chat_id = self.request.query_params.get('chat_id')
 
         if not chat_id:
-            return Chats.objects.none()
+            return Message.objects.none()
 
+        # Проверка существования чата
         chat_obj = Chats.objects.filter(id=chat_id).first()
         if not chat_obj:
-            return Chats.objects.none()
+            return Message.objects.none()
 
+        # Получаем сообщения
         queryset = Message.objects.filter(chat=chat_obj, is_deleted=False).order_by('send_time')
 
-        for msg in queryset.reverse():
-            if msg.author == self.request.user:
-                break
-            else:
-                msg.status = 'R'
-                msg.save()
+        # Обновляем статус сообщений всех, кроме текущего пользователя
+        Message.objects.filter(
+            chat=chat_obj,
+            is_deleted=False,
+
+            status='S'
+        ).exclude(author=self.request.user).update(status='R')
 
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        chat_id = self.request.data.get('chat_id')
 
+        # Проверка существования чата
+        chat_obj = Chats.objects.filter(id=chat_id).first()
+        if not chat_obj:
+            return Response({'error': 'Чат не найден.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer.save(author=self.request.user, chat=chat_obj)
 
 class MessageDeleteAPIView(UpdateAPIView):
     queryset = Message.objects.all()

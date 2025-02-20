@@ -1,85 +1,128 @@
-.messenger-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
 
-.chats-list {
-    flex: 0 0 300px; /* Фиксированная ширина для списка чатов */
-    max-width: 300px;
+/* Стиль для блока информации о чате */
+#chat-info {
+    background-color: #4caf50;
+    color: white;
     padding: 20px;
-    background-color: #f9f9f9;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
 }
 
-#chat-items {
-    list-style: none;
-    padding: 0;
+#chat-info h2 {
+    font-size: 24px;
     margin: 0;
 }
 
-.chat-item {
-    display: flex;
-    align-items: center;
-    padding: 15px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.chat-item:hover {
-    background-color: #f1f1f1;
-}
-
-.chat-info {
-    flex-grow: 1;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    min-width: 400px; /* Минимальная ширина для блока информации */
-    display: flex;
-    flex-direction: column;
-}
-
+/* Стили для списка сообщений */
 #messages-list {
     list-style: none;
     padding: 0;
-    margin-bottom: 20px;
+    margin: 0;
     max-height: 400px;
-    overflow-y: auto;
+    overflow-y: scroll;
 }
 
+/* Стили для каждого сообщения */
+#messages-list li {
+    background-color: #ffffff;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+#messages-list li .message {
+    font-size: 16px;
+    color: #333;
+}
+
+#messages-list li .time {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 5px;
+    text-align: right;
+}
+
+/* Различие между отправленными и полученными сообщениями */
+#messages-list li.sent {
+    background-color: #e1f5fe;
+    margin-left: auto;
+}
+
+#messages-list li.received {
+    background-color: #f1f1f1;
+}
+
+/* Стили для формы отправки сообщений */
 #message-form {
     display: flex;
     flex-direction: column;
+    margin-top: 20px;
 }
 
 #message-text {
-    width: 100%;
-    height: 100px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    resize: none;
     margin-bottom: 10px;
+    min-height: 50px;
 }
 
 #message-image {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
-button {
-    width: 100px;
-    padding: 10px;
-    background-color: #4CAF50;
+button[type="submit"] {
+    background-color: #4caf50;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+/* Стили для кнопки отправки с изображением */
+#message-image {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
     cursor: pointer;
 }
 
-button:hover {
-    background-color: #45a049;
+/* Стиль для блока сообщений с отправленным изображением */
+#messages-list li .message-image {
+    max-width: 300px;
+    max-height: 300px;
+    margin-top: 10px;
+}
+
+/* Установка для кнопки отправки сообщения с изображением */
+#message-image {
+    background-color: #fff;
+    display: block;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #333;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#message-image:focus {
+    outline: none;
+    border: 1px solid #4caf50;
+}
+
+/* Стили для загрузки изображения */
+input[type="file"] {
+    display: none;
 }
