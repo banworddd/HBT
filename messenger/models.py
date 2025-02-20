@@ -15,7 +15,7 @@ class Chats(models.Model):
     users = models.ManyToManyField(CustomUser, related_name='chats', blank=True)
     admins = models.ManyToManyField(CustomUser, related_name='chats_as_admin', blank=True)
     name = models.CharField(max_length=120,blank=True, null=True)
-    avatar = models.ImageField(upload_to=generate_avatar_name, blank=True, null=True)
+    avatar = models.ImageField(upload_to=generate_avatar_name, blank=True, null=True, default='chats_avatars/default.png')
 
 
     def save(self, *args, **kwargs):

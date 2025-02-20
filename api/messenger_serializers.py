@@ -1,5 +1,3 @@
-from types import NoneType
-
 from django.db.models import Q
 from rest_framework import serializers
 
@@ -14,11 +12,13 @@ class ChatsSerializer(serializers.ModelSerializer):
     last_message_time = serializers.SerializerMethodField()
     username1 = serializers.SerializerMethodField()
     username2 = serializers.SerializerMethodField()
+    public_name1 = serializers.SerializerMethodField()
+    public_name2 = serializers.SerializerMethodField()
     chat_avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = Chats
-        fields = ['id','user_1', 'user_2','username1','username2', 'is_group', 'users','admins','name','chat_avatar','last_message_time', 'last_message_text', 'last_message_picture']
+        fields = ['id','user_1', 'user_2', 'username1', 'username2', 'public_name1', 'public_name2', 'is_group', 'users', 'admins', 'name', 'chat_avatar', 'last_message_time', 'last_message_text', 'last_message_picture']
 
     def get_last_message_text(self, obj):
         try:
@@ -55,6 +55,20 @@ class ChatsSerializer(serializers.ModelSerializer):
         except:
             return None
 
+    def get_public_name1(self, obj):
+        try:
+            user_obj = CustomUser.objects.get(pk=obj.user_1.id)
+            return user_obj.public_name
+        except:
+            return None
+
+    def get_public_name2(self, obj):
+        try:
+            user_obj = CustomUser.objects.get(pk=obj.user_2.id)
+            return user_obj.public_name
+        except:
+            return None
+
     def get_chat_avatar(self, obj):
         if obj.is_group:
             return obj.avatar.url if obj.avatar else None
@@ -70,6 +84,8 @@ class ChatsSerializer(serializers.ModelSerializer):
                 representation['user_1'], representation['user_2'] = representation['user_2'], representation['user_1']
                 representation['username1'], representation['username2'] = representation['username2'], representation[
                     'username1']
+                representation['public_name1'], representation['public_name2'] = representation['public_name2'], representation[
+                    'public_name1']
 
         return representation
 

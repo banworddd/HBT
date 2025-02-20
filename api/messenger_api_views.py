@@ -1,14 +1,27 @@
 from django.db.models import Q
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView, UpdateAPIView, \
-    RetrieveDestroyAPIView, CreateAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveAPIView,
+    ListCreateAPIView,
+    UpdateAPIView,
+    RetrieveDestroyAPIView,
+    CreateAPIView,
+    RetrieveUpdateAPIView
+)
 from rest_framework.response import Response
 
 from messenger.models import Chats, Message, MessageReaction
 from users.models import CustomUser
-from .messenger_serializers import ChatsSerializer, MessageSerializer, MessageReactionSerializer, ContactsSerializer, \
+from .messenger_serializers import (
+    ChatsSerializer,
+    MessageSerializer,
+    MessageReactionSerializer,
+    ContactsSerializer,
     UserSerializer
+)
 
 
 class ChatsListAPIView(ListAPIView):
@@ -29,7 +42,7 @@ class ChatsListAPIView(ListAPIView):
         queryset = Chats.objects.filter(
             (Q(user_1=user_obj) | Q(user_2=user_obj)) & Q(is_group=False) |
             (Q(is_group=True) & Q(users__username=user))
-        ).order_by('-last_messaging_time')
+        )
 
         return queryset
 
@@ -38,6 +51,7 @@ class ChatDetailAPIView(RetrieveAPIView):
     queryset = Chats.objects.all()
     serializer_class = ChatsSerializer
     lookup_field = 'pk'
+
 
 class ChatCreateAPIView(CreateAPIView):
     queryset = Chats.objects.all()
@@ -52,6 +66,7 @@ class ChatCreateAPIView(CreateAPIView):
 
         serializer.save(user_1=user_1, user_2=user_2, is_group = False)
         return Response(serializer.data)
+
 
 class GroupChatCreateAPIView(CreateAPIView):
     queryset = Chats.objects.all()
@@ -70,7 +85,9 @@ class GroupChatCreateAPIView(CreateAPIView):
         serializer.save(is_group = True, admins = admins_set, users = users_set, name = name)
         return Response(serializer.data)
 
+
 class GroupChatUpdateAPIView(RetrieveUpdateAPIView):
+
     queryset = Chats.objects.all()
     serializer_class = ChatsSerializer
     lookup_field = 'pk'
@@ -94,39 +111,6 @@ class GroupChatUpdateAPIView(RetrieveUpdateAPIView):
         serializer.save(is_group = True, admins = admins, users = users_set, name = name)
 
 
-class ContactsChatDetailAPIView(RetrieveAPIView):
-    serializer_class = ChatsSerializer
-
-    def get(self, request, *args, **kwargs):
-        user_id1 = self.kwargs.get('user_id1')
-        user_id2 = self.kwargs.get('user_id2')
-        try:
-            user_1_obj = CustomUser.objects.filter(id=user_id1).first()
-            user_2_obj = CustomUser.objects.filter(id=user_id2).first()
-
-        except CustomUser.DoesNotExist:
-            return Response(
-                {"error": "Объект не найден"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        try:
-            chat = Chats.objects.filter(
-                (Q(user_1=user_1_obj) & Q(user_2=user_2_obj)) | (Q(user_1=user_2_obj) & Q(user_2=user_1_obj))).first()
-
-            if chat is None:
-                return Response(
-                    {"error": "Чата не существует"},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-            return Response(self.get_serializer(chat).data)
-
-        except Chats.DoesNotExist:
-            return Response(
-                {"error": "Чата не существует"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-
 class ContactsAPIView(RetrieveAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = ContactsSerializer
@@ -139,34 +123,17 @@ class UpdateContactsAPIView(UpdateAPIView):
     lookup_field = 'pk'
 
     def perform_update(self, serializer):
-        id = self.kwargs.get('pk')
-        user_obj = CustomUser.objects.filter(id=id).first()
-
-        if not user_obj:
-            return Response({"error": "Пользователя не существует"},
-                            status=status.HTTP_404_NOT_FOUND)
-
-        contact = serializer.validated_data['contacts']
-        contact_obj = CustomUser.objects.filter(username = contact).first()
-
-        if not contact_obj:
-            return Response({"error": "Контакта не существует"},
-                            status=status.HTTP_404_NOT_FOUND)
-
-        contacts = user_obj.contacts
-
-        for _ in range(len(contacts)):
-            if contacts[_] == contact:
-                contacts.remove(contact)
-                serializer.save(contacts = contacts)
-                return Response ('Пользователь удален из контактов ')
-
-        contacts.append(contact)
-        serializer.save(user=user_obj, contacts=contacts)
-        return Response('Пользователь добавлен в контакты')
+        user_obj = CustomUser.objects.get(pk=self.kwargs.get('pk'))
+        new_contacts = serializer.validated_data['contacts']
+        contacts = user_obj.contacts.all()
+        queryset = CustomUser.objects.filter(Q(pk__in = contacts) | Q(username__in = new_contacts)).distinct()
+        user_obj.contacts.set(queryset)
+        user_obj.save()
 
 
 class UsersSearchAPIView(ListAPIView):
+    pagination_class = PageNumberPagination
+    page_size = 10  #
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
@@ -174,9 +141,10 @@ class UsersSearchAPIView(ListAPIView):
         user = self.request.query_params.get('user')
         if not user:
             return CustomUser.objects.none()
-        queryset = CustomUser.objects.filter(username__icontains=user).order_by('username').exclude(username = self.request.user.username)
+        queryset = CustomUser.objects.filter(Q(username__icontains=user)| Q(public_name__icontains=user)).order_by('username').exclude(username = self.request.user.username)
 
         return queryset
+
 
 class UserProfileAPIView(RetrieveAPIView):
     queryset = CustomUser.objects.all()
@@ -185,7 +153,6 @@ class UserProfileAPIView(RetrieveAPIView):
 
     def get_object(self):
         username = self.kwargs.get('username')
-        request_user = self.request.user
 
         if not username.startswith('@'):
             username = '@' + username
@@ -196,22 +163,7 @@ class UserProfileAPIView(RetrieveAPIView):
             return Response({"error": "Пользователя не существует"},
                             status=status.HTTP_404_NOT_FOUND)
 
-        if user_obj.username in request_user.contacts:
-            user_obj.is_contact = True
-        else:
-            user_obj.is_contact = False
-
-        if Chats.objects.filter(Q(user_1=user_obj) & Q(user_2=request_user) | Q(user_2=user_obj) & Q(user_1=request_user)).exists():
-            user_obj.is_chat = True
-            user_obj.chat_id = Chats.objects.filter(
-                Q(user_1=user_obj) & Q(user_2=request_user) | Q(user_2=user_obj) & Q(user_1=request_user)).first().id
-            user_obj.last_chat_message_text = Message.objects.filter(chat_id=user_obj.chat_id).last().text if Message.objects.filter(
-                chat_id=user_obj.chat_id).exists() else None
-            user_obj.last_chat_message_time = Message.objects.filter(
-                chat_id=user_obj.chat_id).last().send_time if Message.objects.filter(chat_id=user_obj.chat_id).exists() else None
-
         return user_obj
-
 
     def get(self, request, *args, **kwargs):
         user_obj = self.get_object()
