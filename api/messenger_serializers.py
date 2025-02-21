@@ -4,76 +4,35 @@ from rest_framework import serializers
 from messenger.models import Chats, Message, MessageReaction
 from users.models import CustomUser
 
+
 class ChatsSerializer(serializers.ModelSerializer):
-    users = serializers.PrimaryKeyRelatedField(many=True, queryset=CustomUser.objects.all())
-    admins = serializers.PrimaryKeyRelatedField(many=True, queryset=CustomUser.objects.all())
-    last_message_text = serializers.SerializerMethodField()
-    last_message_picture = serializers.SerializerMethodField()
-    last_message_time = serializers.SerializerMethodField()
-    username1 = serializers.SerializerMethodField()
-    username2 = serializers.SerializerMethodField()
-    public_name1 = serializers.SerializerMethodField()
-    public_name2 = serializers.SerializerMethodField()
+    users = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=CustomUser.objects.all()
+    )
+    admins = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=CustomUser.objects.all()
+    )
+    last_message_text = serializers.CharField(read_only=True)
+    last_message_picture = serializers.CharField(read_only=True)
+    last_message_time = serializers.DateTimeField(read_only=True)
+    username_1 = serializers.CharField(read_only=True)
+    username_2 = serializers.CharField(read_only=True)
+    public_name_1 = serializers.CharField(read_only=True)
+    public_name_2 = serializers.CharField(read_only=True)
     chat_avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = Chats
-        fields = ['id','user_1', 'user_2', 'username1', 'username2', 'public_name1', 'public_name2', 'is_group', 'users', 'admins', 'name', 'chat_avatar', 'last_message_time', 'last_message_text', 'last_message_picture']
-
-    def get_last_message_text(self, obj):
-        try:
-            message = Message.objects.filter(chat = obj).last()
-            return message.text
-        except:
-            return None
-
-    def get_last_message_picture(self, obj):
-        try:
-            message = Message.objects.filter(chat = obj).last()
-            return message.picture.url
-        except:
-            return None
-
-    def get_last_message_time(self, obj):
-        try:
-            message = Message.objects.filter(chat=obj).last()
-            return message.send_time
-        except:
-            return None
-
-    def get_username1(self, obj):
-        try:
-            user_obj = CustomUser.objects.get(pk=obj.user_1.id)
-            return user_obj.username
-        except:
-            return None
-
-    def get_username2(self, obj):
-        try:
-            user_obj = CustomUser.objects.get(pk=obj.user_2.id)
-            return user_obj.username
-        except:
-            return None
-
-    def get_public_name1(self, obj):
-        try:
-            user_obj = CustomUser.objects.get(pk=obj.user_1.id)
-            return user_obj.public_name
-        except:
-            return None
-
-    def get_public_name2(self, obj):
-        try:
-            user_obj = CustomUser.objects.get(pk=obj.user_2.id)
-            return user_obj.public_name
-        except:
-            return None
+        fields = [
+            'id', 'user_1', 'user_2', 'username_1', 'username_2', 'public_name_1',
+            'public_name_2', 'is_group', 'users', 'admins', 'name', 'chat_avatar',
+            'last_message_time', 'last_message_text', 'last_message_picture'
+        ]
 
     def get_chat_avatar(self, obj):
         if obj.is_group:
             return obj.avatar.url if obj.avatar else None
-        else:
-            return obj.user_2.avatar.url if obj.user_2.avatar else None
+        return obj.user_2.avatar.url if obj.user_2 and obj.user_2.avatar else None
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -81,29 +40,32 @@ class ChatsSerializer(serializers.ModelSerializer):
 
         if request and request.user.is_authenticated:
             if instance.user_2 == request.user:
-                representation['user_1'], representation['user_2'] = representation['user_2'], representation['user_1']
-                representation['username1'], representation['username2'] = representation['username2'], representation[
-                    'username1']
-                representation['public_name1'], representation['public_name2'] = representation['public_name2'], representation[
-                    'public_name1']
+                representation['user_1'], representation['user_2'] = (
+                    representation['user_2'], representation['user_1']
+                )
+                representation['username_1'], representation['username_2'] = (
+                    representation['username_2'], representation['username_1']
+                )
+                representation['public_name_1'], representation['public_name_2'] = (
+                    representation['public_name_2'], representation['public_name_1']
+                )
 
         return representation
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    author_name = serializers.SerializerMethodField()
-    author_avatar = serializers.SerializerMethodField()
+    author_name = serializers.CharField(read_only=True)
+    author_avatar = serializers.CharField(read_only=True)
+    author_username = serializers.CharField(read_only=True)
 
     class Meta:
         model = Message
-        fields = ['id', 'text', 'chat', 'send_time', 'status', 'picture', 'author_name', 'author_avatar']
+        fields = ['id', 'text', 'chat', 'send_time', 'status', 'picture', 'author_name', 'author_avatar', 'author_username']
         read_only_fields = ['author', 'send_time', 'status']
+        extra_kwargs = {
+            'text': {'required': False},
+        }
 
-    def get_author_name(self, obj):
-        return obj.author.username
-
-    def get_author_avatar(self, obj):
-        return obj.author.avatar.url if obj.author.avatar else None
 
 
 class MessageReactionSerializer(serializers.ModelSerializer):
@@ -113,7 +75,7 @@ class MessageReactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MessageReaction
-        fields = ['id', 'author','author_avatar','author_name', 'reaction', 'reaction_time','message_text','message']
+        fields = ['id', 'reaction', 'author','author_avatar','author_name', 'time','message_text','message']
 
     def get_author_name(self, obj):
         return obj.author.username

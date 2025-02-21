@@ -1,35 +1,65 @@
-{% extends 'layout.html' %}
+{% extends "layout.html" %}
 {% load static %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'messenger/css/chats.css' %}">
-{% endblock %}
-
 {% block content %}
-<div id="chats-container">
-    <!-- Левый блок: Список чатов -->
-    <div id="chats-list" data-username="{{ username }}">
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="Поиск пользователей...">
-        </div>
-        <ul id="chat-items"></ul>
+<div class="container">
+    <h1>Чаты пользователя @{{ username }}</h1>
+
+    <!-- Список чатов -->
+    <div id="chats-list" class="chats-list">
+        <!-- Сюда будет вставлен список чатов через JavaScript -->
+        <p>Загрузка чатов...</p>
     </div>
 
-    <!-- Правый блок: Информация о чате -->
-    <div id="chat-information">
-        <div id="chat-header">
-            <h2>Выберите чат</h2>
-            <p>Чтобы начать общение, выберите чат слева.</p>
-        </div>
-        <ul id="message-list"></ul>
+    <!-- Список сообщений -->
+    <div id="messages-list" class="messages-list">
+        <!-- Сюда будет вставлен список сообщений через JavaScript -->
+    </div>
 
-        <!-- Форма для отправки сообщений -->
-        <form id="message-form">
-            <textarea id="message-text" placeholder="Введите сообщение..."></textarea>
+    <!-- Форма для отправки нового сообщения -->
+    <div id="message-form" style="display: none;">
+        <h2>Новое сообщение</h2>
+        <form id="send-message-form">
+            <div>
+                <label for="text">Текст сообщения:</label>
+                <textarea id="text" name="text" rows="3"></textarea>
+            </div>
+            <div>
+                <label for="picture">Картинка:</label>
+                <input type="file" id="picture" name="picture" accept="image/*">
+            </div>
             <button type="submit">Отправить</button>
+        </form>
+    </div>
+
+    <!-- Форма для редактирования сообщения -->
+    <div id="edit-message-form" style="display: none;">
+        <h2>Редактировать сообщение</h2>
+        <form id="edit-message-form-content">
+            <div>
+                <label for="edit-text">Текст сообщения:</label>
+                <textarea id="edit-text" name="text" rows="3"></textarea>
+            </div>
+            <div>
+                <label for="edit-picture">Новая картинка:</label>
+                <input type="file" id="edit-picture" name="picture" accept="image/*">
+            </div>
+            <div>
+                <label>
+                    <input type="checkbox" id="remove-picture" name="remove_picture">
+                    Удалить текущую картинку
+                </label>
+            </div>
+            <button type="submit">Сохранить изменения</button>
+            <button type="button" id="cancel-edit">Отмена</button>
         </form>
     </div>
 </div>
 
+<!-- Подключаем JavaScript -->
+<script>
+    // Передаем username из Django в JavaScript
+    const username = "{{ username }}";
+</script>
 <script src="{% static 'messenger/js/chats.js' %}"></script>
 {% endblock %}

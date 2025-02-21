@@ -58,23 +58,17 @@ class Message(models.Model):
 
 
 class MessageReaction(models.Model):
-    STATUS_CHOICES = [
-        ('L', 'Like'),
-        ('D', 'Dislike'),
-        ('H', 'Heart'),
-        ('B', 'BrokenHeart'),
-    ]
 
     message = models.ForeignKey(Message, on_delete=models.CASCADE)
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    reaction = models.CharField(max_length=1, choices=STATUS_CHOICES)
-    reaction_time = models.DateTimeField(auto_now_add=True)
+    reaction = models.CharField(max_length=100, blank=True, null=True)
+    time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = (('reaction', 'message', 'author'),)
 
-    def __str__(self):
-        return self.reaction
+    """def __str__(self):
+        return self.reaction"""
 
 
 

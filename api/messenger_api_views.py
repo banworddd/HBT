@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, OuterRef
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import PermissionDenied
@@ -44,7 +44,29 @@ class ChatsListAPIView(ListAPIView):
             (Q(is_group=True) & Q(users__username=user))
         )
 
-        return queryset
+        last_message_subquery = Message.objects.filter(
+            chat=OuterRef('pk')
+        ).order_by('-send_time').values('text', 'send_time', 'picture')[:1]
+
+        user_1_subquery = CustomUser.objects.filter(
+            pk=OuterRef('user_1__id')
+        ).values('username', 'public_name')
+
+        user_2_subquery = CustomUser.objects.filter(
+            pk=OuterRef('user_2__id')
+        ).values('username', 'public_name')
+
+        queryset = queryset.annotate(
+            last_message_text=last_message_subquery.values('text'),
+            last_message_time=last_message_subquery.values('send_time'),
+            last_message_picture=last_message_subquery.values('picture'),
+            username_1=user_1_subquery.values('username'),
+            public_name_1=user_1_subquery.values('public_name'),
+            username_2=user_2_subquery.values('username'),
+            public_name_2=user_2_subquery.values('public_name')
+        )
+
+        return queryset.order_by('-last_message_time')
 
 
 class ChatDetailAPIView(RetrieveAPIView):
@@ -196,7 +218,7 @@ class MessagesCreateListAPIView(ListCreateAPIView):
             return Message.objects.none()
 
         # Получаем сообщения
-        queryset = Message.objects.filter(chat=chat_obj, is_deleted=False).order_by('send_time')
+        queryset = Message.objects.filter(chat=chat_obj, is_deleted=False).order_by('-send_time')
 
         # Обновляем статус сообщений всех, кроме текущего пользователя
         Message.objects.filter(
@@ -205,12 +227,13 @@ class MessagesCreateListAPIView(ListCreateAPIView):
 
             status='S'
         ).exclude(author=self.request.user).update(status='R')
-
+        author_subquery = CustomUser.objects.filter(pk = OuterRef('author__id')).values('public_name','avatar', 'username')
+        queryset = queryset.annotate(author_name = author_subquery.values('public_name'), author_avatar = author_subquery.values('avatar'), author_username = author_subquery.values('username'))
         return queryset
 
     def perform_create(self, serializer):
-        chat_id = self.request.data.get('chat_id')
-
+        chat_id = self.request.query_params.get('chat_id')
+        print(chat_id)
         # Проверка существования чата
         chat_obj = Chats.objects.filter(id=chat_id).first()
         if not chat_obj:
