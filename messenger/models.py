@@ -54,7 +54,7 @@ class Message(models.Model):
         verbose_name_plural = 'Сообщения'
 
     def __str__(self):
-        return self.text
+        return self.text if self.text else self.picture.url
 
 
 class MessageReaction(models.Model):
@@ -67,8 +67,8 @@ class MessageReaction(models.Model):
     class Meta:
         unique_together = (('reaction', 'message', 'author'),)
 
-    """def __str__(self):
-        return self.reaction"""
+    def __str__(self):
+        return self.reaction
 
 
 

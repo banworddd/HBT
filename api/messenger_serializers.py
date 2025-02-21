@@ -29,7 +29,8 @@ class ChatsSerializer(serializers.ModelSerializer):
             'last_message_time', 'last_message_text', 'last_message_picture'
         ]
 
-    def get_chat_avatar(self, obj):
+    @staticmethod
+    def get_chat_avatar(obj):
         if obj.is_group:
             return obj.avatar.url if obj.avatar else None
         return obj.user_2.avatar.url if obj.user_2 and obj.user_2.avatar else None
@@ -60,31 +61,24 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ['id', 'text', 'chat', 'send_time', 'status', 'picture', 'author_name', 'author_avatar', 'author_username']
+        fields = [
+            'id', 'text', 'chat', 'send_time', 'status',
+            'picture', 'author_name', 'author_avatar', 'author_username'
+        ]
         read_only_fields = ['author', 'send_time', 'status']
         extra_kwargs = {
             'text': {'required': False},
         }
 
 
-
 class MessageReactionSerializer(serializers.ModelSerializer):
-    author_name = serializers.SerializerMethodField()
-    author_avatar = serializers.SerializerMethodField()
-    message_text = serializers.SerializerMethodField()
-
+    author_name = serializers.CharField(read_only=True)
+    author_avatar = serializers.CharField(read_only=True)
+    author_username = serializers.CharField(read_only=True)
     class Meta:
+
         model = MessageReaction
-        fields = ['id', 'reaction', 'author','author_avatar','author_name', 'time','message_text','message']
-
-    def get_author_name(self, obj):
-        return obj.author.username
-
-    def get_author_avatar(self, obj):
-        return obj.author.avatar.url if obj.author.avatar else None
-
-    def get_message_text(self, obj):
-        return obj.message.text if obj.message else None
+        fields = ['id', 'reaction', 'author', 'time','message','author_avatar','author_name', 'author_username']
 
 
 class ContactsSerializer(serializers.ModelSerializer):

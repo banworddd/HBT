@@ -13,6 +13,7 @@ from rest_framework.generics import (
 )
 from rest_framework.response import Response
 
+from messenger.fixtures.messenger.messages_generate import message, author_id
 from messenger.models import Chats, Message, MessageReaction
 from users.models import CustomUser
 from .messenger_serializers import (
@@ -272,14 +273,11 @@ class MessageReactionAPIView(ListCreateAPIView):
         message_id = self.request.query_params.get('message_id')
 
         if not message_id:
-            return MessageReaction.objects.none()
+            return Message.objects.none()
+        queryset = MessageReaction.objects.filter(message__id=message_id)
 
-        message_obj = Message.objects.filter(id=message_id).first()
-
-        if not message_obj:
-            return MessageReaction.objects.none()
-
-        queryset = MessageReaction.objects.filter(message=message_obj)
+        author_subquery = CustomUser.objects.filter(pk=OuterRef('author__id')).values('public_name','avatar','username')
+        queryset = queryset.annotate(author_name = author_subquery.values('public_name'),  author_username = author_subquery.values('username'), author_avatar = author_subquery.values('avatar'))
         return queryset
 
 
