@@ -179,7 +179,7 @@ async function loadMessages(chatId) {
 
 // Функция для создания реакции
 async function createReaction(messageId, reaction, userId) {
-    const apiUrl = `/api/messenger/message_reaction_create/?message_id=${messageId}`;
+    const apiUrl = `/api/messenger/message_reactions/?message_id=${messageId}`;
 
     const response = await fetch(apiUrl, {
         method: 'POST',
@@ -190,33 +190,28 @@ async function createReaction(messageId, reaction, userId) {
         body: JSON.stringify({
             reaction: reaction,
             message: messageId,
-            author: userId // Только реакция, message_id передается в URL
+            author: userId// Только реакция, message_id передается в URL
         }),
     });
-
     if (!response.ok) {
         throw new Error('Ошибка при создании реакции');
     }
 }
+
+// Функция для обработки реакции
 async function handleReaction(messageId, reaction) {
     try {
-        const response = await fetch(`/api/messenger/message_reactions_count/?message_id=${messageId}`);
-        if (!response.ok) {
-            throw new Error('Ошибка при загрузке реакций');
-        }
+        const existingReaction = await checkExistingReaction(messageId, reaction);
 
-        const reactions = await response.json();
-        const reactionData = reactions.find(r => r.reaction === reaction);
-
-        if (reactionData?.user_reacted) {
-            // Если реакция уже стоит, удаляем, используя user_reaction_id
-            await deleteReaction(reactionData.user_reaction_id);
+        if (existingReaction) {
+            // Если реакция уже есть, удаляем её
+            await deleteReaction(existingReaction.id);
         } else {
-            // Если реакции нет — добавляем
+            // Если реакции нет, создаем новую
             await createReaction(messageId, reaction, userId);
         }
 
-        // Обновляем отображение
+        // Обновляем список реакций
         await loadReactions(messageId);
     } catch (error) {
         console.error('Ошибка при обработке реакции:', error);
@@ -224,7 +219,20 @@ async function handleReaction(messageId, reaction) {
     }
 }
 
-// Функция для удаления реакции по reactionId
+// Функция для проверки существующей реакции
+async function checkExistingReaction(messageId, reaction) {
+    const response = await fetch(`/api/messenger/message_reactions/?message_id=${messageId}`);
+    if (!response.ok) {
+        throw new Error('Ошибка при загрузке реакций');
+    }
+
+    const reactions = await response.json();
+
+    // Ищем реакцию текущего пользователя
+    return reactions.find(r => r.reaction === reaction && r.author_username === username);
+}
+
+// Функция для удаления реакции
 async function deleteReaction(reactionId) {
     const response = await fetch(`/api/messenger/message_reactions_detail/${reactionId}/`, {
         method: 'DELETE',
@@ -238,40 +246,28 @@ async function deleteReaction(reactionId) {
     }
 }
 
+// Функция для загрузки и отображения реакций
 async function loadReactions(messageId) {
     try {
-        const response = await fetch(`/api/messenger/message_reactions_count/?message_id=${messageId}`);
+        const response = await fetch(`/api/messenger/message_reactions/?message_id=${messageId}`);
         if (!response.ok) {
             throw new Error('Ошибка при загрузке реакций');
         }
 
         const reactions = await response.json();
+
         const reactionsList = document.getElementById(`reactions-list-${messageId}`);
-        reactionsList.innerHTML = ''; // Очищаем список перед добавлением новых кнопок
+        reactionsList.innerHTML = '';
 
-        reactions.forEach(reactionData => {
-            const reactionButton = document.createElement('button');
-            reactionButton.className = 'reaction-btn';
-            reactionButton.textContent = `${reactionData.reaction} × ${reactionData.count}`; // Отображаем реакцию с количеством
-            reactionButton.dataset.reaction = reactionData.reaction;
-            reactionButton.dataset.messageId = messageId;
-
-            // Если текущий пользователь поставил эту реакцию, выделяем кнопку зеленым цветом
-            if (reactionData.user_reacted) {
-                reactionButton.style.backgroundColor = 'green';
-                reactionButton.style.color = 'white';
-            }
-
-            // Добавляем обработчик клика
-            reactionButton.addEventListener('click', () => handleReaction(messageId, reactionData.reaction));
-
-            reactionsList.appendChild(reactionButton);
+        reactions.forEach(reaction => {
+            const reactionElement = document.createElement('div');
+            reactionElement.textContent = `${reaction.author_username}: ${reaction.reaction}`;
+            reactionsList.appendChild(reactionElement);
         });
     } catch (error) {
         console.error('Ошибка при загрузке реакций:', error);
     }
 }
-
 
 // Функция для удаления сообщения
 async function deleteMessage(messageId) {

@@ -1,7 +1,7 @@
-from django.db.models import Q, OuterRef
+from django.db.models import Q,F, OuterRef, Count, Case, When, Value, BooleanField,IntegerField
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView,
@@ -9,7 +9,7 @@ from rest_framework.generics import (
     UpdateAPIView,
     RetrieveDestroyAPIView,
     CreateAPIView,
-    RetrieveUpdateAPIView
+    RetrieveUpdateAPIView, get_object_or_404
 )
 from rest_framework.response import Response
 
@@ -20,7 +20,8 @@ from .messenger_serializers import (
     MessageSerializer,
     MessageReactionSerializer,
     ContactsSerializer,
-    UserSerializer
+    UserSerializer,
+MessageReactionsCountSerializer
 )
 
 
@@ -233,7 +234,6 @@ class MessagesCreateListAPIView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         chat_id = self.request.query_params.get('chat_id')
-        print(chat_id)
         # Проверка существования чата
         chat_obj = Chats.objects.filter(id=chat_id).first()
         if not chat_obj:
@@ -265,6 +265,7 @@ class MessageUpdateAPIView(UpdateAPIView):
         else:
             raise PermissionDenied('Вы не можете редактировать это сообщение')
 
+
 class MessageReactionAPIView(ListCreateAPIView):
     serializer_class = MessageReactionSerializer
 
@@ -272,12 +273,55 @@ class MessageReactionAPIView(ListCreateAPIView):
         message_id = self.request.query_params.get('message_id')
 
         if not message_id:
-            return Message.objects.none()
-        queryset = MessageReaction.objects.filter(message__id=message_id)
+            return Response({"error": "message_id parameter is required"}, status=400)
 
-        author_subquery = CustomUser.objects.filter(pk=OuterRef('author__id')).values('public_name','avatar','username')
-        queryset = queryset.annotate(author_name = author_subquery.values('public_name'),  author_username = author_subquery.values('username'), author_avatar = author_subquery.values('avatar'))
+        queryset = MessageReaction.objects.filter(message__id=message_id)
+        author_subquery = CustomUser.objects.filter(pk=OuterRef('author__id')).values(
+            'public_name', 'avatar', 'username'
+        )
+        queryset = queryset.annotate(
+            author_name=author_subquery.values('public_name'),
+            author_username=author_subquery.values('username'),
+            author_avatar=author_subquery.values('avatar')
+        )
+
         return queryset
+
+class MessageReactionsCountAPIView(ListAPIView):
+    serializer_class = MessageReactionsCountSerializer
+
+    def get_queryset(self):
+        message_id = self.request.query_params.get('message_id')
+        request_user_id = self.request.user.id
+
+        if not message_id:
+            raise NotFound("message_id parameter is required")
+
+        queryset = MessageReaction.objects.filter(message__id=message_id).values('reaction').distinct().annotate(
+            count=Count('reaction'),
+            user_reacted=Case(
+                When(author__id=request_user_id, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField()
+            ), user_reaction_id = Case(
+                When(author__id=request_user_id, then=F('id')),
+                default=Value(None),
+                output_field=IntegerField()
+        )
+        )
+
+        return queryset
+
+class MessageReactionCreateAPIView(CreateAPIView):
+    queryset = MessageReaction.objects.all()
+    serializer_class = MessageReactionSerializer
+
+    def perform_create(self, serializer):
+        message_id = self.request.query_params.get('message_id')
+        message_obj = get_object_or_404(Message, id=message_id)
+        serializer.save(message=message_obj)
+
+
 
 
 class MessageReactionDetailAPIView(RetrieveDestroyAPIView):

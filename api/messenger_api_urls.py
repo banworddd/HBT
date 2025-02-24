@@ -13,7 +13,7 @@ from .messenger_api_views import (
     UsersSearchAPIView,
     UserProfileAPIView,
     GroupChatCreateAPIView,
-    GroupChatUpdateAPIView,
+    GroupChatUpdateAPIView, MessageReactionsCountAPIView, MessageReactionCreateAPIView,
 )
 
 urlpatterns = [
@@ -62,11 +62,13 @@ urlpatterns = [
 
     # Реакции на сообщения
     path('message_reactions/', MessageReactionAPIView.as_view(), name='message-reactions'),
+    path('message_reactions_count/', MessageReactionsCountAPIView.as_view(), name='message-reactions-count'),
     path(
         'message_reactions_detail/<int:pk>/',
         MessageReactionDetailAPIView.as_view(),
         name='message-reactions-detail',
     ),
+    path('message_reaction_create/', MessageReactionCreateAPIView.as_view(), name='message-reaction-create'),
 
     # Профиль пользователя
     path('profile/<str:username>/', UserProfileAPIView.as_view(), name='profile'),

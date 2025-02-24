@@ -79,13 +79,22 @@ class MessageReactionSerializer(serializers.ModelSerializer):
 
         model = MessageReaction
         fields = ['id', 'reaction', 'author', 'time','message','author_avatar','author_name', 'author_username']
-        extra_kwargs = {
-            'author': {'required': False},
-        }
 
     def create(self, validated_data):
         validated_data['author'] = self.context['request'].user
         return super().create(validated_data)
+
+
+class MessageReactionsCountSerializer(serializers.ModelSerializer):
+    reaction = serializers.CharField(read_only=True)
+    count = serializers.IntegerField(read_only=True)
+    user_reacted = serializers.BooleanField(read_only=True)
+    user_reaction_id = serializers.IntegerField(read_only=True)
+
+
+    class Meta:
+        model = MessageReaction
+        fields = ['reaction', 'count', 'user_reacted', 'user_reaction_id']
 
 
 class ContactsSerializer(serializers.ModelSerializer):
