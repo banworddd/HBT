@@ -58,6 +58,7 @@
 
 <!-- Подключаем JavaScript -->
 <script>
+    const userId = {{ request.user.id }};  // Передаем ID пользователя из Django
     // Передаем username из Django в JavaScript
     const username = "{{ username }}";
 </script>

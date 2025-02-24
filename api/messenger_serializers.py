@@ -79,6 +79,13 @@ class MessageReactionSerializer(serializers.ModelSerializer):
 
         model = MessageReaction
         fields = ['id', 'reaction', 'author', 'time','message','author_avatar','author_name', 'author_username']
+        extra_kwargs = {
+            'author': {'required': False},
+        }
+
+    def create(self, validated_data):
+        validated_data['author'] = self.context['request'].user
+        return super().create(validated_data)
 
 
 class ContactsSerializer(serializers.ModelSerializer):

@@ -132,14 +132,12 @@ async function loadMessages(chatId) {
 
             // Добавляем кнопки "Удалить" и "Редактировать", если автор — текущий пользователь
             if (message.author_username === `${username}`) {
-                // Кнопка "Удалить"
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Удалить';
                 deleteButton.className = 'delete-button';
                 deleteButton.addEventListener('click', () => deleteMessage(message.id));
                 messageCard.appendChild(deleteButton);
 
-                // Кнопка "Редактировать"
                 const editButton = document.createElement('button');
                 editButton.textContent = 'Редактировать';
                 editButton.className = 'edit-button';
@@ -147,12 +145,127 @@ async function loadMessages(chatId) {
                 messageCard.appendChild(editButton);
             }
 
+            // Добавляем кнопки реакций
+            const reactionsContainer = document.createElement('div');
+            reactionsContainer.className = 'reactions';
+            const reactions = ['👍', '👎', '❤️', '😊'];
+            reactions.forEach(reaction => {
+                const reactionButton = document.createElement('button');
+                reactionButton.className = 'reaction-btn';
+                reactionButton.textContent = reaction;
+                reactionButton.dataset.reaction = reaction;
+                reactionButton.addEventListener('click', () => handleReaction(message.id, reaction));
+                reactionsContainer.appendChild(reactionButton);
+            });
+            messageCard.appendChild(reactionsContainer);
+
+            // Добавляем список реакций
+            const reactionsList = document.createElement('div');
+            reactionsList.className = 'reactions-list';
+            reactionsList.id = `reactions-list-${message.id}`;
+            messageCard.appendChild(reactionsList);
+
+            // Загружаем реакции для этого сообщения
+            loadReactions(message.id);
+
             // Добавляем карточку сообщения в список
             messagesList.appendChild(messageCard);
         });
     } catch (error) {
         console.error('Ошибка:', error);
         messagesList.innerHTML = '<p>Не удалось загрузить сообщения. Пожалуйста, попробуйте позже.</p>';
+    }
+}
+
+// Функция для создания реакции
+async function createReaction(messageId, reaction, userId) {
+    const apiUrl = `/api/messenger/message_reactions/?message_id=${messageId}`;
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+            reaction: reaction,
+            message: messageId,
+            author: userId// Только реакция, message_id передается в URL
+        }),
+    });
+    if (!response.ok) {
+        throw new Error('Ошибка при создании реакции');
+    }
+}
+
+// Функция для обработки реакции
+async function handleReaction(messageId, reaction) {
+    try {
+        const existingReaction = await checkExistingReaction(messageId, reaction);
+
+        if (existingReaction) {
+            // Если реакция уже есть, удаляем её
+            await deleteReaction(existingReaction.id);
+        } else {
+            // Если реакции нет, создаем новую
+            await createReaction(messageId, reaction, userId);
+        }
+
+        // Обновляем список реакций
+        await loadReactions(messageId);
+    } catch (error) {
+        console.error('Ошибка при обработке реакции:', error);
+        alert('Не удалось обработать реакцию. Пожалуйста, попробуйте позже.');
+    }
+}
+
+// Функция для проверки существующей реакции
+async function checkExistingReaction(messageId, reaction) {
+    const response = await fetch(`/api/messenger/message_reactions/?message_id=${messageId}`);
+    if (!response.ok) {
+        throw new Error('Ошибка при загрузке реакций');
+    }
+
+    const reactions = await response.json();
+
+    // Ищем реакцию текущего пользователя
+    return reactions.find(r => r.reaction === reaction && r.author_username === username);
+}
+
+// Функция для удаления реакции
+async function deleteReaction(reactionId) {
+    const response = await fetch(`/api/messenger/message_reactions_detail/${reactionId}/`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Ошибка при удалении реакции');
+    }
+}
+
+// Функция для загрузки и отображения реакций
+async function loadReactions(messageId) {
+    try {
+        const response = await fetch(`/api/messenger/message_reactions/?message_id=${messageId}`);
+        if (!response.ok) {
+            throw new Error('Ошибка при загрузке реакций');
+        }
+
+        const reactions = await response.json();
+
+        const reactionsList = document.getElementById(`reactions-list-${messageId}`);
+        reactionsList.innerHTML = '';
+
+        reactions.forEach(reaction => {
+            const reactionElement = document.createElement('div');
+            reactionElement.textContent = `${reaction.author_username}: ${reaction.reaction}`;
+            reactionsList.appendChild(reactionElement);
+        });
+    } catch (error) {
+        console.error('Ошибка при загрузке реакций:', error);
     }
 }
 

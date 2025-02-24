@@ -13,7 +13,6 @@ from rest_framework.generics import (
 )
 from rest_framework.response import Response
 
-from messenger.fixtures.messenger.messages_generate import message, author_id
 from messenger.models import Chats, Message, MessageReaction
 from users.models import CustomUser
 from .messenger_serializers import (
