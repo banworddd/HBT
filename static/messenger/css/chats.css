@@ -1,0 +1,213 @@
+/* Основные стили для контейнера */
+.container {
+    display: flex;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+/* Стили для списка чатов */
+.chats-list {
+    width: 30%;
+    border-right: 1px solid #ddd;
+    overflow-y: auto; /* Включаем вертикальную прокрутку */
+    padding: 20px;
+    box-sizing: border-box;
+    scrollbar-width: none; /* Скрываем скроллбар в Firefox */
+}
+
+.chats-list::-webkit-scrollbar {
+    display: none; /* Скрываем скроллбар в Chrome, Safari и Opera */
+}
+
+.chat-card {
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+    cursor: pointer;
+}
+
+.chat-card:hover {
+    background-color: #f0f0f0;
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+}
+
+.chat-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.last-message {
+    font-size: 0.9em;
+    color: #777;
+}
+
+/* Стили для правого блока с сообщениями и формой */
+.messages-container {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    height: 100%;
+    position: relative; /* Добавляем относительное позиционирование */
+}
+
+.messages-list {
+    flex-grow: 1;
+    overflow-y: auto; /* Включаем вертикальную прокрутку */
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+    scrollbar-width: none; /* Скрываем скроллбар в Firefox */
+}
+
+.messages-list::-webkit-scrollbar {
+    display: none; /* Скрываем скроллбар в Chrome, Safari и Opera */
+}
+
+/* Стили для сообщений */
+.message-card {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.message-card.self {
+    justify-content: flex-end; /* Выравниваем по правому краю */
+}
+
+.message-card.other {
+    justify-content: flex-start; /* Выравниваем по левому краю */
+}
+
+.message-bubble {
+    max-width: 70%;
+    padding: 10px;
+    border-radius: 15px;
+    position: relative;
+}
+
+.message-bubble.self {
+    background-color: #dcf8c6; /* Цвет фона для ваших сообщений */
+    margin-left: auto;
+}
+
+.message-bubble.other {
+    background-color: #f1f0f0; /* Цвет фона для сообщений других пользователей */
+    margin-right: auto;
+}
+
+.message-text {
+    margin: 0;
+    font-size: 1em;
+}
+
+.message-time {
+    font-size: 0.8em;
+    color: #777;
+    text-align: right;
+    margin-top: 5px;
+}
+
+/* Стили для формы отправки сообщения */
+#message-form {
+    width: 100%;
+    background: white;
+    padding: 20px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+}
+
+#message-form h2 {
+    margin-top: 0;
+}
+
+#message-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+#message-form button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #4d94ff;
+    color: white;
+}
+
+/* Стили для формы редактирования сообщения */
+#edit-message-form {
+    width: 100%;
+    background: white; /* Убираем полупрозрачность */
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    position: absolute; /* Абсолютное позиционирование */
+    bottom: 20px; /* Располагаем снизу */
+    left: 20px;
+    right: 20px;
+    z-index: 1000; /* Поднимаем з-индекс, чтобы перекрыть другие элементы */
+    display: none; /* По умолчанию скрыта */
+}
+
+#edit-message-form h2 {
+    margin-top: 0;
+}
+
+#edit-message-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+#edit-message-form button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#edit-message-form .save-button {
+    background-color: #28a745;
+    color: white;
+}
+
+#edit-message-form .cancel-button {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+/* Стили для кнопок реакций */
+.reactions {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.reaction-btn {
+    background-color: #f0f0f0;
+    border: none;
+    border-radius: 20px; /* Овальная форма */
+    padding: 5px 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Тень для объема */
+}
+
+.reaction-btn .reaction-count {
+    margin-left: 5px;
+    font-size: 0.9em;
+}

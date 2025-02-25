@@ -197,8 +197,6 @@ class UpdateContactsAPIView(UpdateAPIView):
 
 
 class UsersSearchAPIView(ListAPIView):
-    pagination_class = PageNumberPagination
-    page_size = 10  #
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
@@ -209,7 +207,6 @@ class UsersSearchAPIView(ListAPIView):
         queryset = CustomUser.objects.filter(Q(username__icontains=user)| Q(public_name__icontains=user)).order_by('username').exclude(username = self.request.user.username)
 
         return queryset
-
 
 
 class UserProfileAPIView(RetrieveAPIView):
@@ -262,7 +259,7 @@ class MessagesCreateListAPIView(ListCreateAPIView):
             return Message.objects.none()
 
         # Получаем сообщения
-        queryset = Message.objects.filter(chat=chat_obj, is_deleted=False).order_by('-send_time')
+        queryset = Message.objects.filter(chat=chat_obj, is_deleted=False).order_by('send_time')
 
         # Обновляем статус сообщений всех, кроме текущего пользователя
         Message.objects.filter(

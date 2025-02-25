@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 {% load static %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'messenger/css/chats.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -9,48 +12,51 @@
         <p>Загрузка чатов...</p>
     </div>
 
-    <!-- Список сообщений -->
-    <div id="messages-list" class="messages-list">
-        <!-- Сюда будет вставлен список сообщений через JavaScript -->
-    </div>
+    <!-- Контейнер для сообщений и формы отправки -->
+    <div class="messages-container">
+        <!-- Список сообщений -->
+        <div id="messages-list" class="messages-list">
+            <!-- Сюда будет вставлен список сообщений через JavaScript -->
+        </div>
 
-    <!-- Форма для отправки нового сообщения -->
-    <div id="message-form" style="display: none;">
-        <h2>Новое сообщение</h2>
-        <form id="send-message-form">
-            <div>
-                <label for="text">Текст сообщения:</label>
-                <textarea id="text" name="text" rows="3"></textarea>
-            </div>
-            <div>
-                <label for="picture">Картинка:</label>
-                <input type="file" id="picture" name="picture" accept="image/*">
-            </div>
-            <button type="submit">Отправить</button>
-        </form>
-    </div>
+        <!-- Форма для отправки нового сообщения -->
+        <div id="message-form" style="display: none;">
+            <h2>Новое сообщение</h2>
+            <form id="send-message-form">
+                <div>
+                    <label for="text">Текст сообщения:</label>
+                    <textarea id="text" name="text" rows="3"></textarea>
+                </div>
+                <div>
+                    <label for="picture">Картинка:</label>
+                    <input type="file" id="picture" name="picture" accept="image/*">
+                </div>
+                <button type="submit">Отправить</button>
+            </form>
+        </div>
 
-    <!-- Форма для редактирования сообщения -->
-    <div id="edit-message-form" style="display: none;">
-        <h2>Редактировать сообщение</h2>
-        <form id="edit-message-form-content">
-            <div>
-                <label for="edit-text">Текст сообщения:</label>
-                <textarea id="edit-text" name="text" rows="3"></textarea>
-            </div>
-            <div>
-                <label for="edit-picture">Новая картинка:</label>
-                <input type="file" id="edit-picture" name="picture" accept="image/*">
-            </div>
-            <div>
-                <label>
-                    <input type="checkbox" id="remove-picture" name="remove_picture">
-                    Удалить текущую картинку
-                </label>
-            </div>
-            <button type="submit">Сохранить изменения</button>
-            <button type="button" id="cancel-edit">Отмена</button>
-        </form>
+        <!-- Форма для редактирования сообщения -->
+        <div id="edit-message-form" style="display: none;">
+            <h2>Редактировать сообщение</h2>
+            <form id="edit-message-form-content">
+                <div>
+                    <label for="edit-text">Текст сообщения:</label>
+                    <textarea id="edit-text" name="text" rows="3"></textarea>
+                </div>
+                <div>
+                    <label for="edit-picture">Новая картинка:</label>
+                    <input type="file" id="edit-picture" name="picture" accept="image/*">
+                </div>
+                <div>
+                    <label>
+                        <input type="checkbox" id="remove-picture" name="remove_picture">
+                        Удалить текущую картинку
+                    </label>
+                </div>
+                <button type="submit">Сохранить изменения</button>
+                <button type="button" id="cancel-edit">Отмена</button>
+            </form>
+        </div>
     </div>
 </div>
 

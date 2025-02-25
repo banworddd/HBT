@@ -102,35 +102,32 @@ async function loadMessages(chatId) {
         // Отображаем каждое сообщение
         messages.forEach(message => {
             const messageCard = document.createElement('div');
-            messageCard.className = 'message-card';
+            messageCard.className = 'message-card ' + (message.author_username === username ? 'self' : 'other');
             messageCard.dataset.messageId = message.id;  // Добавляем id сообщения
 
-            // Аватар автора
-            const authorAvatar = document.createElement('img');
-            authorAvatar.src = `/media/${message.author_avatar}`;
-            authorAvatar.alt = 'Аватар автора';
-            authorAvatar.className = 'author-avatar';
-
-            // Имя автора
-            const authorName = document.createElement('p');
-            authorName.textContent = message.author_name;
+            // Создание пузырька сообщения
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'message-bubble ' + (message.author_username === username ? 'self' : 'other');
 
             // Текст сообщения
             const messageText = document.createElement('p');
+            messageText.className = 'message-text';
             messageText.textContent = message.text;
 
             // Время отправки
             const messageTime = document.createElement('p');
-            messageTime.textContent = message.send_time;
+            messageTime.className = 'message-time';
+            messageTime.textContent = formatDateTime(message.send_time);
 
-            // Собираем карточку сообщения
-            messageCard.appendChild(authorAvatar);
-            messageCard.appendChild(authorName);
-            messageCard.appendChild(messageText);
-            messageCard.appendChild(messageTime);
+            // Добавление элементов в пузырек
+            messageBubble.appendChild(messageText);
+            messageBubble.appendChild(messageTime);
+
+            // Добавление пузырька в карточку сообщения
+            messageCard.appendChild(messageBubble);
 
             // Добавляем кнопки "Удалить" и "Редактировать", если автор — текущий пользователь
-            if (message.author_username === `${username}`) {
+            if (message.author_username === username) {
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Удалить';
                 deleteButton.className = 'delete-button';
@@ -172,6 +169,7 @@ async function loadMessages(chatId) {
         messagesList.innerHTML = '<p>Не удалось загрузить сообщения. Пожалуйста, попробуйте позже.</p>';
     }
 }
+
 
 
 
@@ -448,6 +446,21 @@ function showMessageForm(chatId) {
         }
     };
 }
-
+// Функция для форматирования даты и времени в европейский формат
+function formatDateTime(dateTimeString) {
+    const options = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+    };
+    const date = new Date(dateTimeString);
+    const formattedDate = date.toLocaleDateString('de-DE', options).replace(',', ''); // 'de-DE' для европейского формата
+    const formattedTime = date.toLocaleTimeString('de-DE', options);
+    return `${formattedDate} ${formattedTime}`;
+}
 // Загружаем чаты при загрузке страницы
 document.addEventListener('DOMContentLoaded', loadChats);
