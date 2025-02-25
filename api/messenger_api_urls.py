@@ -13,7 +13,7 @@ from .messenger_api_views import (
     UsersSearchAPIView,
     UserProfileAPIView,
     GroupChatCreateAPIView,
-    GroupChatUpdateAPIView, MessageReactionsCountAPIView, MessageReactionCreateAPIView,
+    GroupChatUpdateAPIView, MessageReactionsCountAPIView, MessageReactionCreateAPIView, ChatsSearchAPIView,
 )
 
 urlpatterns = [
@@ -31,6 +31,7 @@ urlpatterns = [
         GroupChatUpdateAPIView.as_view(),
         name='group-chat-update',
     ),
+    path ('chats_search/', ChatsSearchAPIView.as_view(), name='chats-search'),
 
     # Контакты
     path('contacts/<int:pk>/', ContactsAPIView.as_view(), name='contacts-chat-detail'),

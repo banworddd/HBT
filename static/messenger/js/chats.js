@@ -83,7 +83,6 @@ async function loadChats() {
     }
 }
 
-// Функция для загрузки сообщений чата
 async function loadMessages(chatId) {
     const apiUrl = `/api/messenger/chat_messages_list/?chat_id=${chatId}`;
     const messagesList = document.getElementById('messages-list');
@@ -145,37 +144,36 @@ async function loadMessages(chatId) {
                 messageCard.appendChild(editButton);
             }
 
-            // Добавляем кнопки реакций
+            // Добавляем контейнер для кнопок реакций
             const reactionsContainer = document.createElement('div');
             reactionsContainer.className = 'reactions';
+            messageCard.appendChild(reactionsContainer);
+
+            // Добавляем 4 кнопки реакций
             const reactions = ['👍', '👎', '❤️', '😊'];
             reactions.forEach(reaction => {
                 const reactionButton = document.createElement('button');
                 reactionButton.className = 'reaction-btn';
-                reactionButton.textContent = reaction;
                 reactionButton.dataset.reaction = reaction;
+                reactionButton.dataset.messageId = message.id;
+                reactionButton.innerHTML = `${reaction} <span class="reaction-count">0</span>`;
                 reactionButton.addEventListener('click', () => handleReaction(message.id, reaction));
                 reactionsContainer.appendChild(reactionButton);
             });
-            messageCard.appendChild(reactionsContainer);
-
-            // Добавляем список реакций
-            const reactionsList = document.createElement('div');
-            reactionsList.className = 'reactions-list';
-            reactionsList.id = `reactions-list-${message.id}`;
-            messageCard.appendChild(reactionsList);
-
-            // Загружаем реакции для этого сообщения
-            loadReactions(message.id);
 
             // Добавляем карточку сообщения в список
             messagesList.appendChild(messageCard);
+
+            // Загружаем реакции для этого сообщения
+            loadReactions(message.id);
         });
     } catch (error) {
         console.error('Ошибка:', error);
         messagesList.innerHTML = '<p>Не удалось загрузить сообщения. Пожалуйста, попробуйте позже.</p>';
     }
 }
+
+
 
 // Функция для создания реакции
 async function createReaction(messageId, reaction, userId) {
@@ -198,6 +196,7 @@ async function createReaction(messageId, reaction, userId) {
         throw new Error('Ошибка при создании реакции');
     }
 }
+
 async function handleReaction(messageId, reaction) {
     try {
         const response = await fetch(`/api/messenger/message_reactions_count/?message_id=${messageId}`);
@@ -209,14 +208,14 @@ async function handleReaction(messageId, reaction) {
         const reactionData = reactions.find(r => r.reaction === reaction);
 
         if (reactionData?.user_reacted) {
-            // Если реакция уже стоит, удаляем, используя user_reaction_id
-            await deleteReaction(reactionData.user_reaction_id);
+            // Если реакция уже стоит, удаляем её
+            await deleteReaction(reactionData.user_reaction_id, messageId);
         } else {
             // Если реакции нет — добавляем
             await createReaction(messageId, reaction, userId);
         }
 
-        // Обновляем отображение
+        // Обновляем отображение реакций после изменения
         await loadReactions(messageId);
     } catch (error) {
         console.error('Ошибка при обработке реакции:', error);
@@ -224,8 +223,8 @@ async function handleReaction(messageId, reaction) {
     }
 }
 
-// Функция для удаления реакции по reactionId
-async function deleteReaction(reactionId) {
+
+async function deleteReaction(reactionId, messageId) {
     const response = await fetch(`/api/messenger/message_reactions_detail/${reactionId}/`, {
         method: 'DELETE',
         headers: {
@@ -236,6 +235,10 @@ async function deleteReaction(reactionId) {
     if (!response.ok) {
         throw new Error('Ошибка при удалении реакции');
     }
+
+    // Обновляем интерфейс для конкретного сообщения
+    console.log('Реакция удалена. Обновляем интерфейс для messageId:', messageId);
+    await loadReactions(messageId);
 }
 
 async function loadReactions(messageId) {
@@ -246,32 +249,54 @@ async function loadReactions(messageId) {
         }
 
         const reactions = await response.json();
-        const reactionsList = document.getElementById(`reactions-list-${messageId}`);
-        reactionsList.innerHTML = ''; // Очищаем список перед добавлением новых кнопок
+        const reactionsContainer = document.querySelector(`.message-card[data-message-id="${messageId}"] .reactions`);
 
-        reactions.forEach(reactionData => {
-            const reactionButton = document.createElement('button');
-            reactionButton.className = 'reaction-btn';
-            reactionButton.textContent = `${reactionData.reaction} × ${reactionData.count}`; // Отображаем реакцию с количеством
-            reactionButton.dataset.reaction = reactionData.reaction;
-            reactionButton.dataset.messageId = messageId;
+        if (!reactionsContainer) {
+            return;
+        }
 
-            // Если текущий пользователь поставил эту реакцию, выделяем кнопку зеленым цветом
-            if (reactionData.user_reacted) {
-                reactionButton.style.backgroundColor = 'green';
-                reactionButton.style.color = 'white';
+        // Список всех возможных реакций
+        const allReactions = ['👍', '👎', '❤️', '😊'];
+
+        // Обновляем кнопки реакций
+        allReactions.forEach(reaction => {
+            const reactionButton = reactionsContainer.querySelector(`.reaction-btn[data-reaction="${reaction}"]`);
+
+            if (reactionButton) {
+                // Ищем данные о текущей реакции
+                const reactionData = reactions.find(r => r.reaction === reaction);
+
+                if (reactionData) {
+                    // Обновляем количество реакций
+                    const countElement = reactionButton.querySelector('.reaction-count');
+                    if (countElement) {
+                        countElement.textContent = reactionData.count;
+                    }
+
+                    // Меняем цвет кнопки, если пользователь поставил реакцию
+                    if (reactionData.user_reacted) {
+                        reactionButton.style.backgroundColor = 'green';
+                        reactionButton.style.color = 'white';
+                    } else {
+                        reactionButton.style.backgroundColor = '';
+                        reactionButton.style.color = '';
+                    }
+                } else {
+                    // Если реакции нет в данных, сбрасываем её состояние
+                    const countElement = reactionButton.querySelector('.reaction-count');
+                    if (countElement) {
+                        countElement.textContent = '0';
+                    }
+
+                    reactionButton.style.backgroundColor = '';
+                    reactionButton.style.color = '';
+                }
             }
-
-            // Добавляем обработчик клика
-            reactionButton.addEventListener('click', () => handleReaction(messageId, reactionData.reaction));
-
-            reactionsList.appendChild(reactionButton);
         });
     } catch (error) {
         console.error('Ошибка при загрузке реакций:', error);
     }
 }
-
 
 // Функция для удаления сообщения
 async function deleteMessage(messageId) {

@@ -91,6 +91,48 @@ class ChatCreateAPIView(CreateAPIView):
         return Response(serializer.data)
 
 
+class ChatsSearchAPIView(ListAPIView):
+    serializer_class = ChatsSerializer
+
+    def get_queryset(self):
+        search_query = self.request.query_params.get('search_query')
+        if not search_query:
+            return Chats.objects.none()
+
+        request_user = self.request.user
+        queryset = Chats.objects.filter(
+            (Q(user_1__username__icontains=search_query) &
+             Q(user_2__username=request_user.username)) |
+            (Q(user_2__username__icontains=search_query) &
+             Q(user_1__username=request_user.username)) |
+            (Q(is_group=True) & Q(name__icontains=search_query))
+        )
+
+        last_message_subquery = Message.objects.filter(
+            chat=OuterRef('pk')
+        ).order_by('-send_time').values('text', 'send_time', 'picture')[:1]
+
+        user_1_subquery = CustomUser.objects.filter(
+            pk=OuterRef('user_1__id')
+        ).values('username', 'public_name')
+
+        user_2_subquery = CustomUser.objects.filter(
+            pk=OuterRef('user_2__id')
+        ).values('username', 'public_name')
+
+        queryset = queryset.annotate(
+            last_message_text=last_message_subquery.values('text'),
+            last_message_time=last_message_subquery.values('send_time'),
+            last_message_picture=last_message_subquery.values('picture'),
+            username_1=user_1_subquery.values('username'),
+            public_name_1=user_1_subquery.values('public_name'),
+            username_2=user_2_subquery.values('username'),
+            public_name_2=user_2_subquery.values('public_name')
+        )
+
+        return queryset.order_by('-last_message_time')
+
+
 class GroupChatCreateAPIView(CreateAPIView):
     queryset = Chats.objects.all()
     serializer_class = ChatsSerializer
@@ -167,6 +209,7 @@ class UsersSearchAPIView(ListAPIView):
         queryset = CustomUser.objects.filter(Q(username__icontains=user)| Q(public_name__icontains=user)).order_by('username').exclude(username = self.request.user.username)
 
         return queryset
+
 
 
 class UserProfileAPIView(RetrieveAPIView):
@@ -320,8 +363,6 @@ class MessageReactionCreateAPIView(CreateAPIView):
         message_id = self.request.query_params.get('message_id')
         message_obj = get_object_or_404(Message, id=message_id)
         serializer.save(message=message_obj)
-
-
 
 
 class MessageReactionDetailAPIView(RetrieveDestroyAPIView):
