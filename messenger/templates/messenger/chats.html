@@ -60,6 +60,12 @@
     </div>
 </div>
 
+<!-- Контекстное меню для сообщений -->
+<div id="context-menu" class="context-menu" style="display: none;">
+    <button id="edit-message-btn" class="context-menu-btn">Редактировать</button>
+    <button id="delete-message-btn" class="context-menu-btn">Удалить</button>
+</div>
+
 <!-- Подключаем JavaScript -->
 <script>
     const userId = {{ request.user.id }};  // Передаем ID пользователя из Django
