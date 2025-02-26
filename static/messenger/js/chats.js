@@ -122,8 +122,16 @@ async function loadMessages(chatId, page = currentPage) {
             messageTime.className = 'message-time';
             messageTime.textContent = formatDateTime(message.send_time);
 
+            // Контейнер для реакций (теперь внутри пузырька)
+            const reactionsContainer = document.createElement('div');
+            reactionsContainer.className = 'reactions';
+
+            // Собираем пузырек сообщения
             messageBubble.appendChild(messageText);
             messageBubble.appendChild(messageTime);
+            messageBubble.appendChild(reactionsContainer); // Добавляем реакции внутрь пузырька
+
+            // Собираем карточку сообщения
             messageCard.appendChild(messageBubble);
 
             // Добавляем обработчик для правой кнопки мыши
@@ -133,6 +141,9 @@ async function loadMessages(chatId, page = currentPage) {
             });
 
             messagesList.prepend(messageCard);
+
+            // Загружаем реакции для этого сообщения
+            loadReactions(message.id);
         });
 
         if (data.next) {
@@ -274,43 +285,18 @@ async function loadReactions(messageId) {
             return;
         }
 
-        // Список всех возможных реакций
-        const allReactions = ['👍', '👎', '❤️', '😊'];
+        // Очищаем контейнер
+        reactionsContainer.innerHTML = '';
 
-        // Обновляем кнопки реакций
-        allReactions.forEach(reaction => {
-            const reactionButton = reactionsContainer.querySelector(`.reaction-btn[data-reaction="${reaction}"]`);
-
-            if (reactionButton) {
-                // Ищем данные о текущей реакции
-                const reactionData = reactions.find(r => r.reaction === reaction);
-
-                if (reactionData) {
-                    // Обновляем количество реакций
-                    const countElement = reactionButton.querySelector('.reaction-count');
-                    if (countElement) {
-                        countElement.textContent = reactionData.count;
-                    }
-
-                    // Меняем цвет кнопки, если пользователь поставил реакцию
-                    if (reactionData.user_reacted) {
-                        reactionButton.style.backgroundColor = 'green';
-                        reactionButton.style.color = 'white';
-                    } else {
-                        reactionButton.style.backgroundColor = '';
-                        reactionButton.style.color = '';
-                    }
-                } else {
-                    // Если реакции нет в данных, сбрасываем её состояние
-                    const countElement = reactionButton.querySelector('.reaction-count');
-                    if (countElement) {
-                        countElement.textContent = '0';
-                    }
-
-                    reactionButton.style.backgroundColor = '';
-                    reactionButton.style.color = '';
-                }
-            }
+        // Добавляем только те реакции, которые есть на сообщении
+        reactions.forEach(reaction => {
+            const reactionButton = document.createElement('button');
+            reactionButton.className = 'reaction-btn';
+            reactionButton.dataset.reaction = reaction.reaction;
+            reactionButton.dataset.messageId = messageId;
+            reactionButton.innerHTML = `${reaction.reaction} <span class="reaction-count">${reaction.count}</span>`;
+            reactionButton.addEventListener('click', () => handleReaction(messageId, reaction.reaction));
+            reactionsContainer.appendChild(reactionButton);
         });
     } catch (error) {
         console.error('Ошибка при загрузке реакций:', error);
@@ -491,6 +477,15 @@ function showContextMenu(event, messageId, isAuthor) {
             deleteMessage(messageId);
             hideContextMenu();
         };
+
+        // Обработчики для реакций в контекстном меню
+        const reactionButtons = contextMenu.querySelectorAll('.reactions-context-menu .reaction-btn');
+        reactionButtons.forEach(button => {
+            button.onclick = () => {
+                handleReaction(messageId, button.dataset.reaction);
+                hideContextMenu();
+            };
+        });
     }
 }
 
