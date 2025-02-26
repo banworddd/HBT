@@ -14,7 +14,6 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Функция для загрузки чатов
 async function loadChats() {
     const apiUrl = `/api/messenger/chats/?user=${username}`;
     const chatsList = document.getElementById('chats-list');
@@ -73,7 +72,7 @@ async function loadChats() {
 
             // Добавляем обработчик клика на чат
             chatCard.addEventListener('click', () => {
-                loadMessages(chat.id);
+                loadMessages(chat.id, 1); // Загружаем первую страницу сообщений
                 showMessageForm(chat.id);  // Показываем форму для выбранного чата
             });
         });
@@ -83,9 +82,16 @@ async function loadChats() {
     }
 }
 
-async function loadMessages(chatId) {
-    const apiUrl = `/api/messenger/chat_messages_list/?chat_id=${chatId}`;
+let currentPage = 1;
+let isLoading = false;
+let hasNextPage = true; // Флаг для отслеживания наличия следующей страницы
+
+async function loadMessages(chatId, page = currentPage) {
+    const apiUrl = `/api/messenger/chat_messages_list/?chat_id=${chatId}&page=${page}`;
     const messagesList = document.getElementById('messages-list');
+
+    if (isLoading) return;
+    isLoading = true;
 
     try {
         const response = await fetch(apiUrl);
@@ -96,37 +102,32 @@ async function loadMessages(chatId) {
         const data = await response.json();
         const messages = data.results;
 
-        // Очищаем список сообщений
-        messagesList.innerHTML = '';
+        // Очистка списка сообщений перед добавлением новых только если это первая страница
+        if (page === 1) {
+            messagesList.innerHTML = '';
+        }
 
-        // Отображаем каждое сообщение
+        // Добавляем сообщения в правильном порядке
         messages.forEach(message => {
             const messageCard = document.createElement('div');
             messageCard.className = 'message-card ' + (message.author_username === username ? 'self' : 'other');
-            messageCard.dataset.messageId = message.id;  // Добавляем id сообщения
+            messageCard.dataset.messageId = message.id;
 
-            // Создание пузырька сообщения
             const messageBubble = document.createElement('div');
             messageBubble.className = 'message-bubble ' + (message.author_username === username ? 'self' : 'other');
 
-            // Текст сообщения
             const messageText = document.createElement('p');
             messageText.className = 'message-text';
             messageText.textContent = message.text;
 
-            // Время отправки
             const messageTime = document.createElement('p');
             messageTime.className = 'message-time';
             messageTime.textContent = formatDateTime(message.send_time);
 
-            // Добавление элементов в пузырек
             messageBubble.appendChild(messageText);
             messageBubble.appendChild(messageTime);
-
-            // Добавление пузырька в карточку сообщения
             messageCard.appendChild(messageBubble);
 
-            // Добавляем кнопки "Удалить" и "Редактировать", если автор — текущий пользователь
             if (message.author_username === username) {
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Удалить';
@@ -141,12 +142,10 @@ async function loadMessages(chatId) {
                 messageCard.appendChild(editButton);
             }
 
-            // Добавляем контейнер для кнопок реакций
             const reactionsContainer = document.createElement('div');
             reactionsContainer.className = 'reactions';
             messageCard.appendChild(reactionsContainer);
 
-            // Добавляем 4 кнопки реакций
             const reactions = ['👍', '👎', '❤️', '😊'];
             reactions.forEach(reaction => {
                 const reactionButton = document.createElement('button');
@@ -158,16 +157,71 @@ async function loadMessages(chatId) {
                 reactionsContainer.appendChild(reactionButton);
             });
 
-            // Добавляем карточку сообщения в список
-            messagesList.appendChild(messageCard);
-
-            // Загружаем реакции для этого сообщения
+            messagesList.prepend(messageCard); // Добавляем сообщения в начало списка
             loadReactions(message.id);
         });
+
+        // Проверка, есть ли следующая страница
+        if (data.next) {
+            currentPage = page + 1;
+        } else {
+            currentPage = page;
+            hasNextPage = false; // Устанавливаем флаг, что следующей страницы нет
+        }
+
+        // Прокрутка вниз при первой загрузке
+        if (page === 1) {
+            messagesList.scrollTop = messagesList.scrollHeight;
+        }
     } catch (error) {
         console.error('Ошибка:', error);
         messagesList.innerHTML = '<p>Не удалось загрузить сообщения. Пожалуйста, попробуйте позже.</p>';
+    } finally {
+        isLoading = false;
     }
+}
+
+
+// Обработчик прокрутки
+function handleScroll(chatId) {
+    const messagesList = document.getElementById('messages-list');
+    const threshold = 100; // Порог для начала загрузки следующей страницы
+
+    if (messagesList.scrollTop < threshold && !isLoading && hasNextPage) {
+        loadMessages(chatId, currentPage);
+    }
+}
+
+// Добавьте обработчик прокрутки при открытии чата
+function showMessageForm(chatId) {
+    const messageForm = document.getElementById('message-form');
+    messageForm.style.display = 'block';
+
+    const form = document.getElementById('send-message-form');
+    form.onsubmit = async (event) => {
+        event.preventDefault();
+
+        const text = document.getElementById('text').value;
+        const picture = document.getElementById('picture').files[0];
+
+        try {
+            await sendMessage(chatId, text, picture);
+            form.reset();
+            loadMessages(chatId, 1); // Обновляем список сообщений, начиная с первой страницы
+        } catch (error) {
+            alert('Не удалось отправить сообщение. Пожалуйста, попробуйте позже.');
+        }
+    };
+
+    // Загрузка первой страницы сообщений при открытии чата
+    currentPage = 1;
+    hasNextPage = true; // Сбрасываем флаг при загрузке нового чата
+    loadMessages(chatId, 1);
+
+    // Добавляем обработчик прокрутки
+    const messagesList = document.getElementById('messages-list');
+    messagesList.removeEventListener('scroll', () => handleScroll(chatId));
+    messagesList.addEventListener('scroll', () => handleScroll(chatId));
 }
 
 
@@ -424,28 +478,8 @@ function showEditMessageForm(messageId, currentText, currentPicture) {
     };
 }
 
-// Функция для отображения формы отправки сообщения
-function showMessageForm(chatId) {
-    const messageForm = document.getElementById('message-form');
-    messageForm.style.display = 'block';  // Показываем форму
 
-    // Обработчик отправки формы
-    const form = document.getElementById('send-message-form');
-    form.onsubmit = async (event) => {
-        event.preventDefault();
 
-        const text = document.getElementById('text').value;
-        const picture = document.getElementById('picture').files[0];
-
-        try {
-            await sendMessage(chatId, text, picture);
-            form.reset();  // Очищаем форму
-            loadMessages(chatId);  // Обновляем список сообщений
-        } catch (error) {
-            alert('Не удалось отправить сообщение. Пожалуйста, попробуйте позже.');
-        }
-    };
-}
 // Функция для форматирования даты и времени в европейский формат
 function formatDateTime(dateTimeString) {
     const options = {

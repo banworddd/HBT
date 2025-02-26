@@ -259,7 +259,7 @@ class MessagesCreateListAPIView(ListCreateAPIView):
             return Message.objects.none()
 
         # Получаем сообщения
-        queryset = Message.objects.filter(chat=chat_obj, is_deleted=False).order_by('send_time')
+        queryset = Message.objects.filter(chat=chat_obj, is_deleted=False).order_by('-send_time')
 
         # Обновляем статус сообщений всех, кроме текущего пользователя
         Message.objects.filter(
