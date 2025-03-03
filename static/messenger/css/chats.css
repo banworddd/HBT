@@ -85,7 +85,7 @@
 
 /* Стили для пузырька сообщения */
 .message-bubble {
-    background-color: #f1f1f1;
+    background-color: #ffffff;
     border-radius: 12px;
     padding: 8px 12px;
     max-width: 20%; /* Уменьшаем ширину пузырька */
@@ -94,26 +94,26 @@
 }
 
 .message-bubble.self {
-    background-color: #007bff;
+    background-color: #2a6fc3;
     color: white;
     margin-left: auto; /* Сообщение пользователя справа */
 }
 
 .message-bubble.other {
-    background-color: #f1f0f0; /* Цвет фона для сообщений других пользователей */
+    background-color: #1a2753; /* Цвет фона для сообщений других пользователей */
+    color : white;
     margin-right: auto;
 }
 
-/* Стили для текста сообщения */
 .message-text {
     margin: 0;
-    font-size: 1em;
+    font-size: 1.1em;
 }
 
 /* Стили для времени сообщения */
 .message-time {
     font-size: 0.8em;
-    color: #777;
+    color: #ffffff;
     text-align: right;
     margin-top: 5px;
 }
@@ -211,6 +211,30 @@
     display: flex;
     align-items: center;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Тень для объема */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Плавные переходы */
+}
+.reaction-btn:hover{
+    background-color: #d3d3d3;
+}
+
+.reaction-btn.user-reacted {
+    background-color: #90caf9; /* Голубоватый цвет */
+    border-radius: 20px; /* Закругленные углы */
+    padding: 5px 15px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+.reaction-btn.user-reacted:hover {
+    background-color: #7db8e6; /* Голубоватый цвет */
+}
+
+/* Убираем увеличение кнопки при нажатии */
+.reaction-btn:active {
+    background-color: #e0e0e0; /* Слегка темнее фон */
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1); /* Уменьшаем тень для эффекта "нажатия" */
 }
 
 .reaction-btn .reaction-count {
@@ -270,22 +294,6 @@
     padding: 4px 0; /* Внутренние отступы */
 }
 
-.reaction-btn {
-    font-size: 14px;
-    cursor: pointer;
-    background-color: rgba(255, 255, 255, 0.8); /* Полупрозрачный фон */
-    border: 1px solid rgba(0, 0, 0, 0.1); /* Легкая граница */
-    border-radius: 20px; /* Овальная форма */
-    padding: 4px 10px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    transition: background-color 0.2s ease;
-}
-
-.reaction-btn:hover {
-    background-color: rgba(255, 255, 255, 0.9); /* Легкое затемнение при наведении */
-}
 
 .reaction-count {
     font-size: 12px;

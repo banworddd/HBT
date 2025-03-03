@@ -91,7 +91,6 @@ class MessageReactionsCountSerializer(serializers.ModelSerializer):
     user_reacted = serializers.BooleanField(read_only=True)
     user_reaction_id = serializers.IntegerField(read_only=True)
 
-
     class Meta:
         model = MessageReaction
         fields = ['reaction', 'count', 'user_reacted', 'user_reaction_id']
@@ -100,6 +99,7 @@ class MessageReactionsCountSerializer(serializers.ModelSerializer):
 class ContactsSerializer(serializers.ModelSerializer):
     contacts_usernames = serializers.SerializerMethodField()
     contacts_chats = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
         fields = ['contacts', 'contacts_usernames', 'contacts_chats']

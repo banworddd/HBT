@@ -343,16 +343,16 @@ class MessageReactionsCountAPIView(ListAPIView):
         user_reaction_subquery = MessageReaction.objects.filter(
             message__id=message_id,
             author__id=request_user_id,
-            reaction=OuterRef('reaction')  # Используем OuterRef для связи с основным запросом
+            reaction=OuterRef('reaction')
         ).values('id')[:1]
 
         # Основной запрос
         queryset = (
             MessageReaction.objects.filter(message__id=message_id)
-            .values('reaction')  # Группируем по типу реакции
+            .values('reaction')
             .annotate(
-                count=Count('reaction'),  # Общее количество реакций
-                user_reaction_id=Subquery(user_reaction_subquery, output_field=IntegerField()),  # ID реакции пользователя
+                count=Count('reaction'),
+                user_reaction_id=Subquery(user_reaction_subquery, output_field=IntegerField()),
             )
             .annotate(
                 user_reacted=Case(

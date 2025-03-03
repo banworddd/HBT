@@ -295,6 +295,12 @@ async function loadReactions(messageId) {
             reactionButton.dataset.reaction = reaction.reaction;
             reactionButton.dataset.messageId = messageId;
             reactionButton.innerHTML = `${reaction.reaction} <span class="reaction-count">${reaction.count}</span>`;
+
+            // Если пользователь поставил эту реакцию, добавляем класс
+            if (reaction.user_reacted) {
+                reactionButton.classList.add('user-reacted');
+            }
+
             reactionButton.addEventListener('click', () => handleReaction(messageId, reaction.reaction));
             reactionsContainer.appendChild(reactionButton);
         });
