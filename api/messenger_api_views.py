@@ -1,4 +1,4 @@
-from django.db.models import Q,F, OuterRef, Count, Case, When, Value, BooleanField,IntegerField
+from django.db.models import Q,F, OuterRef, Count, Case, When, Value, BooleanField,IntegerField, Subquery
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import PermissionDenied, NotFound
@@ -327,6 +327,8 @@ class MessageReactionAPIView(ListCreateAPIView):
 
         return queryset
 
+
+
 class MessageReactionsCountAPIView(ListAPIView):
     serializer_class = MessageReactionsCountSerializer
 
@@ -337,17 +339,28 @@ class MessageReactionsCountAPIView(ListAPIView):
         if not message_id:
             raise NotFound("message_id parameter is required")
 
-        queryset = MessageReaction.objects.filter(message__id=message_id).values('reaction').distinct().annotate(
-            count=Count('reaction'),
-            user_reacted=Case(
-                When(author__id=request_user_id, then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField()
-            ), user_reaction_id = Case(
-                When(author__id=request_user_id, then=F('id')),
-                default=Value(None),
-                output_field=IntegerField()
-        )
+        # Подзапрос для получения ID реакции текущего пользователя
+        user_reaction_subquery = MessageReaction.objects.filter(
+            message__id=message_id,
+            author__id=request_user_id,
+            reaction=OuterRef('reaction')  # Используем OuterRef для связи с основным запросом
+        ).values('id')[:1]
+
+        # Основной запрос
+        queryset = (
+            MessageReaction.objects.filter(message__id=message_id)
+            .values('reaction')  # Группируем по типу реакции
+            .annotate(
+                count=Count('reaction'),  # Общее количество реакций
+                user_reaction_id=Subquery(user_reaction_subquery, output_field=IntegerField()),  # ID реакции пользователя
+            )
+            .annotate(
+                user_reacted=Case(
+                    When(user_reaction_id__isnull=False, then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField()
+                )
+            )
         )
 
         return queryset

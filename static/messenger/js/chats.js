@@ -444,8 +444,7 @@ function formatDateTime(dateTimeString) {
     };
     const date = new Date(dateTimeString);
     const formattedDate = date.toLocaleDateString('de-DE', options).replace(',', ''); // 'de-DE' для европейского формата
-    const formattedTime = date.toLocaleTimeString('de-DE', options);
-    return `${formattedDate} ${formattedTime}`;
+    return `${formattedDate}`;
 }
 
 // Функция для отображения контекстного меню
@@ -455,36 +454,59 @@ function showContextMenu(event, messageId, isAuthor) {
     const contextMenu = document.getElementById('context-menu');
     if (!contextMenu) return;
 
-    // Показываем меню только для сообщений текущего пользователя
-    if (isAuthor) {
-        contextMenu.style.display = 'block';
-        contextMenu.style.left = `${event.pageX}px`;
-        contextMenu.style.top = `${event.pageY}px`;
+    // Показываем меню для любого сообщения
+    contextMenu.style.display = 'block';
+    contextMenu.style.left = `${event.pageX}px`;
+    contextMenu.style.top = `${event.pageY}px`;
 
-        // Обработчик для кнопки "Редактировать"
-        const editButton = document.getElementById('edit-message-btn');
-        editButton.onclick = () => {
-            const messageCard = document.querySelector(`.message-card[data-message-id="${messageId}"]`);
-            const messageText = messageCard.querySelector('.message-text').textContent;
-            const messagePicture = null; // Здесь можно добавить логику для получения картинки
-            showEditMessageForm(messageId, messageText, messagePicture);
-            hideContextMenu();
-        };
+    // Очищаем предыдущие обработчики
+    const editButton = document.getElementById('edit-message-btn');
+    const deleteButton = document.getElementById('delete-message-btn');
+    const reactionsContextMenu = document.querySelector('.reactions-context-menu');
 
-        // Обработчик для кнопки "Удалить"
-        const deleteButton = document.getElementById('delete-message-btn');
-        deleteButton.onclick = () => {
-            deleteMessage(messageId);
-            hideContextMenu();
-        };
+    if (editButton && deleteButton && reactionsContextMenu) {
+        // Убираем старые обработчики
+        editButton.onclick = null;
+        deleteButton.onclick = null;
+        reactionsContextMenu.innerHTML = '';
 
-        // Обработчики для реакций в контекстном меню
-        const reactionButtons = contextMenu.querySelectorAll('.reactions-context-menu .reaction-btn');
-        reactionButtons.forEach(button => {
-            button.onclick = () => {
-                handleReaction(messageId, button.dataset.reaction);
+        // Если сообщение свое, показываем кнопки "Удалить" и "Редактировать"
+        if (isAuthor) {
+            editButton.style.display = 'block';
+            deleteButton.style.display = 'block';
+
+            // Обработчик для кнопки "Редактировать"
+            editButton.onclick = () => {
+                const messageCard = document.querySelector(`.message-card[data-message-id="${messageId}"]`);
+                const messageText = messageCard.querySelector('.message-text').textContent;
+                const messagePicture = null; // Здесь можно добавить логику для получения картинки
+                showEditMessageForm(messageId, messageText, messagePicture);
                 hideContextMenu();
             };
+
+            // Обработчик для кнопки "Удалить"
+            deleteButton.onclick = () => {
+                deleteMessage(messageId);
+                hideContextMenu();
+            };
+        } else {
+            // Если сообщение чужое, скрываем кнопки "Удалить" и "Редактировать"
+            editButton.style.display = 'none';
+            deleteButton.style.display = 'none';
+        }
+
+        // Добавляем реакции в контекстное меню для всех сообщений
+        const reactions = ['👍', '👎', '❤️', '😊'];
+        reactions.forEach(reaction => {
+            const reactionButton = document.createElement('button');
+            reactionButton.className = 'reaction-btn';
+            reactionButton.dataset.reaction = reaction;
+            reactionButton.textContent = reaction;
+            reactionButton.onclick = () => {
+                handleReaction(messageId, reaction);
+                hideContextMenu();
+            };
+            reactionsContextMenu.appendChild(reactionButton);
         });
     }
 }
@@ -515,5 +537,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Загружаем чаты при загрузке страницы
+
 document.addEventListener('DOMContentLoaded', loadChats);
