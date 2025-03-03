@@ -9,9 +9,8 @@ body {
 
 /* Шапка */
 header {
-    background-color: #f8f9fa;
+    background-color: #0e1621;
     padding: 10px;
-    border-bottom: 1px solid #ddd;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -27,7 +26,7 @@ header {
 .nav-left a {
     text-decoration: none;
     padding: 8px 16px;
-    background-color: #007bff;
+    background-color: #2a6ec1;
     color: white;
     border-radius: 4px;
     transition: all 0.3s ease; /* Плавный переход */
@@ -35,7 +34,7 @@ header {
 }
 
 .nav-left a:hover {
-    background-color: #0056b3;
+    background-color: #2667b5;
     transform: scale(1.05); /* Увеличение при наведении */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Увеличенная тень при наведении */
 }
@@ -83,17 +82,9 @@ header {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Увеличенная тень при наведении */
 }
 
-/* Основной контент */
+/* Основной контент
 main {
     flex: 1;
-    padding: 20px;
+    background: #17212b;
 }
-
-/* Футер */
-footer {
-    background-color: #f8f9fa;
-    padding: 10px;
-    border-top: 1px solid #ddd;
-    text-align: center;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1); /* Тень для футера */
-}
+*/

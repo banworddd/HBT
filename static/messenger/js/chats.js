@@ -49,7 +49,7 @@ async function loadChats() {
             if (chat.is_group) {
                 chatTitle.textContent = chat.name || 'Групповой чат';
             } else {
-                chatTitle.textContent = chat.public_name_2 || `Чат с @${chat.username_2}`;
+                chatTitle.textContent = chat.public_name_2 || chat.username_2;
             }
 
             chatHeader.appendChild(chatAvatar);
@@ -61,7 +61,7 @@ async function loadChats() {
             const messageText = document.createElement('p');
             messageText.innerHTML = `<strong>Последнее сообщение:</strong> ${chat.last_message_text}`;
             const messageTime = document.createElement('p');
-            messageTime.innerHTML = `<small>${chat.last_message_time}</small>`;
+            messageTime.innerHTML = `<small>${formatDateTime(chat.last_message_time)}</small>`; // Используем функцию для форматирования даты
             lastMessage.appendChild(messageText);
             lastMessage.appendChild(messageTime);
 
