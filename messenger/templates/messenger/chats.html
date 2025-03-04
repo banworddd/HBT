@@ -2,6 +2,8 @@
 {% load static %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'messenger/css/chats.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
 {% endblock %}
 
 {% block content %}
@@ -19,21 +21,26 @@
             <!-- Сюда будет вставлен список сообщений через JavaScript -->
         </div>
 
-        <!-- Форма для отправки нового сообщения -->
-        <div id="message-form" style="display: none;">
-            <h2>Новое сообщение</h2>
-            <form id="send-message-form">
-                <div>
-                    <label for="text">Текст сообщения:</label>
-                    <textarea id="text" name="text" rows="3"></textarea>
+        <div id="message-form">
+    <form id="send-message-form" class="d-flex align-items-center">
+        <div class="flex-grow-1">
+            <div class="input-group">
+                <textarea id="text" name="text" class="form-control" rows="3" placeholder="Введите сообщение..."></textarea>
+            </div>
+            <div class="input-group mt-2">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="attach-btn">
+                        <i class="fas fa-paperclip"></i>
+                    </span>
                 </div>
-                <div>
-                    <label for="picture">Картинка:</label>
-                    <input type="file" id="picture" name="picture" accept="image/*">
-                </div>
-                <button type="submit">Отправить</button>
-            </form>
+                <input type="file" id="picture" name="picture" class="form-control" accept="image/*" style="display: none;">
+            </div>
         </div>
+        <button type="submit" class="btn btn-primary ml-2">
+            <i class="fas fa-arrow-right"></i>
+        </button>
+    </form>
+</div>
 
         <!-- Форма для редактирования сообщения -->
         <div id="edit-message-form" style="display: none;">
