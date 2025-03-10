@@ -21,25 +21,26 @@
             <!-- Сюда будет вставлен список сообщений через JavaScript -->
         </div>
 
-        <div id="message-form">
-            <form id="send-message-form">
-                <div class="input-group">
-                    <textarea id="text" name="text" rows="1" placeholder="Введите сообщение..."></textarea>
-                    <div class="input-group-append">
-                        <span id="attach-btn">
-                            <i class="fas fa-paperclip"></i>
-                        </span>
-                        <input type="file" id="picture" name="picture" accept="image/*" style="display: none;">
-                        <button type="submit">
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </form>
+<div id="message-form">
+    <form id="send-message-form">
+        <div class="input-group">
+            <textarea id="text" name="text" rows="1" placeholder="Введите сообщение..."></textarea>
+            <div class="input-group-append">
+                <span id="attach-btn">
+                    <i class="fas fa-paperclip"></i>
+                </span>
+                <img id="image-preview" style="display: none; height: 20px; margin-right: 5px;" />
+                <input type="file" id="picture" name="picture" accept="image/*" style="display: none;">
+                <button type="submit">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
         </div>
-        
-        
-        
+    </form>
+</div>
+
+
+
 
         <!-- Форма для редактирования сообщения -->
         <div id="edit-message-form" style="display: none;">
@@ -76,6 +77,12 @@
         <button class="reaction-btn" data-reaction="❤️">❤️</button>
         <button class="reaction-btn" data-reaction="😊">😊</button>
     </div>
+</div>
+
+    <!-- Модальное окно для просмотра изображения -->
+<div id="image-modal" class="modal" style="display: none;">
+    <span id="close-modal" class="close">&times;</span>
+    <img id="modal-image" class="modal-content">
 </div>
 
 <!-- Подключаем JavaScript -->

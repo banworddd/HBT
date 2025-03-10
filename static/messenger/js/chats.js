@@ -114,9 +114,20 @@ async function loadMessages(chatId, page = currentPage) {
             const messageBubble = document.createElement('div');
             messageBubble.className = 'message-bubble ' + (message.author_username === username ? 'self' : 'other');
 
-            const messageText = document.createElement('p');
-            messageText.className = 'message-text';
-            messageText.textContent = message.text;
+            if (message.picture) {
+                const messageImage = document.createElement('img');
+                messageImage.src = message.picture;
+                messageImage.className = 'message-image';
+                messageImage.style.height = '200px'; // Фиксированная высота
+                messageBubble.appendChild(messageImage);
+            }
+
+            if (message.text) {
+                const messageText = document.createElement('p');
+                messageText.className = 'message-text';
+                messageText.textContent = message.text;
+                messageBubble.appendChild(messageText);
+            }
 
             const messageTime = document.createElement('p');
             messageTime.className = 'message-time';
@@ -127,7 +138,6 @@ async function loadMessages(chatId, page = currentPage) {
             reactionsContainer.className = 'reactions';
 
             // Собираем пузырек сообщения
-            messageBubble.appendChild(messageText);
             messageBubble.appendChild(messageTime);
             messageBubble.appendChild(reactionsContainer); // Добавляем реакции внутрь пузырька
 
@@ -163,6 +173,7 @@ async function loadMessages(chatId, page = currentPage) {
         isLoading = false;
     }
 }
+
 
 // Обработчик прокрутки
 function handleScroll(chatId) {
@@ -543,5 +554,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    const textarea = document.getElementById('text');
+
+    textarea.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault(); // Предотвращаем добавление новой строки
+            document.getElementById('send-message-form').dispatchEvent(new Event('submit', { cancelable: true }));
+        } else if (event.key === 'Enter' && event.shiftKey) {
+            // Позволяем добавить новую строку
+        }
+    });
+});
+document.addEventListener('DOMContentLoaded', () => {
+    const attachBtn = document.getElementById('attach-btn');
+    const fileInput = document.getElementById('picture');
+    const imagePreview = document.getElementById('image-preview');
+
+    attachBtn.addEventListener('click', () => {
+        fileInput.click(); // Имитируем клик по скрытому полю выбора файла
+    });
+
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block'; // Показываем миниатюру
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('image-modal');
+    const modalImage = document.getElementById('modal-image');
+    const closeModal = document.getElementById('close-modal');
+
+    // Обработчик клика по изображению в сообщении
+    document.getElementById('messages-list').addEventListener('click', (event) => {
+        if (event.target.tagName === 'IMG') {
+            modalImage.src = event.target.src;
+            modal.style.display = 'block';
+        }
+    });
+
+    // Закрытие модального окна при клике на крестик
+    closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    // Закрытие модального окна при клике вне изображения
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+});
 
 document.addEventListener('DOMContentLoaded', loadChats);
