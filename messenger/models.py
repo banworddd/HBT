@@ -8,19 +8,38 @@ from .utils import generate_image_name, generate_avatar_name
 
 
 class Chats(models.Model):
-    user_1 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='chats_as_user_1', blank=True, null=True)
-    user_2 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='chats_as_user_2', blank=True, null=True)
+    user_1 = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='chats_as_user_1',
+        blank=True,
+        null=True
+    )
+    user_2 = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='chats_as_user_2',
+        blank=True,
+        null=True
+    )
 
     is_group = models.BooleanField(default=False)
     users = models.ManyToManyField(CustomUser, related_name='chats', blank=True)
     admins = models.ManyToManyField(CustomUser, related_name='chats_as_admin', blank=True)
-    name = models.CharField(max_length=120,blank=True, null=True)
-    avatar = models.ImageField(upload_to=generate_avatar_name, blank=True, null=True, default='chats_avatars/default.png')
-
+    name = models.CharField(max_length=120, blank=True, null=True)
+    avatar = models.ImageField(
+        upload_to=generate_avatar_name,
+        blank=True,
+        null=True,
+        default='chats_avatars/default.png'
+    )
 
     def save(self, *args, **kwargs):
         if self.user_1 and self.user_2 and not self.is_group:
-            if Chats.objects.filter(Q(user_1=self.user_2) & Q(user_2=self.user_1) | Q(user_1=self.user_1) & Q(user_2=self.user_2)).exists() and not self.is_group:
+            if Chats.objects.filter(
+                Q(user_1=self.user_2) & Q(user_2=self.user_1) |
+                Q(user_1=self.user_1) & Q(user_2=self.user_2)
+            ).exists() and not self.is_group:
                 raise ValidationError('Чат между этими двумя пользователями уже существует')
 
         if self.user_1 and self.user_2 and self.is_group:

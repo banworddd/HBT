@@ -1,6 +1,17 @@
-from django.db.models import Q,F, OuterRef, Count, Case, When, Value, BooleanField,IntegerField, Subquery
+from django.db.models import (
+    Q,
+    F,
+    OuterRef,
+    Count,
+    Case,
+    When,
+    Value,
+    BooleanField,
+    IntegerField,
+    Subquery,
+)
+
 from rest_framework import status
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.generics import (
     ListAPIView,
@@ -9,8 +20,10 @@ from rest_framework.generics import (
     UpdateAPIView,
     RetrieveDestroyAPIView,
     CreateAPIView,
-    RetrieveUpdateAPIView, get_object_or_404
+    RetrieveUpdateAPIView,
+    get_object_or_404,
 )
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from messenger.models import Chats, Message, MessageReaction
@@ -21,9 +34,9 @@ from .messenger_serializers import (
     MessageReactionSerializer,
     ContactsSerializer,
     UserSerializer,
-MessageReactionsCountSerializer
+    MessageReactionsCountSerializer,
+    ChatDetailSerializer
 )
-
 
 class ChatsListAPIView(ListAPIView):
     serializer_class = ChatsSerializer
@@ -47,7 +60,7 @@ class ChatsListAPIView(ListAPIView):
 
         last_message_subquery = Message.objects.filter(
             chat=OuterRef('pk')
-        ).order_by('-send_time').values('text', 'send_time', 'picture')[:1]
+        ).order_by('-send_time').values('text', 'send_time', 'picture', 'status', 'author')[:1]
 
         user_1_subquery = CustomUser.objects.filter(
             pk=OuterRef('user_1__id')
@@ -61,6 +74,8 @@ class ChatsListAPIView(ListAPIView):
             last_message_text=last_message_subquery.values('text'),
             last_message_time=last_message_subquery.values('send_time'),
             last_message_picture=last_message_subquery.values('picture'),
+            last_message_status=last_message_subquery.values('status'),
+            last_message_author=last_message_subquery.values('author'),
             username_1=user_1_subquery.values('username'),
             public_name_1=user_1_subquery.values('public_name'),
             username_2=user_2_subquery.values('username'),
@@ -71,9 +86,11 @@ class ChatsListAPIView(ListAPIView):
 
 
 class ChatDetailAPIView(RetrieveAPIView):
-    queryset = Chats.objects.all()
-    serializer_class = ChatsSerializer
-    lookup_field = 'pk'
+    serializer_class = ChatDetailSerializer
+
+    def get_object(self):
+        chat = get_object_or_404(Chats, pk=self.kwargs['pk'])
+        return chat
 
 
 class ChatCreateAPIView(CreateAPIView):
@@ -137,22 +154,25 @@ class GroupChatCreateAPIView(CreateAPIView):
     queryset = Chats.objects.all()
     serializer_class = ChatsSerializer
 
-    def perform_create(self ,serializer):
+    def perform_create(self, serializer):
         request_user = self.request.user
 
         users = serializer.validated_data['users']
         admins = serializer.validated_data['admins']
         name = serializer.validated_data['name']
 
-        users_set = CustomUser.objects.filter(Q(username__in=users) | Q(username=request_user.username)).distinct()
-        admins_set = CustomUser.objects.filter(Q(username__in=admins) | Q(username=request_user.username)).distinct()
+        users_set = CustomUser.objects.filter(
+            Q(username__in=users) | Q(username=request_user.username)
+        ).distinct()
+        admins_set = CustomUser.objects.filter(
+            Q(username__in=admins) | Q(username=request_user.username)
+        ).distinct()
 
-        serializer.save(is_group = True, admins = admins_set, users = users_set, name = name)
+        serializer.save(is_group=True, admins=admins_set, users=users_set, name=name)
         return Response(serializer.data)
 
 
 class GroupChatUpdateAPIView(RetrieveUpdateAPIView):
-
     queryset = Chats.objects.all()
     serializer_class = ChatsSerializer
     lookup_field = 'pk'
@@ -161,19 +181,18 @@ class GroupChatUpdateAPIView(RetrieveUpdateAPIView):
         users = serializer.validated_data['users']
         chat_object = self.get_object()
         users_now = chat_object.users.all()
-        users_set = CustomUser.objects.filter(Q(username__in=users_now) | Q(username__in = users))
+        users_set = CustomUser.objects.filter(
+            Q(username__in=users_now) | Q(username__in=users)
+        )
 
-
-        name = serializer.validated_data['name']
-        if not name:
-            name = chat_object.name
+        name = serializer.validated_data.get('name', chat_object.name)
 
         try:
             admins = serializer.validated_data['admins']
-        except:
+        except KeyError:
             admins = chat_object.admins.all()
 
-        serializer.save(is_group = True, admins = admins, users = users_set, name = name)
+        serializer.save(is_group=True, admins=admins, users=users_set, name=name)
 
 
 class ContactsAPIView(ListAPIView):
@@ -200,7 +219,11 @@ class UsersSearchAPIView(ListAPIView):
         user = self.request.query_params.get('user')
         if not user:
             return CustomUser.objects.none()
-        queryset = CustomUser.objects.filter(Q(username__icontains=user)| Q(public_name__icontains=user)).order_by('username').exclude(username = self.request.user.username)
+
+        queryset = CustomUser.objects.filter(
+            Q(username__icontains=user) |
+            Q(public_name__icontains=user)
+        ).order_by('username').exclude(username=self.request.user.username)
 
         return queryset
 
@@ -261,21 +284,31 @@ class MessagesCreateListAPIView(ListCreateAPIView):
         Message.objects.filter(
             chat=chat_obj,
             is_deleted=False,
-
             status='S'
         ).exclude(author=self.request.user).update(status='R')
-        author_subquery = CustomUser.objects.filter(pk = OuterRef('author__id')).values('public_name','avatar', 'username')
-        queryset = queryset.annotate(author_name = author_subquery.values('public_name'), author_avatar = author_subquery.values('avatar'), author_username = author_subquery.values('username'))
+
+        author_subquery = CustomUser.objects.filter(pk=OuterRef('author__id')).values(
+            'public_name', 'avatar', 'username'
+        )
+
+        queryset = queryset.annotate(
+            author_name=author_subquery.values('public_name'),
+            author_avatar=author_subquery.values('avatar'),
+            author_username=author_subquery.values('username')
+        )
+
         return queryset
 
     def perform_create(self, serializer):
         chat_id = self.request.query_params.get('chat_id')
+
         # Проверка существования чата
         chat_obj = Chats.objects.filter(id=chat_id).first()
         if not chat_obj:
             return Response({'error': 'Чат не найден.'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer.save(author=self.request.user, chat=chat_obj)
+
 
 class MessageDeleteAPIView(UpdateAPIView):
     queryset = Message.objects.all()
@@ -322,7 +355,6 @@ class MessageReactionAPIView(ListCreateAPIView):
         )
 
         return queryset
-
 
 
 class MessageReactionsCountAPIView(ListAPIView):

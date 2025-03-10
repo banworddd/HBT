@@ -9,7 +9,6 @@ from .messenger_api_views import (
     MessageReactionDetailAPIView,
     ContactsAPIView,
     ChatCreateAPIView,
-    UpdateContactsAPIView,
     UsersSearchAPIView,
     UserProfileAPIView,
     GroupChatCreateAPIView,
@@ -35,11 +34,6 @@ urlpatterns = [
 
     # Контакты
     path('contacts/', ContactsAPIView.as_view(), name='contacts-chat-detail'),
-    path(
-        'contacts_update/<int:pk>/',
-        UpdateContactsAPIView.as_view(),
-        name='contacts_update',
-    ),
 
     # Поиск пользователей
     path('users_search/', UsersSearchAPIView.as_view(), name='users-list'),

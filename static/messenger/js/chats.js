@@ -114,9 +114,6 @@ async function loadChats() {
 }
 
 
-
-
-
 let currentPage = 1;
 let isLoading = false;
 let hasNextPage = true; // Флаг для отслеживания наличия следующей страницы
@@ -220,11 +217,22 @@ function handleScroll(chatId) {
     }
 }
 
-// Добавьте обработчик прокрутки при открытии чата
 function showMessageForm(chatId) {
+    // Убираем выделение со всех карточек чатов
+    const allChatCards = document.querySelectorAll('.chat-card');
+    allChatCards.forEach(card => card.classList.remove('active'));
+
+    // Добавляем выделение на выбранную карточку
+    const selectedChatCard = document.querySelector(`.chat-card[data-chat-id="${chatId}"]`);
+    if (selectedChatCard) {
+        selectedChatCard.classList.add('active');
+    }
+
+    // Показываем форму отправки сообщения
     const messageForm = document.getElementById('message-form');
     messageForm.style.display = 'block';
 
+    // Настройка обработчика отправки сообщения
     const form = document.getElementById('send-message-form');
     form.onsubmit = async (event) => {
         event.preventDefault();
@@ -248,8 +256,8 @@ function showMessageForm(chatId) {
 
     // Добавляем обработчик прокрутки
     const messagesList = document.getElementById('messages-list');
-    messagesList.removeEventListener('scroll', () => handleScroll(chatId));
-    messagesList.addEventListener('scroll', () => handleScroll(chatId));
+    messagesList.removeEventListener('scroll', () => handleScroll(chatId)); // Удаляем старый обработчик
+    messagesList.addEventListener('scroll', () => handleScroll(chatId)); // Добавляем новый обработчик
 }
 
 // Функция для создания реакции

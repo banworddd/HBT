@@ -15,10 +15,9 @@ html, body {
 
 /* Стили для списка чатов */
 .chats-list {
-    width: 15%;
+    width: 20%;
     background: #17212b;
     overflow-y: auto;
-    padding: 5px; /* Уменьшаем отступы */
     box-sizing: border-box;
     scrollbar-width: none;
 }
@@ -29,11 +28,16 @@ html, body {
 
 .chat-card {
     cursor: pointer;
+    padding : 2%;
     border-bottom: none; /* Убираем серый разделитель */
 }
 
 .chat-card:hover {
     background-color: #1f2b37;
+}
+.chat-card.active {
+    background-color: #2b5177; /* Цвет фона для выделенной карточки */
+    transition: background-color 0.3s ease; /* Плавное изменение цвета */
 }
 
 .chat-header {
@@ -92,7 +96,7 @@ html, body {
 /* Стили для правого блока с сообщениями и формой */
 .messages-container {
     background: #324459;
-    width: 85%;
+    width: 80%;
     display: flex;
     flex-direction: column;
     padding-left: 10px;
@@ -174,7 +178,7 @@ html, body {
 
 
 #message-form {
-    width: 85%;
+    width: 80%;
     padding: 20px;
     background: #17212b;
     color: white;
@@ -335,11 +339,11 @@ html, body {
 .context-menu {
     display: none;
     position: absolute;
-    background-color: #fff;
-    border: 1px solid #ccc;
+    background-color: #17212b;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     z-index: 1000;
     min-width: 120px;
+    border-radius: 10px;
 }
 
 .context-menu-btn {
@@ -350,11 +354,12 @@ html, body {
     border: none;
     background: none;
     cursor: pointer;
-    color: #333;
+    color: #ffffff;
+        border-radius: 10px;
 }
 
 .context-menu-btn:hover {
-    background-color: #f0f0f0;
+    background-color: #1f2b37;
 }
 
 .reactions-context-menu {
@@ -370,11 +375,13 @@ html, body {
     background: none;
     border: none;
     padding: 4px;
+    transition: all 0.3s ease;
 }
 
 .reactions-context-menu .reaction-btn:hover {
-    background-color: #f0f0f0;
-    border-radius: 4px;
+    background-color: #1f2b37;
+     transition: all 0.3s ease;
+    transform: scale(1.05);
 }
 /* Стили для реакций внутри пузырька */
 .reactions {
@@ -383,7 +390,6 @@ html, body {
     margin-top: 8px; /* Отступ от текста сообщения */
     padding: 4px 0; /* Внутренние отступы */
 }
-
 
 .reaction-count {
     font-size: 12px;

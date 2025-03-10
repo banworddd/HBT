@@ -5,16 +5,24 @@ from messenger.models import Chats, Message, MessageReaction
 from users.models import CustomUser
 
 
+class ChatDetailSerializer(serializers.ModelSerializer):
+    messages_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Chats
+        fields = '__all__'
+
+    def get_messages_count(self, obj):
+        messages_count = Message.objects.filter(chat=obj).count()
+        return messages_count
+
+
 class ChatsSerializer(serializers.ModelSerializer):
-    users = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=CustomUser.objects.all()
-    )
-    admins = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=CustomUser.objects.all()
-    )
     last_message_text = serializers.CharField(read_only=True)
     last_message_picture = serializers.CharField(read_only=True)
     last_message_time = serializers.DateTimeField(read_only=True)
+    last_message_status = serializers.CharField(read_only=True)
+    last_message_author = serializers.CharField(read_only=True)
     username_1 = serializers.CharField(read_only=True)
     username_2 = serializers.CharField(read_only=True)
     public_name_1 = serializers.CharField(read_only=True)
@@ -25,8 +33,9 @@ class ChatsSerializer(serializers.ModelSerializer):
         model = Chats
         fields = [
             'id', 'user_1', 'user_2', 'username_1', 'username_2', 'public_name_1',
-            'public_name_2', 'is_group', 'users', 'admins', 'name', 'chat_avatar',
-            'last_message_time', 'last_message_text', 'last_message_picture'
+            'public_name_2', 'is_group', 'name', 'chat_avatar',
+            'last_message_time', 'last_message_text', 'last_message_picture', 'last_message_status',
+            'last_message_author'
         ]
 
     @staticmethod
@@ -108,36 +117,46 @@ class UserSerializer(serializers.ModelSerializer):
     chat_id = serializers.SerializerMethodField()
     last_chat_message_text = serializers.SerializerMethodField()
     last_chat_message_time = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
-        fields = ['username', 'public_name', 'avatar', 'status','is_contact', 'chat_id', 'last_chat_message_text', 'last_chat_message_time']
+        fields = [
+            'username',
+            'public_name',
+            'avatar',
+            'status',
+            'is_contact',
+            'chat_id',
+            'last_chat_message_text',
+            'last_chat_message_time'
+        ]
 
     def get_is_contact(self, obj):
         request = self.context.get('request')
         if request.user.contacts.filter(username=obj.username).exists():
             return True
-        else:
-            return False
+        return False
 
     def get_chat_id(self, obj):
         request = self.context.get('request')
-        return Chats.objects.filter(
-                Q(user_1=obj) & Q(user_2=request.user) | Q(user_1=request.user) & Q(user_2=obj)).first().id if  Chats.objects.filter(
-                Q(user_1=obj) & Q(user_2=request.user) | Q(user_1=request.user) & Q(user_2=obj)).exists() else None
+        chat = Chats.objects.filter(
+            Q(user_1=obj) & Q(user_2=request.user) |
+            Q(user_1=request.user) & Q(user_2=obj)
+        ).first()
+        return chat.id if chat else None
 
     def get_last_chat_message_text(self, obj):
-        request = self.context.get('request')
         chat_id = self.get_chat_id(obj)
         if chat_id:
-            return Message.objects.filter(chat__id = chat_id ).last().text if Message.objects.filter(chat__id = chat_id).exists() else None
+            message = Message.objects.filter(chat__id=chat_id).last()
+            return message.text if message else None
 
     def get_last_chat_message_time(self, obj):
-        request = self.context.get('request')
-
         chat_id = self.get_chat_id(obj)
         if chat_id:
-            return Message.objects.filter(chat__id=chat_id).last().send_time if Message.objects.filter(
-                chat__id=chat_id).exists() else None
+            message = Message.objects.filter(chat__id=chat_id).last()
+            return message.send_time if message else None
+
 
 
 
