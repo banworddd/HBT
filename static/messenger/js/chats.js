@@ -44,7 +44,12 @@ async function loadChats() {
             // Название чата
             const chatHeader = document.createElement('div');
             chatHeader.className = 'chat-header';
+
+            const chatInfo = document.createElement('div');
+            chatInfo.className = 'chat-info';
+
             const chatTitle = document.createElement('h2');
+            chatTitle.className = 'chat-title';
 
             if (chat.is_group) {
                 chatTitle.textContent = chat.name || 'Групповой чат';
@@ -52,22 +57,48 @@ async function loadChats() {
                 chatTitle.textContent = chat.public_name_2 || chat.username_2;
             }
 
-            chatHeader.appendChild(chatAvatar);
-            chatHeader.appendChild(chatTitle);
-
             // Последнее сообщение
             const lastMessage = document.createElement('div');
             lastMessage.className = 'last-message';
+
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+
+            if (chat.last_message_picture) {
+                const messageImagePreview = document.createElement('img');
+                messageImagePreview.src = `/media/${chat.last_message_picture}`;
+                messageImagePreview.className = 'message-image-preview';
+                messageContent.appendChild(messageImagePreview);
+            }
+
             const messageText = document.createElement('p');
-            messageText.innerHTML = `<strong>Последнее сообщение:</strong> ${chat.last_message_text}`;
+            messageText.className = 'message-text';
+
+            if (chat.last_message_text) {
+                const truncatedText = chat.last_message_text.length > 15
+                    ? chat.last_message_text.substring(0, 15) + '...'
+                    : chat.last_message_text;
+                messageText.textContent = truncatedText;
+            } else {
+                messageText.textContent = 'Изображение';
+            }
+
+            messageContent.appendChild(messageText);
+            lastMessage.appendChild(messageContent);
+
             const messageTime = document.createElement('p');
-            messageTime.innerHTML = `<small>${formatDateTime(chat.last_message_time)}</small>`; // Используем функцию для форматирования даты
-            lastMessage.appendChild(messageText);
+            messageTime.className = 'message-time';
+            messageTime.innerHTML = `<small>${formatDateTime(chat.last_message_time)}</small>`;
             lastMessage.appendChild(messageTime);
+
+            chatInfo.appendChild(chatTitle);
+            chatInfo.appendChild(lastMessage);
+
+            chatHeader.appendChild(chatAvatar);
+            chatHeader.appendChild(chatInfo);
 
             // Собираем карточку чата
             chatCard.appendChild(chatHeader);
-            chatCard.appendChild(lastMessage);
             chatsList.appendChild(chatCard);
 
             // Добавляем обработчик клика на чат
@@ -81,6 +112,10 @@ async function loadChats() {
         chatsList.innerHTML = '<p>Не удалось загрузить чаты. Пожалуйста, попробуйте позже.</p>';
     }
 }
+
+
+
+
 
 let currentPage = 1;
 let isLoading = false;
@@ -118,7 +153,6 @@ async function loadMessages(chatId, page = currentPage) {
                 const messageImage = document.createElement('img');
                 messageImage.src = message.picture;
                 messageImage.className = 'message-image';
-                messageImage.style.height = '200px'; // Фиксированная высота
                 messageBubble.appendChild(messageImage);
             }
 
@@ -173,6 +207,7 @@ async function loadMessages(chatId, page = currentPage) {
         isLoading = false;
     }
 }
+
 
 
 // Обработчик прокрутки
@@ -460,8 +495,16 @@ function formatDateTime(dateTimeString) {
         hour12: false,
     };
     const date = new Date(dateTimeString);
-    const formattedDate = date.toLocaleDateString('de-DE', options).replace(',', ''); // 'de-DE' для европейского формата
-    return `${formattedDate}`;
+    const now = new Date();
+
+    // Проверяем, было ли сообщение отправлено сегодня
+    if (date.toDateString() === now.toDateString()) {
+        // Если да, возвращаем только время
+        return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    } else {
+        // Если нет, возвращаем только дату
+        return date.toLocaleDateString('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    }
 }
 
 // Функция для отображения контекстного меню

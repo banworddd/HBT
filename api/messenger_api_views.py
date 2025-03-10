@@ -176,24 +176,20 @@ class GroupChatUpdateAPIView(RetrieveUpdateAPIView):
         serializer.save(is_group = True, admins = admins, users = users_set, name = name)
 
 
-class ContactsAPIView(RetrieveAPIView):
-    queryset = CustomUser.objects.all()
+class ContactsAPIView(ListAPIView):
     serializer_class = ContactsSerializer
-    lookup_field = 'pk'
 
+    def get_queryset(self):
+        user_obj = CustomUser.objects.get(pk=self.request.user.id)
+        queryset = user_obj.contacts.all()
 
-class UpdateContactsAPIView(UpdateAPIView):
-    queryset = CustomUser.objects.all()
-    serializer_class = ContactsSerializer
-    lookup_field = 'pk'
+        chat_subquery = Chats.objects.filter(
+            (Q(user_1=OuterRef('pk')) & Q(user_2=user_obj)) |
+            (Q(user_2=OuterRef('pk')) & Q(user_1=user_obj))
+        ).values('pk')
 
-    def perform_update(self, serializer):
-        user_obj = CustomUser.objects.get(pk=self.kwargs.get('pk'))
-        new_contacts = serializer.validated_data['contacts']
-        contacts = user_obj.contacts.all()
-        queryset = CustomUser.objects.filter(Q(pk__in = contacts) | Q(username__in = new_contacts)).distinct()
-        user_obj.contacts.set(queryset)
-        user_obj.save()
+        queryset = queryset.annotate(chat_id=chat_subquery.values('pk'))
+        return queryset
 
 
 class UsersSearchAPIView(ListAPIView):

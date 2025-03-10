@@ -34,7 +34,7 @@ urlpatterns = [
     path ('chats_search/', ChatsSearchAPIView.as_view(), name='chats-search'),
 
     # Контакты
-    path('contacts/<int:pk>/', ContactsAPIView.as_view(), name='contacts-chat-detail'),
+    path('contacts/', ContactsAPIView.as_view(), name='contacts-chat-detail'),
     path(
         'contacts_update/<int:pk>/',
         UpdateContactsAPIView.as_view(),

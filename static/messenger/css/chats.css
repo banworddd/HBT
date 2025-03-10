@@ -37,25 +37,58 @@ html, body {
 }
 
 .chat-header {
-    color : white;
+    display: flex;
+    align-items: center;
+    color: white;
+}
+
+.chat-avatar {
+    width: 50px; /* Уменьшаем размер аватара */
+    height: 50px;
+    background: white;
+    border-color: white;
+    border-radius: 50%;
+    margin-right: 8px; /* Отступ справа от аватара */
+}
+
+.chat-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.chat-title {
+    margin: 0;
+    font-size: 1em;
+}
+
+.last-message {
+    display: flex;
+    flex-direction: column;
+    font-size: 1em;
+    color: #c8c8c8;
+}
+
+.last-message .message-content {
     display: flex;
     align-items: center;
 }
 
-.chat-avatar {
-    width: 30px; /* Уменьшаем размер аватара */
-    height: 30px;
-    background: white;
-    border-color: white;
-    border-radius: 50%;
-    margin-right: 8px; /* Уменьшаем отступ */
+.last-message .message-image-preview {
+    width: 20px; /* Фиксированная ширина */
+    height: 20px; /* Фиксированная высота */
+    object-fit: cover; /* Обрезает изображение, сохраняя пропорции */
+    border-radius: 4px; /* Скругленные углы, если нужно */
+    margin-right: 8px; /* Отступ справа от изображения */
 }
 
-
-.last-message {
-    font-size: 1em; /* Уменьшаем размер шрифта */
-    color: #c8c8c8;
+.last-message .message-text {
+    margin: 0; /* Убираем отступы у текста */
+    overflow: hidden; /* Обрезаем текст, если он слишком длинный */
+    text-overflow: ellipsis; /* Добавляем многоточие, если текст обрезан */
+    white-space: nowrap; /* Предотвращаем перенос текста */
 }
+
 /* Стили для правого блока с сообщениями и формой */
 .messages-container {
     background: #324459;
@@ -95,12 +128,12 @@ html, body {
     justify-content: flex-start; /* Выравниваем по левому краю */
 }
 
-/* Стили для пузырька сообщения */
 .message-bubble {
     background-color: #ffffff;
     border-radius: 12px;
     padding: 8px 12px;
-    max-width: 20%; /* Уменьшаем ширину пузырька */
+    max-width: 20%; /* Максимальная ширина пузырька */
+    width: fit-content; /* Ширина подстраивается под содержимое */
     word-wrap: break-word;
     position: relative; /* Для позиционирования реакций */
 }
@@ -113,8 +146,17 @@ html, body {
 
 .message-bubble.other {
     background-color: #1a2753; /* Цвет фона для сообщений других пользователей */
-    color : white;
+    color: white;
     margin-right: auto;
+}
+
+.message-bubble .message-image {
+    width: 150px; /* Фиксированная ширина */
+    height: 150px; /* Фиксированная высота для квадратного формата */
+    object-fit: cover; /* Обрезает изображение, сохраняя пропорции */
+    border-radius: 8px; /* Скругленные углы, если нужно */
+    display: block; /* Убираем возможные отступы */
+    margin-bottom: 8px; /* Отступ снизу от изображения */
 }
 
 .message-text {

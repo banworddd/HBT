@@ -97,21 +97,10 @@ class MessageReactionsCountSerializer(serializers.ModelSerializer):
 
 
 class ContactsSerializer(serializers.ModelSerializer):
-    contacts_usernames = serializers.SerializerMethodField()
-    contacts_chats = serializers.SerializerMethodField()
-
+    chat_id = serializers.IntegerField(read_only=True)
     class Meta:
         model = CustomUser
-        fields = ['contacts', 'contacts_usernames', 'contacts_chats']
-
-    def get_contacts_usernames(self, obj):
-        queryset = obj.contacts.all()
-        return queryset.values_list('username', flat=True)
-
-    def get_contacts_chats(self, obj):
-        queryset = obj.contacts.all()
-        chats_queryset = Chats.objects.filter(Q(user_1__in = queryset) & Q(user_2 = obj) | Q(user_2__in = queryset) & Q(user_1 = obj))
-        return chats_queryset.values_list('id', flat=True)
+        fields = ['username', 'avatar', 'public_name', 'chat_id']
 
 
 class UserSerializer(serializers.ModelSerializer):
