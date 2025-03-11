@@ -13,7 +13,7 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-
+// Функция для загрузки чатов
 async function loadChats() {
     const apiUrl = `/api/messenger/chats/?user=${username}`;
     const chatsList = document.getElementById('chats-list');
@@ -103,8 +103,7 @@ async function loadChats() {
 
             // Добавляем обработчик клика на чат
             chatCard.addEventListener('click', () => {
-                loadMessages(chat.id, 1); // Загружаем первую страницу сообщений
-                showMessageForm(chat.id);  // Показываем форму для выбранного чата
+                showMessageForm(chat.id); // Открываем чат
             });
         });
     } catch (error) {
@@ -217,7 +216,16 @@ function handleScroll(chatId) {
     }
 }
 
+// Функция для отображения формы сообщений и выделения чата
 function showMessageForm(chatId) {
+    // Обновляем URL с ID чата
+    const url = new URL(window.location);
+    url.searchParams.set('chat_id', chatId);
+    window.history.pushState({}, '', url);
+
+    // Сохраняем ID открытого чата в localStorage
+    localStorage.setItem('openChatId', chatId);
+
     // Убираем выделение со всех карточек чатов
     const allChatCards = document.querySelectorAll('.chat-card');
     allChatCards.forEach(card => card.classList.remove('active'));
@@ -259,6 +267,62 @@ function showMessageForm(chatId) {
     messagesList.removeEventListener('scroll', () => handleScroll(chatId)); // Удаляем старый обработчик
     messagesList.addEventListener('scroll', () => handleScroll(chatId)); // Добавляем новый обработчик
 }
+
+// Функция для закрытия чата
+function closeChat() {
+    // Сбрасываем выделение
+    const allChatCards = document.querySelectorAll('.chat-card');
+    allChatCards.forEach(card => card.classList.remove('active'));
+
+    // Очищаем список сообщений и скрываем форму
+    const messagesList = document.getElementById('messages-list');
+    messagesList.innerHTML = '';
+    const messageForm = document.getElementById('message-form');
+    messageForm.style.display = 'none';
+
+    // Удаляем ID открытого чата из localStorage
+    localStorage.removeItem('openChatId');
+
+    // Очищаем chat_id из URL
+    const url = new URL(window.location);
+    url.searchParams.delete('chat_id');
+    window.history.pushState({}, '', url);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Загружаем список чатов
+    loadChats();
+
+    // Получаем ID чата из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatIdFromUrl = urlParams.get('chat_id');
+
+    // Если в URL указан chat_id, открываем этот чат
+    if (chatIdFromUrl) {
+        showMessageForm(chatIdFromUrl);
+    } else {
+        // Если chat_id не указан в URL, проверяем localStorage
+        const openChatId = localStorage.getItem('openChatId');
+        if (openChatId) {
+            // Удаляем сохраненный ID чата из localStorage, чтобы не открывать его автоматически в будущем
+            localStorage.removeItem('openChatId');
+        }
+    }
+});
+
+// Обработчик изменения URL (если пользователь вручную меняет URL)
+window.addEventListener('popstate', () => {
+    // Получаем ID чата из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatIdFromUrl = urlParams.get('chat_id');
+
+    // Если в URL указан chat_id, открываем этот чат
+    if (chatIdFromUrl) {
+        showMessageForm(chatIdFromUrl);
+    } else {
+        closeChat();
+    }
+});
 
 // Функция для создания реакции
 async function createReaction(messageId, reaction, userId) {
