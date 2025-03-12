@@ -1,4 +1,4 @@
-/* Основные стили для контейнера */
+/* Общие стили */
 html, body {
     overflow: hidden;
     height: 100%;
@@ -28,13 +28,14 @@ html, body {
 
 .chat-card {
     cursor: pointer;
-    padding : 2%;
+    padding: 2%;
     border-bottom: none; /* Убираем серый разделитель */
 }
 
 .chat-card:hover {
     background-color: #1f2b37;
 }
+
 .chat-card.active {
     background-color: #2b5177; /* Цвет фона для выделенной карточки */
     transition: background-color 0.3s ease; /* Плавное изменение цвета */
@@ -93,7 +94,7 @@ html, body {
     white-space: nowrap; /* Предотвращаем перенос текста */
 }
 
-/* Стили для правого блока с сообщениями и формой */
+/* Стили для контейнера сообщений */
 .messages-container {
     background: #324459;
     width: 80%;
@@ -118,7 +119,6 @@ html, body {
 .messages-list::-webkit-scrollbar {
     display: none; /* Скрываем скроллбар в Chrome, Safari и Opera */
 }
-
 
 .message-card {
     margin-bottom: 16px; /* Отступ между сообщениями */
@@ -168,7 +168,6 @@ html, body {
     font-size: 1.1em;
 }
 
-/* Стили для времени сообщения */
 .message-time {
     font-size: 0.8em;
     color: #ffffff;
@@ -176,7 +175,7 @@ html, body {
     margin-top: 5px;
 }
 
-
+/* Стили для формы отправки сообщений */
 #message-form {
     width: 80%;
     padding: 20px;
@@ -241,10 +240,7 @@ html, body {
     background-color: #357ae8; /* Изменяем цвет фона кнопки при нажатии */
 }
 
-
-
-
-/* Стили для формы редактирования сообщения */
+/* Стили для формы редактирования сообщений */
 #edit-message-form {
     width: 100%;
     background: white; /* Убираем полупрозрачность */
@@ -289,43 +285,55 @@ html, body {
     color: white;
 }
 
-/* Стили для кнопок реакций */
+/* Стили для реакций */
+.reactions-container {
+    display: flex;
+    margin-top: 2px; /* Отступ сверху от пузырька */
+}
+
+.message-card.other .reactions-container {
+    justify-content: flex-start; /* Выравниваем по левому краю */
+}
+
+.message-card.self .reactions-container {
+    justify-content: flex-end; /* Выравниваем по правому краю */
+}
+
 .reactions {
     display: flex;
-    gap: 5px;
-    margin-top: 5px;
+    gap: 2px; /* Расстояние между реакциями */
+    background-color: transparent;
 }
 
 .reaction-btn {
     background-color: #f0f0f0;
     border: none;
     border-radius: 20px; /* Овальная форма */
-    padding: 5px 15px;
     cursor: pointer;
     display: flex;
     align-items: center;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Тень для объема */
     transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Плавные переходы */
 }
-.reaction-btn:hover{
+
+.reaction-btn:hover {
     background-color: #d3d3d3;
 }
 
 .reaction-btn.user-reacted {
     background-color: #90caf9; /* Голубоватый цвет */
     border-radius: 20px; /* Закругленные углы */
-    padding: 5px 15px;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
 }
+
 .reaction-btn.user-reacted:hover {
     background-color: #7db8e6; /* Голубоватый цвет */
 }
 
-/* Убираем увеличение кнопки при нажатии */
 .reaction-btn:active {
     background-color: #e0e0e0; /* Слегка темнее фон */
     box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1); /* Уменьшаем тень для эффекта "нажатия" */
@@ -336,6 +344,7 @@ html, body {
     font-size: 0.9em;
 }
 
+/* Контекстное меню */
 .context-menu {
     display: none;
     position: absolute;
@@ -355,7 +364,7 @@ html, body {
     background: none;
     cursor: pointer;
     color: #ffffff;
-        border-radius: 10px;
+    border-radius: 10px;
 }
 
 .context-menu-btn:hover {
@@ -380,15 +389,8 @@ html, body {
 
 .reactions-context-menu .reaction-btn:hover {
     background-color: #1f2b37;
-     transition: all 0.3s ease;
+    transition: all 0.3s ease;
     transform: scale(1.05);
-}
-/* Стили для реакций внутри пузырька */
-.reactions {
-    display: flex;
-    gap: 6px; /* Расстояние между кнопками */
-    margin-top: 8px; /* Отступ от текста сообщения */
-    padding: 4px 0; /* Внутренние отступы */
 }
 
 .reaction-count {

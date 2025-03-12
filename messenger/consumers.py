@@ -48,19 +48,4 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def chat_message(self, event):
-        message = event['message']
-        author__username = event['author__username']
-        send_time = event['send_time']
-        status = event['status']
-        is_deleted = event['is_deleted']
-        picture_url = event['picture_url']
-
-        # Отправляем сообщение WebSocket
-        await self.send(text_data=json.dumps({
-            'message': message,
-            'author__username': author__username,
-            'send_time': send_time,
-            'status': status,
-            'is_deleted': is_deleted,
-            'picture_url': picture_url,
-        }))
+        await self.send(text_data=json.dumps(event, ensure_ascii=False))

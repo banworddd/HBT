@@ -163,16 +163,21 @@ async function loadMessages(chatId, page = currentPage) {
             messageTime.className = 'message-time';
             messageTime.textContent = formatDateTime(message.send_time);
 
-            // Контейнер для реакций (теперь внутри пузырька)
-            const reactionsContainer = document.createElement('div');
-            reactionsContainer.className = 'reactions';
-
             // Собираем пузырек сообщения
             messageBubble.appendChild(messageTime);
-            messageBubble.appendChild(reactionsContainer); // Добавляем реакции внутрь пузырька
+
+            // Контейнер для реакций (теперь вне пузырька)
+            const reactionsContainer = document.createElement('div');
+            reactionsContainer.className = 'reactions-container';
+
+            const reactions = document.createElement('div');
+            reactions.className = 'reactions';
+
+            reactionsContainer.appendChild(reactions);
 
             // Собираем карточку сообщения
             messageCard.appendChild(messageBubble);
+            messageCard.appendChild(reactionsContainer); // Реакции теперь под пузырьком
 
             // Добавляем обработчик для правой кнопки мыши
             messageCard.addEventListener('contextmenu', (event) => {
