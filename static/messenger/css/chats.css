@@ -440,7 +440,12 @@ html, body {
     display: inline-block;
     width: 8px;
     height: 8px;
-    background-color: blue;
+    background-color: #ffffff;
     border-radius: 50%;
-    margin-left: 8px;
+    margin-left: 90%;
+}
+.message-status {
+    color: #ffffff; /* Зеленый цвет для галочек */
+    margin-left: 90%; /* Отступ от текста сообщения */
+    font-size: 14px; /* Размер галочек */
 }

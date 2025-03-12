@@ -316,6 +316,26 @@ class MessagesCreateListAPIView(ListCreateAPIView):
 
         serializer.save(author=self.request.user, chat=chat_obj)
 
+class MarkMessagesAsReadAPIView(APIView):
+    def patch(self, request, *args, **kwargs):
+        chat_id = request.query_params.get('chat_id')
+
+        if not chat_id:
+            return Response({'error': 'Не указан chat_id.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Проверка существования чата
+        chat_obj = Chats.objects.filter(id=chat_id).first()
+        if not chat_obj:
+            return Response({'error': 'Чат не найден.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Обновляем статус сообщений всех, кроме текущего пользователя
+        Message.objects.filter(
+            chat=chat_obj,
+            is_deleted=False,
+            status='S'
+        ).exclude(author=request.user).update(status='R')
+
+        return Response({'status': 'Статус сообщений обновлен.'}, status=status.HTTP_200_OK)
 
 class MessageDeleteAPIView(UpdateAPIView):
     queryset = Message.objects.all()

@@ -1,3 +1,7 @@
+// ========================
+// 1. Вспомогательные функции
+// ========================
+
 // Функция для получения CSRF-токена из cookies
 function getCookie(name) {
     let cookieValue = null;
@@ -13,6 +17,55 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// Функция для отображения галочек в зависимости от статуса сообщения
+function getMessageStatusIcon(status) {
+    if (status === 'S') {
+        return `
+            <span class="message-status">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2" viewBox="0 0 16 16">
+                    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                </svg>
+            </span>
+        `; // Одна галочка
+    } else if (status === 'R') {
+        return `
+            <span class="message-status">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2-all" viewBox="0 0 16 16">
+                    <path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0l7-7zm-4.208 7-.896-.897.707-.707.543.543 6.646-6.647a.5.5 0 0 1 .708.708l-7 7a.5.5 0 0 1-.708 0z"/>
+                    <path d="m5.354 7.146.896.897-.707.707-.897-.896a.5.5 0 1 1 .708-.708z"/>
+                </svg>
+            </span>
+        `; // Две галочки
+    }
+    return ''; // Если статус неизвестен, ничего не отображаем
+}
+
+// Функция для форматирования даты и времени
+function formatDateTime(dateTimeString) {
+    const options = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+    };
+    const date = new Date(dateTimeString);
+    const now = new Date();
+
+    if (date.toDateString() === now.toDateString()) {
+        return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    } else {
+        return date.toLocaleDateString('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    }
+}
+
+// ========================
+// 2. Работа с чатами
+// ========================
+
 async function loadChats() {
     const apiUrl = `/api/messenger/chats/?user=${username}`;
     const chatsList = document.getElementById('chats-list');
@@ -24,23 +77,18 @@ async function loadChats() {
         }
 
         const chats = await response.json();
-
-        // Очищаем список чатов перед обновлением
         chatsList.innerHTML = '';
 
-        // Отображаем каждый чат
         chats.forEach(chat => {
             const chatCard = document.createElement('div');
             chatCard.className = 'chat-card';
             chatCard.dataset.chatId = chat.id;
 
-            // Аватар чата
             const chatAvatar = document.createElement('img');
             chatAvatar.src = `${chat.chat_avatar}`;
             chatAvatar.alt = 'Аватар чата';
             chatAvatar.className = 'chat-avatar';
 
-            // Заголовок чата
             const chatHeader = document.createElement('div');
             chatHeader.className = 'chat-header';
 
@@ -56,14 +104,12 @@ async function loadChats() {
                 chatTitle.textContent = chat.public_name_2 || chat.username_2;
             }
 
-            // Блок последнего сообщения
             const lastMessage = document.createElement('div');
             lastMessage.className = 'last-message';
 
             const messageContent = document.createElement('div');
             messageContent.className = 'message-content';
 
-            // Превью картинки, если последнее сообщение содержит изображение
             if (chat.last_message_picture) {
                 const messageImagePreview = document.createElement('img');
                 messageImagePreview.src = `/media/${chat.last_message_picture}`;
@@ -71,7 +117,6 @@ async function loadChats() {
                 messageContent.appendChild(messageImagePreview);
             }
 
-            // Текст последнего сообщения
             const messageText = document.createElement('p');
             messageText.className = 'message-text';
 
@@ -86,22 +131,23 @@ async function loadChats() {
 
             messageContent.appendChild(messageText);
 
-            // **Добавление индикатора непрочитанного сообщения**
+            // Добавляем галочки или индикатор непрочитанного сообщения
             if (chat.last_message_author != userId && chat.last_message_status === "S") {
                 const unreadIndicator = document.createElement('span');
                 unreadIndicator.className = 'unread-indicator';
                 messageContent.appendChild(unreadIndicator);
+            } else if (chat.last_message_author == userId) {
+                const statusIcon = getMessageStatusIcon(chat.last_message_status);
+                messageContent.innerHTML += statusIcon; // Добавляем галочки
             }
 
             lastMessage.appendChild(messageContent);
 
-            // Время последнего сообщения
             const messageTime = document.createElement('p');
             messageTime.className = 'message-time';
             messageTime.innerHTML = `<small>${formatDateTime(chat.last_message_time)}</small>`;
             lastMessage.appendChild(messageTime);
 
-            // Собираем карточку чата
             chatInfo.appendChild(chatTitle);
             chatInfo.appendChild(lastMessage);
 
@@ -111,9 +157,8 @@ async function loadChats() {
 
             chatsList.appendChild(chatCard);
 
-            // Добавляем обработчик клика на чат
             chatCard.addEventListener('click', () => {
-                showMessageForm(chat.id); // Открываем чат
+                showMessageForm(chat.id);
             });
         });
     } catch (error) {
@@ -122,12 +167,15 @@ async function loadChats() {
     }
 }
 
-
-
+// ========================
+// 3. Работа с сообщениями
+// ========================
+let currentChatId = null; // Переменная для хранения ID текущего открытого чата
 let currentPage = 1;
 let isLoading = false;
-let hasNextPage = true; // Флаг для отслеживания наличия следующей страницы
+let hasNextPage = true;
 
+// Загрузка сообщений для конкретного чата
 async function loadMessages(chatId, page = currentPage) {
     const apiUrl = `/api/messenger/chat_messages_list/?chat_id=${chatId}&page=${page}`;
     const messagesList = document.getElementById('messages-list');
@@ -174,10 +222,8 @@ async function loadMessages(chatId, page = currentPage) {
             messageTime.className = 'message-time';
             messageTime.textContent = formatDateTime(message.send_time);
 
-            // Собираем пузырек сообщения
             messageBubble.appendChild(messageTime);
 
-            // Контейнер для реакций (теперь вне пузырька)
             const reactionsContainer = document.createElement('div');
             reactionsContainer.className = 'reactions-container';
 
@@ -186,11 +232,9 @@ async function loadMessages(chatId, page = currentPage) {
 
             reactionsContainer.appendChild(reactions);
 
-            // Собираем карточку сообщения
             messageCard.appendChild(messageBubble);
-            messageCard.appendChild(reactionsContainer); // Реакции теперь под пузырьком
+            messageCard.appendChild(reactionsContainer);
 
-            // Добавляем обработчик для правой кнопки мыши
             messageCard.addEventListener('contextmenu', (event) => {
                 const isAuthor = message.author_username === username;
                 showContextMenu(event, message.id, isAuthor);
@@ -198,7 +242,6 @@ async function loadMessages(chatId, page = currentPage) {
 
             messagesList.prepend(messageCard);
 
-            // Загружаем реакции для этого сообщения
             loadReactions(message.id);
         });
 
@@ -220,266 +263,17 @@ async function loadMessages(chatId, page = currentPage) {
     }
 }
 
-
-
-// Обработчик прокрутки
+// Обработчик прокрутки для загрузки новых сообщений
 function handleScroll(chatId) {
     const messagesList = document.getElementById('messages-list');
-    const threshold = 100; // Порог для начала загрузки следующей страницы
+    const threshold = 100;
 
     if (messagesList.scrollTop < threshold && !isLoading && hasNextPage) {
         loadMessages(chatId, currentPage);
     }
 }
 
-function showMessageForm(chatId) {
-    // Обновляем URL с ID чата
-    const url = new URL(window.location);
-    url.searchParams.set('chat_id', chatId);
-    window.history.pushState({}, '', url);
-
-    // Сохраняем ID открытого чата в localStorage
-    localStorage.setItem('openChatId', chatId);
-
-    // Убираем выделение со всех карточек чатов
-    const allChatCards = document.querySelectorAll('.chat-card');
-    allChatCards.forEach(card => card.classList.remove('active'));
-
-    // Добавляем выделение на выбранную карточку
-    const selectedChatCard = document.querySelector(`.chat-card[data-chat-id="${chatId}"]`);
-    if (selectedChatCard) {
-        selectedChatCard.classList.add('active');
-    }
-
-    // Показываем форму отправки сообщения
-    const messageForm = document.getElementById('message-form');
-    messageForm.style.display = 'block';
-
-    // Настройка обработчика отправки сообщения
-    const form = document.getElementById('send-message-form');
-    form.onsubmit = async (event) => {
-        event.preventDefault();
-
-        const text = document.getElementById('text').value;
-        const picture = document.getElementById('picture').files[0];
-
-        try {
-            await sendMessage(chatId, text, picture);
-            form.reset();
-            loadMessages(chatId, 1); // Обновляем список сообщений, начиная с первой страницы
-        } catch (error) {
-            alert('Не удалось отправить сообщение. Пожалуйста, попробуйте позже.');
-        }
-    };
-
-    // Загрузка первой страницы сообщений при открытии чата
-    currentPage = 1;
-    hasNextPage = true; // Сбрасываем флаг при загрузке нового чата
-    loadMessages(chatId, 1);
-
-    // Подключаем WebSocket
-    connectWebSocket(chatId);
-
-    // Добавляем обработчик прокрутки
-    const messagesList = document.getElementById('messages-list');
-    messagesList.removeEventListener('scroll', () => handleScroll(chatId)); // Удаляем старый обработчик
-    messagesList.addEventListener('scroll', () => handleScroll(chatId)); // Добавляем новый обработчик
-}
-
-
-function closeChat() {
-    // Закрываем WebSocket-соединение
-    if (socket) {
-        socket.close();
-    }
-
-    // Сбрасываем выделение
-    const allChatCards = document.querySelectorAll('.chat-card');
-    allChatCards.forEach(card => card.classList.remove('active'));
-
-    // Очищаем список сообщений и скрываем форму
-    const messagesList = document.getElementById('messages-list');
-    messagesList.innerHTML = '';
-    const messageForm = document.getElementById('message-form');
-    messageForm.style.display = 'none';
-
-    // Удаляем ID открытого чата из localStorage
-    localStorage.removeItem('openChatId');
-
-    // Очищаем chat_id из URL
-    const url = new URL(window.location);
-    url.searchParams.delete('chat_id');
-    window.history.pushState({}, '', url);
-}
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Загружаем список чатов
-    loadChats();
-
-    // Получаем ID чата из URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const chatIdFromUrl = urlParams.get('chat_id');
-
-    // Если в URL указан chat_id, открываем этот чат
-    if (chatIdFromUrl) {
-        showMessageForm(chatIdFromUrl);
-    } else {
-        // Если chat_id не указан в URL, проверяем localStorage
-        const openChatId = localStorage.getItem('openChatId');
-        if (openChatId) {
-            // Удаляем сохраненный ID чата из localStorage, чтобы не открывать его автоматически в будущем
-            localStorage.removeItem('openChatId');
-        }
-    }
-});
-
-// Обработчик изменения URL (если пользователь вручную меняет URL)
-window.addEventListener('popstate', () => {
-    // Получаем ID чата из URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const chatIdFromUrl = urlParams.get('chat_id');
-
-    // Если в URL указан chat_id, открываем этот чат
-    if (chatIdFromUrl) {
-        showMessageForm(chatIdFromUrl);
-    } else {
-        closeChat();
-    }
-});
-
-// Функция для создания реакции
-async function createReaction(messageId, reaction, userId) {
-    const apiUrl = `/api/messenger/message_reaction_create/?message_id=${messageId}`;
-
-    const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
-        },
-        body: JSON.stringify({
-            reaction: reaction,
-            message: messageId,
-            author: userId // Только реакция, message_id передается в URL
-        }),
-    });
-
-    if (!response.ok) {
-        throw new Error('Ошибка при создании реакции');
-    }
-}
-
-async function handleReaction(messageId, reaction) {
-    try {
-        const response = await fetch(`/api/messenger/message_reactions_count/?message_id=${messageId}`);
-        if (!response.ok) {
-            throw new Error('Ошибка при загрузке реакций');
-        }
-
-        const reactions = await response.json();
-        const reactionData = reactions.find(r => r.reaction === reaction);
-
-        if (reactionData?.user_reacted) {
-            // Если реакция уже стоит, удаляем её
-            await deleteReaction(reactionData.user_reaction_id, messageId);
-        } else {
-            // Если реакции нет — добавляем
-            await createReaction(messageId, reaction, userId);
-        }
-
-        // Обновляем отображение реакций после изменения
-        await loadReactions(messageId);
-    } catch (error) {
-        console.error('Ошибка при обработке реакции:', error);
-        alert('Не удалось обработать реакцию. Пожалуйста, попробуйте позже.');
-    }
-}
-
-async function deleteReaction(reactionId, messageId) {
-    const response = await fetch(`/api/messenger/message_reactions_detail/${reactionId}/`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error('Ошибка при удалении реакции');
-    }
-
-    // Обновляем интерфейс для конкретного сообщения
-    console.log('Реакция удалена. Обновляем интерфейс для messageId:', messageId);
-    await loadReactions(messageId);
-}
-
-async function loadReactions(messageId) {
-    try {
-        const response = await fetch(`/api/messenger/message_reactions_count/?message_id=${messageId}`);
-        if (!response.ok) {
-            throw new Error('Ошибка при загрузке реакций');
-        }
-
-        const reactions = await response.json();
-        const reactionsContainer = document.querySelector(`.message-card[data-message-id="${messageId}"] .reactions`);
-
-        if (!reactionsContainer) {
-            return;
-        }
-
-        // Очищаем контейнер
-        reactionsContainer.innerHTML = '';
-
-        // Добавляем только те реакции, которые есть на сообщении
-        reactions.forEach(reaction => {
-            const reactionButton = document.createElement('button');
-            reactionButton.className = 'reaction-btn';
-            reactionButton.dataset.reaction = reaction.reaction;
-            reactionButton.dataset.messageId = messageId;
-            reactionButton.innerHTML = `${reaction.reaction} <span class="reaction-count">${reaction.count}</span>`;
-
-            // Если пользователь поставил эту реакцию, добавляем класс
-            if (reaction.user_reacted) {
-                reactionButton.classList.add('user-reacted');
-            }
-
-            reactionButton.addEventListener('click', () => handleReaction(messageId, reaction.reaction));
-            reactionsContainer.appendChild(reactionButton);
-        });
-    } catch (error) {
-        console.error('Ошибка при загрузке реакций:', error);
-    }
-}
-
-// Функция для удаления сообщения
-async function deleteMessage(messageId) {
-    if (confirm('Вы уверены, что хотите удалить это сообщение?')) {
-        try {
-            const response = await fetch(`/api/messenger/chat_message_delete/${messageId}/`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                },
-                body: JSON.stringify({ is_deleted: true }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Ошибка при удалении сообщения');
-            }
-
-            // Обновляем список сообщений после удаления
-            const chatId = document.querySelector('.chat-card.active')?.dataset.chatId;
-            if (chatId) {
-                loadMessages(chatId);
-            }
-        } catch (error) {
-            console.error('Ошибка:', error);
-            alert('Не удалось удалить сообщение. Пожалуйста, попробуйте позже.');
-        }
-    }
-}
-
+// Отправка сообщения
 async function sendMessage(chatId, text, picture) {
     let pictureUrl = null;
 
@@ -512,16 +306,13 @@ async function sendMessage(chatId, text, picture) {
         message: text,
         chat_id: chatId,
         author_id: userId,
-        picture_url: pictureUrl, // Передаем URL картинки
+        picture_url: pictureUrl,
     };
 
     socket.send(JSON.stringify(messageData));
 }
 
-
-
-
-// Функция для обновления сообщения
+// Обновление сообщения
 async function updateMessage(messageId, text, picture, removePicture) {
     const formData = new FormData();
     if (text) {
@@ -531,7 +322,7 @@ async function updateMessage(messageId, text, picture, removePicture) {
         formData.append('picture', picture);
     }
     if (removePicture) {
-        formData.append('picture', '');  // Удаляем текущую картинку
+        formData.append('picture', '');
     }
 
     try {
@@ -554,114 +345,268 @@ async function updateMessage(messageId, text, picture, removePicture) {
     }
 }
 
-// Функция для отображения формы редактирования сообщения
-function showEditMessageForm(messageId, currentText, currentPicture) {
-    const editForm = document.getElementById('edit-message-form');
-    editForm.style.display = 'block';  // Показываем форму
-
-    // Заполняем форму текущими данными
-    document.getElementById('edit-text').value = currentText;
-
-    // Обработчик отправки формы
-    const form = document.getElementById('edit-message-form-content');
-    form.onsubmit = async (event) => {
-        event.preventDefault();
-
-        const text = document.getElementById('edit-text').value;
-        const picture = document.getElementById('edit-picture').files[0];
-        const removePicture = document.getElementById('remove-picture').checked;
-
+// Удаление сообщения
+async function deleteMessage(messageId) {
+    if (confirm('Вы уверены, что хотите удалить это сообщение?')) {
         try {
-            await updateMessage(messageId, text, picture, removePicture);
-            editForm.style.display = 'none';  // Скрываем форму
+            const response = await fetch(`/api/messenger/chat_message_delete/${messageId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({ is_deleted: true }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при удалении сообщения');
+            }
+
             const chatId = document.querySelector('.chat-card.active')?.dataset.chatId;
             if (chatId) {
-                loadMessages(chatId);  // Обновляем список сообщений
+                loadMessages(chatId);
             }
         } catch (error) {
-            alert('Не удалось обновить сообщение. Пожалуйста, попробуйте позже.');
+            console.error('Ошибка:', error);
+            alert('Не удалось удалить сообщение. Пожалуйста, попробуйте позже.');
         }
-    };
-
-    // Обработчик отмены редактирования
-    document.getElementById('cancel-edit').onclick = () => {
-        editForm.style.display = 'none';  // Скрываем форму
-    };
-}
-
-// Функция для форматирования даты и времени в европейский формат
-function formatDateTime(dateTimeString) {
-    const options = {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-    };
-    const date = new Date(dateTimeString);
-    const now = new Date();
-
-    // Проверяем, было ли сообщение отправлено сегодня
-    if (date.toDateString() === now.toDateString()) {
-        // Если да, возвращаем только время
-        return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-    } else {
-        // Если нет, возвращаем только дату
-        return date.toLocaleDateString('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit' });
     }
 }
 
-// Функция для отображения контекстного меню
+function showMessageForm(chatId) {
+    // Обновляем currentChatId
+    currentChatId = chatId;
+
+    // Остальной код функции showMessageForm остается без изменений
+    const url = new URL(window.location);
+    url.searchParams.set('chat_id', chatId);
+    window.history.pushState({}, '', url);
+
+    localStorage.setItem('openChatId', chatId);
+
+    const allChatCards = document.querySelectorAll('.chat-card');
+    allChatCards.forEach(card => card.classList.remove('active'));
+
+    const selectedChatCard = document.querySelector(`.chat-card[data-chat-id="${chatId}"]`);
+    if (selectedChatCard) {
+        selectedChatCard.classList.add('active');
+    }
+
+    const messageForm = document.getElementById('message-form');
+    messageForm.style.display = 'block';
+
+    const form = document.getElementById('send-message-form');
+    form.onsubmit = async (event) => {
+        event.preventDefault();
+
+        const text = document.getElementById('text').value;
+        const picture = document.getElementById('picture').files[0];
+
+        try {
+            await sendMessage(chatId, text, picture);
+            form.reset();
+            loadMessages(chatId, 1);
+        } catch (error) {
+            alert('Не удалось отправить сообщение. Пожалуйста, попробуйте позже.');
+        }
+    };
+
+    currentPage = 1;
+    hasNextPage = true;
+    loadMessages(chatId, 1);
+
+    connectWebSocket(chatId);
+
+    const messagesList = document.getElementById('messages-list');
+    messagesList.removeEventListener('scroll', () => handleScroll(chatId));
+    messagesList.addEventListener('scroll', () => handleScroll(chatId));
+}
+
+async function markMessagesAsRead(chatId) {
+    try {
+        const response = await fetch(`/api/messenger/mark_message_as_read/?chat_id=${chatId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка при обновлении статуса сообщений');
+        }
+
+        console.log('Статус сообщений обновлен на "R"');
+
+        // После обновления статуса обновляем список чатов
+        const chatCard = document.querySelector(`.chat-card[data-chat-id="${chatId}"]`);
+        if (chatCard) {
+            const lastMessageText = chatCard.querySelector('.message-text').textContent;
+            const lastMessageTime = chatCard.querySelector('.message-time small').textContent;
+
+            // Создаем фиктивное сообщение для обновления интерфейса
+            const fakeMessage = {
+                chat_id: chatId,
+                message: lastMessageText,
+                send_time: lastMessageTime,
+                author__username: username, // Предполагаем, что сообщение от текущего пользователя
+                status: 'R', // Новый статус
+            };
+
+            updateChatList(fakeMessage);
+        }
+    } catch (error) {
+        console.error('Ошибка при обновлении статуса сообщений:', error);
+    }
+}
+
+// ========================
+// 4. Работа с реакциями
+// ========================
+
+// Создание реакции
+async function createReaction(messageId, reaction, userId) {
+    const apiUrl = `/api/messenger/message_reaction_create/?message_id=${messageId}`;
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({
+            reaction: reaction,
+            message: messageId,
+            author: userId
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Ошибка при создании реакции');
+    }
+}
+
+// Удаление реакции
+async function deleteReaction(reactionId, messageId) {
+    const response = await fetch(`/api/messenger/message_reactions_detail/${reactionId}/`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Ошибка при удалении реакции');
+    }
+
+    await loadReactions(messageId);
+}
+
+// Загрузка реакций для сообщения
+async function loadReactions(messageId) {
+    try {
+        const response = await fetch(`/api/messenger/message_reactions_count/?message_id=${messageId}`);
+        if (!response.ok) {
+            throw new Error('Ошибка при загрузке реакций');
+        }
+
+        const reactions = await response.json();
+        const reactionsContainer = document.querySelector(`.message-card[data-message-id="${messageId}"] .reactions`);
+
+        if (!reactionsContainer) {
+            return;
+        }
+
+        reactionsContainer.innerHTML = '';
+
+        reactions.forEach(reaction => {
+            const reactionButton = document.createElement('button');
+            reactionButton.className = 'reaction-btn';
+            reactionButton.dataset.reaction = reaction.reaction;
+            reactionButton.dataset.messageId = messageId;
+            reactionButton.innerHTML = `${reaction.reaction} <span class="reaction-count">${reaction.count}</span>`;
+
+            if (reaction.user_reacted) {
+                reactionButton.classList.add('user-reacted');
+            }
+
+            reactionButton.addEventListener('click', () => handleReaction(messageId, reaction.reaction));
+            reactionsContainer.appendChild(reactionButton);
+        });
+    } catch (error) {
+        console.error('Ошибка при загрузке реакций:', error);
+    }
+}
+
+// Обработка реакции
+async function handleReaction(messageId, reaction) {
+    try {
+        const response = await fetch(`/api/messenger/message_reactions_count/?message_id=${messageId}`);
+        if (!response.ok) {
+            throw new Error('Ошибка при загрузке реакций');
+        }
+
+        const reactions = await response.json();
+        const reactionData = reactions.find(r => r.reaction === reaction);
+
+        if (reactionData?.user_reacted) {
+            await deleteReaction(reactionData.user_reaction_id, messageId);
+        } else {
+            await createReaction(messageId, reaction, userId);
+        }
+
+        await loadReactions(messageId);
+    } catch (error) {
+        console.error('Ошибка при обработке реакции:', error);
+        alert('Не удалось обработать реакцию. Пожалуйста, попробуйте позже.');
+    }
+}
+
+// ========================
+// 5. Контекстное меню
+// ========================
+
+// Отображение контекстного меню
 function showContextMenu(event, messageId, isAuthor) {
-    event.preventDefault(); // Отменяем стандартное контекстное меню браузера
+    event.preventDefault();
 
     const contextMenu = document.getElementById('context-menu');
     if (!contextMenu) return;
 
-    // Показываем меню для любого сообщения
     contextMenu.style.display = 'block';
     contextMenu.style.left = `${event.pageX}px`;
     contextMenu.style.top = `${event.pageY}px`;
 
-    // Очищаем предыдущие обработчики
     const editButton = document.getElementById('edit-message-btn');
     const deleteButton = document.getElementById('delete-message-btn');
     const reactionsContextMenu = document.querySelector('.reactions-context-menu');
 
     if (editButton && deleteButton && reactionsContextMenu) {
-        // Убираем старые обработчики
         editButton.onclick = null;
         deleteButton.onclick = null;
         reactionsContextMenu.innerHTML = '';
 
-        // Если сообщение свое, показываем кнопки "Удалить" и "Редактировать"
         if (isAuthor) {
             editButton.style.display = 'block';
             deleteButton.style.display = 'block';
 
-            // Обработчик для кнопки "Редактировать"
             editButton.onclick = () => {
                 const messageCard = document.querySelector(`.message-card[data-message-id="${messageId}"]`);
                 const messageText = messageCard.querySelector('.message-text').textContent;
-                const messagePicture = null; // Здесь можно добавить логику для получения картинки
+                const messagePicture = null;
                 showEditMessageForm(messageId, messageText, messagePicture);
                 hideContextMenu();
             };
 
-            // Обработчик для кнопки "Удалить"
             deleteButton.onclick = () => {
                 deleteMessage(messageId);
                 hideContextMenu();
             };
         } else {
-            // Если сообщение чужое, скрываем кнопки "Удалить" и "Редактировать"
             editButton.style.display = 'none';
             deleteButton.style.display = 'none';
         }
 
-        // Добавляем реакции в контекстное меню для всех сообщений
         const reactions = ['👍', '👎', '❤️', '😊'];
         reactions.forEach(reaction => {
             const reactionButton = document.createElement('button');
@@ -677,7 +622,7 @@ function showContextMenu(event, messageId, isAuthor) {
     }
 }
 
-// Функция для скрытия контекстного меню
+// Скрытие контекстного меню
 function hideContextMenu() {
     const contextMenu = document.getElementById('context-menu');
     if (contextMenu) {
@@ -685,86 +630,13 @@ function hideContextMenu() {
     }
 }
 
-// Добавляем обработчик для скрытия меню при клике вне его
-document.addEventListener('click', hideContextMenu);
-
-// Добавляем обработчик для правой кнопки мыши на сообщения
-document.addEventListener('DOMContentLoaded', () => {
-    const messagesList = document.getElementById('messages-list');
-    if (messagesList) {
-        messagesList.addEventListener('contextmenu', (event) => {
-            const messageCard = event.target.closest('.message-card');
-            if (messageCard) {
-                const messageId = messageCard.dataset.messageId;
-                const isAuthor = messageCard.classList.contains('self'); // Проверка авторства
-                showContextMenu(event, messageId, isAuthor);
-            }
-        });
-    }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    const textarea = document.getElementById('text');
-
-    textarea.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault(); // Предотвращаем добавление новой строки
-            document.getElementById('send-message-form').dispatchEvent(new Event('submit', { cancelable: true }));
-        } else if (event.key === 'Enter' && event.shiftKey) {
-            // Позволяем добавить новую строку
-        }
-    });
-});
-document.addEventListener('DOMContentLoaded', () => {
-    const attachBtn = document.getElementById('attach-btn');
-    const fileInput = document.getElementById('picture');
-    const imagePreview = document.getElementById('image-preview');
-
-    attachBtn.addEventListener('click', () => {
-        fileInput.click(); // Имитируем клик по скрытому полю выбора файла
-    });
-
-    fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imagePreview.src = e.target.result;
-                imagePreview.style.display = 'block'; // Показываем миниатюру
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    const modal = document.getElementById('image-modal');
-    const modalImage = document.getElementById('modal-image');
-    const closeModal = document.getElementById('close-modal');
-
-    // Обработчик клика по изображению в сообщении
-    document.getElementById('messages-list').addEventListener('click', (event) => {
-        if (event.target.tagName === 'IMG') {
-            modalImage.src = event.target.src;
-            modal.style.display = 'block';
-        }
-    });
-
-    // Закрытие модального окна при клике на крестик
-    closeModal.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-
-    // Закрытие модального окна при клике вне изображения
-    window.addEventListener('click', (event) => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    });
-});
+// ========================
+// 6. WebSocket
+// ========================
 
 let socket;
 
+// Подключение к WebSocket
 function connectWebSocket(chatId) {
     const chatUrl = `ws://${window.location.host}/ws/chat/${chatId}/`;
     socket = new WebSocket(chatUrl);
@@ -787,6 +659,7 @@ function connectWebSocket(chatId) {
     };
 }
 
+// Обработка нового сообщения через WebSocket
 function handleNewMessage(message) {
     const messagesList = document.getElementById('messages-list');
     const messageCard = document.createElement('div');
@@ -829,11 +702,13 @@ function handleNewMessage(message) {
 
     messagesList.appendChild(messageCard);
 
-    // Прокручиваем список сообщений вниз
     messagesList.scrollTop = messagesList.scrollHeight;
 
-    // Загружаем реакции для этого сообщения
-    console.log(message.id);
+    // Если чат открыт, обновляем статус всех непрочитанных сообщений на "R"
+    if (currentChatId === message.chat_id) {
+        markMessagesAsRead(message.chat_id);
+    }
+
     loadReactions(message.id);
     updateChatList(message);
 }
@@ -846,9 +721,30 @@ function updateChatList(message) {
         const lastMessageText = chatCard.querySelector('.message-text');
         lastMessageText.textContent = message.message ? message.message : 'Изображение';
 
-        // Обновляем время
+        // Обновляем время последнего сообщения
         const messageTime = chatCard.querySelector('.message-time small');
         messageTime.textContent = formatDateTime(message.send_time);
+
+        // Обновляем статус последнего сообщения
+        const messageContent = chatCard.querySelector('.message-content');
+        if (messageContent) {
+            // Убираем индикатор непрочитанного сообщения
+            const unreadIndicator = messageContent.querySelector('.unread-indicator');
+            if (unreadIndicator) {
+                unreadIndicator.remove();
+            }
+
+            // Если сообщение от текущего пользователя, обновляем галочки
+            if (message.author__username === username) {
+                const statusIcon = getMessageStatusIcon(message.status);
+                const existingStatusIcon = messageContent.querySelector('.message-status');
+                if (existingStatusIcon) {
+                    existingStatusIcon.innerHTML = statusIcon;
+                } else {
+                    messageContent.innerHTML += statusIcon;
+                }
+            }
+        }
 
         // Перемещаем чат вверх
         const chatsList = document.getElementById('chats-list');
@@ -859,5 +755,100 @@ function updateChatList(message) {
     }
 }
 
+// ========================
+// 7. Инициализация
+// ========================
 
-document.addEventListener('DOMContentLoaded', loadChats);
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    loadChats();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatIdFromUrl = urlParams.get('chat_id');
+
+    if (chatIdFromUrl) {
+        showMessageForm(chatIdFromUrl);
+    } else {
+        const openChatId = localStorage.getItem('openChatId');
+        if (openChatId) {
+            localStorage.removeItem('openChatId');
+        }
+    }
+});
+
+// Обработчик изменения URL
+window.addEventListener('popstate', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatIdFromUrl = urlParams.get('chat_id');
+
+    if (chatIdFromUrl) {
+        showMessageForm(chatIdFromUrl);
+    } else {
+        closeChat();
+    }
+});
+
+// ========================
+// 8. Дополнительные обработчики
+// ========================
+
+// Обработчик отправки сообщения по нажатию Enter
+document.addEventListener('DOMContentLoaded', () => {
+    const textarea = document.getElementById('text');
+
+    textarea.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            document.getElementById('send-message-form').dispatchEvent(new Event('submit', { cancelable: true }));
+        } else if (event.key === 'Enter' && event.shiftKey) {
+            // Позволяем добавить новую строку
+        }
+    });
+});
+
+// Обработчик для прикрепления изображений
+document.addEventListener('DOMContentLoaded', () => {
+    const attachBtn = document.getElementById('attach-btn');
+    const fileInput = document.getElementById('picture');
+    const imagePreview = document.getElementById('image-preview');
+
+    attachBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+
+// Обработчик для модального окна с изображением
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('image-modal');
+    const modalImage = document.getElementById('modal-image');
+    const closeModal = document.getElementById('close-modal');
+
+    document.getElementById('messages-list').addEventListener('click', (event) => {
+        if (event.target.tagName === 'IMG') {
+            modalImage.src = event.target.src;
+            modal.style.display = 'block';
+        }
+    });
+
+    closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+});

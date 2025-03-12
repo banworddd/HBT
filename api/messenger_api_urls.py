@@ -12,7 +12,7 @@ from .messenger_api_views import (
     UsersSearchAPIView,
     UserProfileAPIView,
     GroupChatCreateAPIView,
-    GroupChatUpdateAPIView, MessageReactionsCountAPIView, MessageReactionCreateAPIView, ChatsSearchAPIView,UploadImageView
+    GroupChatUpdateAPIView, MessageReactionsCountAPIView, MessageReactionCreateAPIView, ChatsSearchAPIView,UploadImageView, MarkMessagesAsReadAPIView
 )
 
 urlpatterns = [
@@ -68,4 +68,5 @@ urlpatterns = [
     # Профиль пользователя
     path('profile/<str:username>/', UserProfileAPIView.as_view(), name='profile'),
 path('upload_image/', UploadImageView.as_view(), name='upload_image'),
+    path('mark_message_as_read/', MarkMessagesAsReadAPIView.as_view(), name='mark-messages-as-read'),
 ]
