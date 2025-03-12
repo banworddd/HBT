@@ -221,7 +221,6 @@ function handleScroll(chatId) {
     }
 }
 
-// Функция для отображения формы сообщений и выделения чата
 function showMessageForm(chatId) {
     // Обновляем URL с ID чата
     const url = new URL(window.location);
@@ -267,14 +266,22 @@ function showMessageForm(chatId) {
     hasNextPage = true; // Сбрасываем флаг при загрузке нового чата
     loadMessages(chatId, 1);
 
+    // Подключаем WebSocket
+    connectWebSocket(chatId);
+
     // Добавляем обработчик прокрутки
     const messagesList = document.getElementById('messages-list');
     messagesList.removeEventListener('scroll', () => handleScroll(chatId)); // Удаляем старый обработчик
     messagesList.addEventListener('scroll', () => handleScroll(chatId)); // Добавляем новый обработчик
 }
 
-// Функция для закрытия чата
+
 function closeChat() {
+    // Закрываем WebSocket-соединение
+    if (socket) {
+        socket.close();
+    }
+
     // Сбрасываем выделение
     const allChatCards = document.querySelectorAll('.chat-card');
     allChatCards.forEach(card => card.classList.remove('active'));
@@ -293,6 +300,7 @@ function closeChat() {
     url.searchParams.delete('chat_id');
     window.history.pushState({}, '', url);
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // Загружаем список чатов
@@ -461,36 +469,46 @@ async function deleteMessage(messageId) {
     }
 }
 
-// Функция для отправки сообщения
 async function sendMessage(chatId, text, picture) {
-    const formData = new FormData();
-    if (text) {
-        formData.append('text', text);
-    }
-    formData.append('chat', chatId);
+    let pictureUrl = null;
+
     if (picture) {
-        formData.append('picture', picture);
-    }
+        const formData = new FormData();
+        formData.append("picture", picture);
 
-    try {
-        const response = await fetch(`/api/messenger/chat_messages_list/?chat_id=${chatId}`, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-            },
-        });
+        try {
+            const response = await fetch(`/api/messenger/upload_image/`, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+            });
 
-        if (!response.ok) {
-            throw new Error('Ошибка при отправке сообщения');
+            if (!response.ok) {
+                throw new Error("Ошибка при загрузке изображения");
+            }
+
+            const imageData = await response.json();
+            pictureUrl = imageData.picture_url;
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return;
         }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Ошибка:', error);
-        throw error;
     }
+
+    const messageData = {
+        message: text,
+        chat_id: chatId,
+        author_id: userId,
+        picture_url: pictureUrl, // Передаем URL картинки
+    };
+
+    socket.send(JSON.stringify(messageData));
 }
+
+
+
 
 // Функция для обновления сообщения
 async function updateMessage(messageId, text, picture, removePicture) {
@@ -733,5 +751,78 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+let socket;
+
+function connectWebSocket(chatId) {
+    const chatUrl = `ws://${window.location.host}/ws/chat/${chatId}/`;
+    socket = new WebSocket(chatUrl);
+
+    socket.onopen = function(event) {
+        console.log('WebSocket соединение установлено');
+    };
+
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        handleNewMessage(data);
+    };
+
+    socket.onclose = function(event) {
+        console.log('WebSocket соединение закрыто');
+    };
+
+    socket.onerror = function(error) {
+        console.error('WebSocket ошибка:', error);
+    };
+}
+
+function handleNewMessage(message) {
+    const messagesList = document.getElementById('messages-list');
+    const messageCard = document.createElement('div');
+    messageCard.className = 'message-card ' + (message.author__username === username ? 'self' : 'other');
+    messageCard.dataset.messageId = message.id;
+
+    const messageBubble = document.createElement('div');
+    messageBubble.className = 'message-bubble ' + (message.author__username === username ? 'self' : 'other');
+
+    if (message.picture_url) {
+        const messageImage = document.createElement('img');
+        messageImage.src = message.picture_url;
+        messageImage.className = 'message-image';
+        messageBubble.appendChild(messageImage);
+    }
+
+    if (message.message) {
+        const messageText = document.createElement('p');
+        messageText.className = 'message-text';
+        messageText.textContent = message.message;
+        messageBubble.appendChild(messageText);
+    }
+
+    const messageTime = document.createElement('p');
+    messageTime.className = 'message-time';
+    messageTime.textContent = formatDateTime(message.send_time);
+
+    messageBubble.appendChild(messageTime);
+
+    const reactionsContainer = document.createElement('div');
+    reactionsContainer.className = 'reactions-container';
+
+    const reactions = document.createElement('div');
+    reactions.className = 'reactions';
+
+    reactionsContainer.appendChild(reactions);
+
+    messageCard.appendChild(messageBubble);
+    messageCard.appendChild(reactionsContainer);
+
+    messagesList.appendChild(messageCard);
+
+    // Прокручиваем список сообщений вниз
+    messagesList.scrollTop = messagesList.scrollHeight;
+
+    // Загружаем реакции для этого сообщения
+    loadReactions(message.id);
+}
 
 document.addEventListener('DOMContentLoaded', loadChats);

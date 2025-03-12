@@ -10,6 +10,8 @@ from django.db.models import (
     IntegerField,
     Subquery,
 )
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
 
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, NotFound
@@ -37,6 +39,11 @@ from .messenger_serializers import (
     MessageReactionsCountSerializer,
     ChatDetailSerializer
 )
+from .utils import generate_image_name
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+
 
 class ChatsListAPIView(ListAPIView):
     serializer_class = ChatsSerializer
@@ -407,6 +414,24 @@ class MessageReactionDetailAPIView(RetrieveDestroyAPIView):
     queryset = MessageReaction.objects.all()
     serializer_class = MessageReactionSerializer
     lookup_field = 'pk'
+
+class UploadImageView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        picture = request.FILES.get("picture")
+
+        if not picture:
+            return Response({"error": "No image provided"}, status=400)
+
+        fs = FileSystemStorage(location=settings.MEDIA_ROOT / 'chat_pictures')
+        name = generate_image_name(picture.name)
+        filename = fs.save(name, picture)
+        file_url = 'chat_pictures/' + name  # Явно формируем URL
+        print(file_url)
+        return Response({"picture_url": file_url})
+
 
 
 

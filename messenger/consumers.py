@@ -24,14 +24,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from users.models import CustomUser
 
         text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+        message = text_data_json.get('message')
         chat_id = text_data_json['chat_id']
         author_id = text_data_json['author_id']
+        picture_url = text_data_json.get('picture_url')
 
         # Сохраняем сообщение в базе данных
         author = await sync_to_async(CustomUser.objects.get)(id=author_id)
         chat = await sync_to_async(Chats.objects.get)(id=chat_id)
-        new_message = await sync_to_async(Message.objects.create)(text=message, author=author, chat=chat)
+        new_message = await sync_to_async(Message.objects.create)(
+            text=message,
+            author=author,
+            chat=chat,
+            picture=picture_url if picture_url else None
+        )
 
         # Отправляем сообщение в группу
         await self.channel_layer.group_send(

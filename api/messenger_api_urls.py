@@ -12,7 +12,7 @@ from .messenger_api_views import (
     UsersSearchAPIView,
     UserProfileAPIView,
     GroupChatCreateAPIView,
-    GroupChatUpdateAPIView, MessageReactionsCountAPIView, MessageReactionCreateAPIView, ChatsSearchAPIView,
+    GroupChatUpdateAPIView, MessageReactionsCountAPIView, MessageReactionCreateAPIView, ChatsSearchAPIView,UploadImageView
 )
 
 urlpatterns = [
@@ -67,4 +67,5 @@ urlpatterns = [
 
     # Профиль пользователя
     path('profile/<str:username>/', UserProfileAPIView.as_view(), name='profile'),
+path('upload_image/', UploadImageView.as_view(), name='upload_image'),
 ]
