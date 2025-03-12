@@ -13,7 +13,6 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-// Функция для загрузки чатов
 async function loadChats() {
     const apiUrl = `/api/messenger/chats/?user=${username}`;
     const chatsList = document.getElementById('chats-list');
@@ -26,7 +25,7 @@ async function loadChats() {
 
         const chats = await response.json();
 
-        // Очищаем список чатов
+        // Очищаем список чатов перед обновлением
         chatsList.innerHTML = '';
 
         // Отображаем каждый чат
@@ -41,7 +40,7 @@ async function loadChats() {
             chatAvatar.alt = 'Аватар чата';
             chatAvatar.className = 'chat-avatar';
 
-            // Название чата
+            // Заголовок чата
             const chatHeader = document.createElement('div');
             chatHeader.className = 'chat-header';
 
@@ -57,13 +56,14 @@ async function loadChats() {
                 chatTitle.textContent = chat.public_name_2 || chat.username_2;
             }
 
-            // Последнее сообщение
+            // Блок последнего сообщения
             const lastMessage = document.createElement('div');
             lastMessage.className = 'last-message';
 
             const messageContent = document.createElement('div');
             messageContent.className = 'message-content';
 
+            // Превью картинки, если последнее сообщение содержит изображение
             if (chat.last_message_picture) {
                 const messageImagePreview = document.createElement('img');
                 messageImagePreview.src = `/media/${chat.last_message_picture}`;
@@ -71,6 +71,7 @@ async function loadChats() {
                 messageContent.appendChild(messageImagePreview);
             }
 
+            // Текст последнего сообщения
             const messageText = document.createElement('p');
             messageText.className = 'message-text';
 
@@ -84,21 +85,30 @@ async function loadChats() {
             }
 
             messageContent.appendChild(messageText);
+
+            // **Добавление индикатора непрочитанного сообщения**
+            if (chat.last_message_author != userId && chat.last_message_status === "S") {
+                const unreadIndicator = document.createElement('span');
+                unreadIndicator.className = 'unread-indicator';
+                messageContent.appendChild(unreadIndicator);
+            }
+
             lastMessage.appendChild(messageContent);
 
+            // Время последнего сообщения
             const messageTime = document.createElement('p');
             messageTime.className = 'message-time';
             messageTime.innerHTML = `<small>${formatDateTime(chat.last_message_time)}</small>`;
             lastMessage.appendChild(messageTime);
 
+            // Собираем карточку чата
             chatInfo.appendChild(chatTitle);
             chatInfo.appendChild(lastMessage);
 
             chatHeader.appendChild(chatAvatar);
             chatHeader.appendChild(chatInfo);
-
-            // Собираем карточку чата
             chatCard.appendChild(chatHeader);
+
             chatsList.appendChild(chatCard);
 
             // Добавляем обработчик клика на чат
@@ -111,6 +121,7 @@ async function loadChats() {
         chatsList.innerHTML = '<p>Не удалось загрузить чаты. Пожалуйста, попробуйте позже.</p>';
     }
 }
+
 
 
 let currentPage = 1;
@@ -822,7 +833,31 @@ function handleNewMessage(message) {
     messagesList.scrollTop = messagesList.scrollHeight;
 
     // Загружаем реакции для этого сообщения
+    console.log(message.id);
     loadReactions(message.id);
+    updateChatList(message);
 }
+
+function updateChatList(message) {
+    const chatCard = document.querySelector(`.chat-card[data-chat-id="${message.chat_id}"]`);
+
+    if (chatCard) {
+        // Обновляем текст последнего сообщения
+        const lastMessageText = chatCard.querySelector('.message-text');
+        lastMessageText.textContent = message.message ? message.message : 'Изображение';
+
+        // Обновляем время
+        const messageTime = chatCard.querySelector('.message-time small');
+        messageTime.textContent = formatDateTime(message.send_time);
+
+        // Перемещаем чат вверх
+        const chatsList = document.getElementById('chats-list');
+        chatsList.prepend(chatCard);
+    } else {
+        // Если чата нет в списке, загружаем заново
+        loadChats();
+    }
+}
+
 
 document.addEventListener('DOMContentLoaded', loadChats);

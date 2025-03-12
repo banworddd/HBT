@@ -20,31 +20,32 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def receive(self, text_data):
-        from .models import Message, Chats  # Импорт внутрь метода
+        from .models import Message, Chats
         from users.models import CustomUser
 
         text_data_json = json.loads(text_data)
-        message = text_data_json.get('message')
+        message_text = text_data_json.get('message')
         chat_id = text_data_json['chat_id']
         author_id = text_data_json['author_id']
         picture_url = text_data_json.get('picture_url')
 
-        # Сохраняем сообщение в базе данных
+        # Сохраняем сообщение в БД
         author = await sync_to_async(CustomUser.objects.get)(id=author_id)
         chat = await sync_to_async(Chats.objects.get)(id=chat_id)
         new_message = await sync_to_async(Message.objects.create)(
-            text=message,
+            text=message_text,
             author=author,
             chat=chat,
             picture=picture_url if picture_url else None
         )
 
-        # Отправляем сообщение в группу
+        # 📌 Отправляем сообщение в WebSocket с `id`
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'message': message,
+                'id': new_message.id,  # ✅ Добавляем ID
+                'message': message_text,
                 'author__username': author.username,
                 'send_time': new_message.send_time.isoformat(),
                 'status': new_message.status,
@@ -52,6 +53,5 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'picture_url': new_message.picture.url if new_message.picture else None,
             }
         )
-
     async def chat_message(self, event):
         await self.send(text_data=json.dumps(event, ensure_ascii=False))
