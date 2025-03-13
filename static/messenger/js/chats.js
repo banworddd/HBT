@@ -175,8 +175,8 @@ let currentPage = 1;
 let isLoading = false;
 let hasNextPage = true;
 
-// Загрузка сообщений для конкретного чата
 async function loadMessages(chatId, page = currentPage) {
+    console.log(chatId)
     const apiUrl = `/api/messenger/chat_messages_list/?chat_id=${chatId}&page=${page}`;
     const messagesList = document.getElementById('messages-list');
 
@@ -234,13 +234,13 @@ async function loadMessages(chatId, page = currentPage) {
 
             messageCard.appendChild(messageBubble);
             messageCard.appendChild(reactionsContainer);
-
-            messageCard.addEventListener('contextmenu', (event) => {
+             messageCard.addEventListener('contextmenu', (event) => {
                 const isAuthor = message.author_username === username;
                 showContextMenu(event, message.id, isAuthor);
             });
 
-            messagesList.prepend(messageCard);
+            // Изменено с prepend на append
+            messagesList.appendChild(messageCard);
 
             loadReactions(message.id);
         });
@@ -255,6 +255,7 @@ async function loadMessages(chatId, page = currentPage) {
         if (page === 1) {
             messagesList.scrollTop = messagesList.scrollHeight;
         }
+        console.log(page);
     } catch (error) {
         console.error('Ошибка:', error);
         messagesList.innerHTML = '<p>Не удалось загрузить сообщения. Пожалуйста, попробуйте позже.</p>';
@@ -268,10 +269,12 @@ function handleScroll(chatId) {
     const messagesList = document.getElementById('messages-list');
     const threshold = 100;
 
-    if (messagesList.scrollTop < threshold && !isLoading && hasNextPage) {
+    if (!isLoading && hasNextPage) {
+        console.log('вызов')
         loadMessages(chatId, currentPage);
     }
 }
+
 
 // Отправка сообщения
 async function sendMessage(chatId, text, picture) {
@@ -377,6 +380,10 @@ function showMessageForm(chatId) {
     // Обновляем currentChatId
     currentChatId = chatId;
 
+    // Сбрасываем переменные пагинации
+    currentPage = 1;
+    hasNextPage = true;
+
     // Остальной код функции showMessageForm остается без изменений
     const url = new URL(window.location);
     url.searchParams.set('chat_id', chatId);
@@ -411,8 +418,6 @@ function showMessageForm(chatId) {
         }
     };
 
-    currentPage = 1;
-    hasNextPage = true;
     loadMessages(chatId, 1);
 
     connectWebSocket(chatId);
@@ -567,15 +572,39 @@ async function handleReaction(messageId, reaction) {
 // ========================
 
 // Отображение контекстного меню
+
 function showContextMenu(event, messageId, isAuthor) {
+    // Проверяем, что клик был по элементу с классом .message-bubble
+    if (!event.target.closest('.message-bubble')) {
+        return;
+    }
+
     event.preventDefault();
 
     const contextMenu = document.getElementById('context-menu');
     if (!contextMenu) return;
 
+    // Получаем ширину и высоту контекстного меню
+    const menuWidth = contextMenu.offsetWidth;
+    const menuHeight = contextMenu.offsetHeight;
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    // Позиционируем меню по горизонтали
+    let left = event.pageX;
+    if (left + menuWidth > windowWidth) {
+        left = windowWidth - menuWidth;
+    }
+
+    // Позиционируем меню по вертикали
+    let top = event.pageY;
+    if (top + menuHeight > windowHeight) {
+        top = windowHeight - menuHeight;
+    }
+
     contextMenu.style.display = 'block';
-    contextMenu.style.left = `${event.pageX}px`;
-    contextMenu.style.top = `${event.pageY}px`;
+    contextMenu.style.left = `${left}px`;
+    contextMenu.style.top = `${top}px`;
 
     const editButton = document.getElementById('edit-message-btn');
     const deleteButton = document.getElementById('delete-message-btn');
@@ -622,7 +651,7 @@ function showContextMenu(event, messageId, isAuthor) {
     }
 }
 
-// Скрытие контекстного меню
+// Функция для скрытия контекстного меню
 function hideContextMenu() {
     const contextMenu = document.getElementById('context-menu');
     if (contextMenu) {
@@ -630,6 +659,13 @@ function hideContextMenu() {
     }
 }
 
+// Добавляем обработчик для скрытия меню при клике вне его
+document.addEventListener('click', (event) => {
+    const contextMenu = document.getElementById('context-menu');
+    if (contextMenu && !contextMenu.contains(event.target)) {
+        hideContextMenu();
+    }
+});
 // ========================
 // 6. WebSocket
 // ========================
@@ -700,7 +736,7 @@ function handleNewMessage(message) {
     messageCard.appendChild(messageBubble);
     messageCard.appendChild(reactionsContainer);
 
-    messagesList.appendChild(messageCard);
+    messagesList.prepend(messageCard);
 
     messagesList.scrollTop = messagesList.scrollHeight;
 
