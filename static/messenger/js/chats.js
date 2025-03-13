@@ -240,7 +240,7 @@ async function loadMessages(chatId, page = currentPage) {
                 showContextMenu(event, message.id, isAuthor);
             });
 
-            messagesList.prepend(messageCard);
+            messagesList.append(messageCard); // Изменено на append
 
             loadReactions(message.id);
         });
@@ -253,7 +253,7 @@ async function loadMessages(chatId, page = currentPage) {
         }
 
         if (page === 1) {
-            messagesList.scrollTop = messagesList.scrollHeight;
+            messagesList.scrollTop = messagesList.scrollHeight; // Прокрутка вниз
         }
     } catch (error) {
         console.error('Ошибка:', error);
@@ -262,6 +262,7 @@ async function loadMessages(chatId, page = currentPage) {
         isLoading = false;
     }
 }
+
 
 // Обработчик прокрутки для загрузки новых сообщений
 function handleScroll(chatId) {
@@ -568,14 +569,37 @@ async function handleReaction(messageId, reaction) {
 
 // Отображение контекстного меню
 function showContextMenu(event, messageId, isAuthor) {
+    // Проверяем, что клик был по элементу с классом .message-bubble
+    if (!event.target.closest('.message-bubble')) {
+        return;
+    }
+
     event.preventDefault();
 
     const contextMenu = document.getElementById('context-menu');
     if (!contextMenu) return;
 
+    // Получаем ширину и высоту контекстного меню
+    const menuWidth = contextMenu.offsetWidth;
+    const menuHeight = contextMenu.offsetHeight;
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    // Позиционируем меню по горизонтали
+    let left = event.pageX;
+    if (left + menuWidth > windowWidth) {
+        left = windowWidth - menuWidth;
+    }
+
+    // Позиционируем меню по вертикали
+    let top = event.pageY;
+    if (top + menuHeight > windowHeight) {
+        top = windowHeight - menuHeight;
+    }
+
     contextMenu.style.display = 'block';
-    contextMenu.style.left = `${event.pageX}px`;
-    contextMenu.style.top = `${event.pageY}px`;
+    contextMenu.style.left = `${left}px`;
+    contextMenu.style.top = `${top}px`;
 
     const editButton = document.getElementById('edit-message-btn');
     const deleteButton = document.getElementById('delete-message-btn');
@@ -622,13 +646,22 @@ function showContextMenu(event, messageId, isAuthor) {
     }
 }
 
-// Скрытие контекстного меню
+
+// Функция для скрытия контекстного меню
 function hideContextMenu() {
     const contextMenu = document.getElementById('context-menu');
     if (contextMenu) {
         contextMenu.style.display = 'none';
     }
 }
+
+// Добавляем обработчик для скрытия меню при клике вне его
+document.addEventListener('click', (event) => {
+    const contextMenu = document.getElementById('context-menu');
+    if (contextMenu && !contextMenu.contains(event.target)) {
+        hideContextMenu();
+    }
+});
 
 // ========================
 // 6. WebSocket
@@ -852,3 +885,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+

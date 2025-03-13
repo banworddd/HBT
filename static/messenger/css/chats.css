@@ -105,6 +105,7 @@ html, body {
     box-sizing: border-box;
     height: 90%; /* Гибкая высота */
     position: relative;
+    justify-content: flex-end; /* Прижимаем сообщения к нижней границе */
 }
 
 .messages-list {
@@ -114,6 +115,8 @@ html, body {
     margin-bottom: 20px;
     scrollbar-width: none; /* Скрываем скроллбар в Firefox */
     background: #324459;
+    display: flex;
+    flex-direction: column-reverse; /* Отображаем сообщения снизу вверх */
 }
 
 .messages-list::-webkit-scrollbar {
