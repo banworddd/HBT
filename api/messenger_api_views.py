@@ -264,7 +264,7 @@ class UserProfileAPIView(RetrieveAPIView):
 
 
 class MessagePagination(PageNumberPagination):
-    page_size = 100  # Количество сообщений на странице
+    page_size = 20  # Количество сообщений на странице
     page_size_query_param = 'page_size'
     max_page_size = 100
 

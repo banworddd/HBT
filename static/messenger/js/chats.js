@@ -176,7 +176,7 @@ let isLoading = false;
 let hasNextPage = true;
 
 async function loadMessages(chatId, page = currentPage) {
-    console.log(chatId)
+
     const apiUrl = `/api/messenger/chat_messages_list/?chat_id=${chatId}&page=${page}`;
     const messagesList = document.getElementById('messages-list');
 
@@ -255,7 +255,7 @@ async function loadMessages(chatId, page = currentPage) {
         if (page === 1) {
             messagesList.scrollTop = messagesList.scrollHeight;
         }
-        console.log(page);
+
     } catch (error) {
         console.error('Ошибка:', error);
         messagesList.innerHTML = '<p>Не удалось загрузить сообщения. Пожалуйста, попробуйте позже.</p>';
@@ -264,17 +264,24 @@ async function loadMessages(chatId, page = currentPage) {
     }
 }
 
-// Обработчик прокрутки для загрузки новых сообщений
-function handleScroll(chatId) {
-    const messagesList = document.getElementById('messages-list');
-    const threshold = 100;
+let isWaiting = false; // Флаг для предотвращения множественных запросов
 
-    if (!isLoading && hasNextPage) {
-        console.log('вызов')
-        loadMessages(chatId, currentPage);
+function handleScroll(chatId) {
+    if (currentChatId !== chatId) return; // Прерываем, если чат не совпадает
+    const messagesList = document.getElementById('messages-list');
+    if (((messagesList.scrollHeight + messagesList.scrollTop) <= 850) && !isLoading && hasNextPage && !isWaiting) {
+        isWaiting = true;
+        setTimeout(() => {
+            if (((messagesList.scrollHeight + messagesList.scrollTop) <= 850)) {
+                loadMessages(chatId, currentPage).finally(() => {
+                    isWaiting = false;
+                });
+            } else {
+                isWaiting = false;
+            }
+        }, 50);
     }
 }
-
 
 // Отправка сообщения
 async function sendMessage(chatId, text, picture) {
@@ -377,12 +384,10 @@ async function deleteMessage(messageId) {
 }
 
 function showMessageForm(chatId) {
-    // Обновляем currentChatId
-    currentChatId = chatId;
-
-    // Сбрасываем переменные пагинации
-    currentPage = 1;
-    hasNextPage = true;
+    currentChatId = chatId; // Обновляем currentChatId
+    currentPage = 1; // Сбрасываем текущую страницу
+    hasNextPage = true; // Сбрасываем флаг наличия следующей страницы
+    isLoading = false; // Сбрасываем флаг загрузки
 
     // Остальной код функции showMessageForm остается без изменений
     const url = new URL(window.location);
@@ -417,14 +422,17 @@ function showMessageForm(chatId) {
             alert('Не удалось отправить сообщение. Пожалуйста, попробуйте позже.');
         }
     };
-
+        console.log(chatId);
     loadMessages(chatId, 1);
 
     connectWebSocket(chatId);
 
     const messagesList = document.getElementById('messages-list');
-    messagesList.removeEventListener('scroll', () => handleScroll(chatId));
+    messagesList.removeEventListener('scroll', handleScroll);
     messagesList.addEventListener('scroll', () => handleScroll(chatId));
+
+    // Сбрасываем предыдущую позицию скролла при открытии чата
+    previousScrollTop = messagesList.scrollTop;
 }
 
 async function markMessagesAsRead(chatId) {
@@ -441,7 +449,6 @@ async function markMessagesAsRead(chatId) {
             throw new Error('Ошибка при обновлении статуса сообщений');
         }
 
-        console.log('Статус сообщений обновлен на "R"');
 
         // После обновления статуса обновляем список чатов
         const chatCard = document.querySelector(`.chat-card[data-chat-id="${chatId}"]`);
