@@ -43,6 +43,7 @@ function getMessageStatusIcon(status) {
 
 // Функция для форматирования даты и времени
 function formatDateTime(dateTimeString) {
+    console.log('вызов')
     const options = {
         year: 'numeric',
         month: '2-digit',
@@ -704,6 +705,8 @@ function connectWebSocket(chatId) {
 
 // Обработка нового сообщения через WebSocket
 function handleNewMessage(message) {
+    console.log('Новое сообщение:', message);
+    console.log('send_time:', message.send_time);
     const messagesList = document.getElementById('messages-list');
     const messageCard = document.createElement('div');
     messageCard.className = 'message-card ' + (message.author__username === username ? 'self' : 'other');
@@ -729,7 +732,6 @@ function handleNewMessage(message) {
     const messageTime = document.createElement('p');
     messageTime.className = 'message-time';
     messageTime.textContent = formatDateTime(message.send_time);
-
     messageBubble.appendChild(messageTime);
 
     const reactionsContainer = document.createElement('div');
@@ -747,8 +749,9 @@ function handleNewMessage(message) {
 
     messagesList.scrollTop = messagesList.scrollHeight;
 
-    // Если чат открыт, обновляем статус всех непрочитанных сообщений на "R"
-    if (currentChatId === message.chat_id) {
+    console.log((String(currentChatId) === String(message.chat_id)))
+    if (String(currentChatId) === String(message.chat_id)) {
+        console.log('Чат открыт, вызываем markMessagesAsRead');
         markMessagesAsRead(message.chat_id);
     }
 
@@ -757,7 +760,12 @@ function handleNewMessage(message) {
 }
 
 function updateChatList(message) {
+    if (!message.send_time || isNaN(new Date(message.send_time).getTime())) {
+        return; // Прерываем выполнение, если время некорректное
+    }
+
     const chatCard = document.querySelector(`.chat-card[data-chat-id="${message.chat_id}"]`);
+    const formattedTime = formatDateTime(message.send_time);
 
     if (chatCard) {
         // Обновляем текст последнего сообщения
@@ -766,7 +774,7 @@ function updateChatList(message) {
 
         // Обновляем время последнего сообщения
         const messageTime = chatCard.querySelector('.message-time small');
-        messageTime.textContent = formatDateTime(message.send_time);
+        messageTime.textContent = formattedTime;
 
         // Обновляем статус последнего сообщения
         const messageContent = chatCard.querySelector('.message-content');

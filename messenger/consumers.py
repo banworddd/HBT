@@ -44,6 +44,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 'type': 'chat_message',
+                'chat_id' : new_message.chat.id,
                 'id': new_message.id,  # ✅ Добавляем ID
                 'message': message_text,
                 'author__username': author.username,
