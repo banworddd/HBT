@@ -4,13 +4,12 @@ html, body {
     height: 100%;
     margin: 0;
     background: #324459;
-    font-family: Arial, sans-serif;
 }
 
 .container {
     display: flex;
     height: 100vh;
-    font-family: Arial, sans-serif;
+
 }
 
 /* Стили для списка чатов */
@@ -26,7 +25,9 @@ html, body {
     display: none; /* Скрываем скроллбар в Chrome, Safari и Opera */
 }
 
+/* Контейнер для карточки чата */
 .chat-card {
+    position: relative; /* Относительное позиционирование для дочерних элементов */
     cursor: pointer;
     padding: 2%;
     border-bottom: none; /* Убираем серый разделитель */
@@ -440,15 +441,22 @@ html, body {
 }
 
 .unread-indicator {
+    position: absolute; /* Абсолютное позиционирование */
+    right: 8px; /* Отступ справа */
+    top: 50%; /* Смещаем на 50% вниз */
+    transform: translateY(-50%); /* Сдвигаем вверх на половину своей высоты */
     display: inline-block;
     width: 8px;
     height: 8px;
-    background-color: #ffffff;
-    border-radius: 50%;
-    margin-left: 90%;
+    background-color: #ffffff; /* Цвет кружочка */
+    border-radius: 50%; /* Делаем круглым */
 }
+
 .message-status {
-    color: #ffffff; /* Зеленый цвет для галочек */
-    margin-left: 90%; /* Отступ от текста сообщения */
+    position: absolute; /* Абсолютное позиционирование */
+    right: 8px; /* Отступ справа */
+    top: 50%; /* Смещаем на 50% вниз */
+    transform: translateY(-50%); /* Сдвигаем вверх на половину своей высоты */
+    color: #ffffff; /* Цвет галочек */
     font-size: 14px; /* Размер галочек */
 }

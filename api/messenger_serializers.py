@@ -1,5 +1,6 @@
 from django.db.models import Q
 from rest_framework import serializers
+from django.conf import settings
 
 from messenger.models import Chats, Message, MessageReaction
 from users.models import CustomUser
@@ -19,7 +20,7 @@ class ChatDetailSerializer(serializers.ModelSerializer):
 
 class ChatsSerializer(serializers.ModelSerializer):
     last_message_text = serializers.CharField(read_only=True)
-    last_message_picture = serializers.CharField(read_only=True)
+    last_message_picture = serializers.SerializerMethodField()
     last_message_time = serializers.DateTimeField(read_only=True)
     last_message_status = serializers.CharField(read_only=True)
     last_message_author = serializers.CharField(read_only=True)
@@ -43,6 +44,12 @@ class ChatsSerializer(serializers.ModelSerializer):
         if obj.is_group:
             return obj.avatar.url if obj.avatar else None
         return obj.user_2.avatar.url if obj.user_2 and obj.user_2.avatar else None
+
+    @staticmethod
+    def get_last_message_picture(obj):
+        if obj.last_message_picture:
+            return settings.MEDIA_URL + obj.last_message_picture
+        return None
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

@@ -81,86 +81,8 @@ async function loadChats() {
         chatsList.innerHTML = '';
 
         chats.forEach(chat => {
-            const chatCard = document.createElement('div');
-            chatCard.className = 'chat-card';
-            chatCard.dataset.chatId = chat.id;
-
-            const chatAvatar = document.createElement('img');
-            chatAvatar.src = `${chat.chat_avatar}`;
-            chatAvatar.alt = 'Аватар чата';
-            chatAvatar.className = 'chat-avatar';
-
-            const chatHeader = document.createElement('div');
-            chatHeader.className = 'chat-header';
-
-            const chatInfo = document.createElement('div');
-            chatInfo.className = 'chat-info';
-
-            const chatTitle = document.createElement('h2');
-            chatTitle.className = 'chat-title';
-
-            if (chat.is_group) {
-                chatTitle.textContent = chat.name || 'Групповой чат';
-            } else {
-                chatTitle.textContent = chat.public_name_2 || chat.username_2;
-            }
-
-            const lastMessage = document.createElement('div');
-            lastMessage.className = 'last-message';
-
-            const messageContent = document.createElement('div');
-            messageContent.className = 'message-content';
-
-            if (chat.last_message_picture) {
-                const messageImagePreview = document.createElement('img');
-                messageImagePreview.src = `/media/${chat.last_message_picture}`;
-                messageImagePreview.className = 'message-image-preview';
-                messageContent.appendChild(messageImagePreview);
-            }
-
-            const messageText = document.createElement('p');
-            messageText.className = 'message-text';
-
-            if (chat.last_message_text) {
-                const truncatedText = chat.last_message_text.length > 15
-                    ? chat.last_message_text.substring(0, 15) + '...'
-                    : chat.last_message_text;
-                messageText.textContent = truncatedText;
-            } else {
-                messageText.textContent = 'Изображение';
-            }
-
-            messageContent.appendChild(messageText);
-
-            // Добавляем галочки или индикатор непрочитанного сообщения
-            if (chat.last_message_author != userId && chat.last_message_status === "S") {
-                const unreadIndicator = document.createElement('span');
-                unreadIndicator.className = 'unread-indicator';
-                messageContent.appendChild(unreadIndicator);
-            } else if (chat.last_message_author == userId) {
-                const statusIcon = getMessageStatusIcon(chat.last_message_status);
-                messageContent.innerHTML += statusIcon; // Добавляем галочки
-            }
-
-            lastMessage.appendChild(messageContent);
-
-            const messageTime = document.createElement('p');
-            messageTime.className = 'message-time';
-            messageTime.innerHTML = `<small>${formatDateTime(chat.last_message_time)}</small>`;
-            lastMessage.appendChild(messageTime);
-
-            chatInfo.appendChild(chatTitle);
-            chatInfo.appendChild(lastMessage);
-
-            chatHeader.appendChild(chatAvatar);
-            chatHeader.appendChild(chatInfo);
-            chatCard.appendChild(chatHeader);
-
+            const chatCard = createChatCard(chat);
             chatsList.appendChild(chatCard);
-
-            chatCard.addEventListener('click', () => {
-                showMessageForm(chat.id);
-            });
 
             // Создаем WebSocket-соединение для каждого чата
             connectWebSocket(chat.id);
@@ -428,10 +350,13 @@ function showMessageForm(chatId) {
             alert('Не удалось отправить сообщение. Пожалуйста, попробуйте позже.');
         }
     };
-        console.log(chatId);
+
     loadMessages(chatId, 1);
 
-    connectWebSocket(chatId);
+    // Создаем WebSocket-соединение для текущего чата, если его еще нет
+    if (!sockets[chatId]) {
+        connectWebSocket(chatId);
+    }
 
     const messagesList = document.getElementById('messages-list');
     messagesList.removeEventListener('scroll', handleScroll);
@@ -689,6 +614,11 @@ let socket;
 let sockets = {}; // Объект для хранения WebSocket-соединений
 
 function connectWebSocket(chatId) {
+    // Проверяем, есть ли уже соединение для этого чата
+    if (sockets[chatId]) {
+        return; // Если соединение уже существует, выходим
+    }
+
     const chatUrl = `ws://${window.location.host}/ws/chat/${chatId}/`;
     const socket = new WebSocket(chatUrl);
 
@@ -705,6 +635,7 @@ function connectWebSocket(chatId) {
 
     socket.onclose = function(event) {
         console.log(`WebSocket соединение для чата ${chatId} закрыто`);
+        delete sockets[chatId]; // Удаляем соединение из объекта при закрытии
     };
 
     socket.onerror = function(error) {
@@ -773,6 +704,89 @@ function handleNewMessage(message) {
     loadReactions(message.id);
     updateChatList(message);
 }
+function createChatCard(chat) {
+    const chatCard = document.createElement('div');
+    chatCard.className = 'chat-card';
+    chatCard.dataset.chatId = chat.id;
+
+    const chatAvatar = document.createElement('img');
+    chatAvatar.src = `${chat.chat_avatar}`;
+    chatAvatar.alt = 'Аватар чата';
+    chatAvatar.className = 'chat-avatar';
+
+    const chatHeader = document.createElement('div');
+    chatHeader.className = 'chat-header';
+
+    const chatInfo = document.createElement('div');
+    chatInfo.className = 'chat-info';
+
+    const chatTitle = document.createElement('h2');
+    chatTitle.className = 'chat-title';
+
+    if (chat.is_group) {
+        chatTitle.textContent = chat.name || 'Групповой чат';
+    } else {
+        chatTitle.textContent = chat.public_name_2 || chat.username_2;
+    }
+
+    const lastMessage = document.createElement('div');
+    lastMessage.className = 'last-message';
+
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+
+    if (chat.last_message_picture) {
+        const messageImagePreview = document.createElement('img');
+        messageImagePreview.src = `${chat.last_message_picture}`;
+        messageImagePreview.className = 'message-image-preview';
+        messageContent.appendChild(messageImagePreview);
+    }
+
+    const messageText = document.createElement('p');
+    messageText.className = 'message-text';
+
+    if (chat.last_message_text) {
+        const truncatedText = chat.last_message_text.length > 15
+            ? chat.last_message_text.substring(0, 15) + '...'
+            : chat.last_message_text;
+        messageText.textContent = truncatedText;
+    } else {
+        messageText.textContent = 'Изображение';
+    }
+
+    messageContent.appendChild(messageText);
+
+    // Добавляем галочки или индикатор непрочитанного сообщения
+    if (chat.last_message_author != userId && chat.last_message_status === "S") {
+        const unreadIndicator = document.createElement('span');
+        unreadIndicator.className = 'unread-indicator';
+        messageContent.appendChild(unreadIndicator);
+    } else if (chat.last_message_author == userId) {
+        const statusIcon = getMessageStatusIcon(chat.last_message_status);
+        messageContent.innerHTML += statusIcon; // Добавляем галочки
+    }
+
+    lastMessage.appendChild(messageContent);
+
+    const messageTime = document.createElement('p');
+    messageTime.className = 'message-time';
+    messageTime.innerHTML = `<small>${formatDateTime(chat.last_message_time)}</small>`;
+    lastMessage.appendChild(messageTime);
+
+    chatInfo.appendChild(chatTitle);
+    chatInfo.appendChild(lastMessage);
+
+    chatHeader.appendChild(chatAvatar);
+    chatHeader.appendChild(chatInfo);
+    chatCard.appendChild(chatHeader);
+
+    // Добавляем обработчик клика
+    chatCard.addEventListener('click', () => {
+        showMessageForm(chat.id);
+    });
+
+    return chatCard;
+}
 
 function updateChatList(message) {
     if (!message.send_time || isNaN(new Date(message.send_time).getTime())) {
@@ -780,52 +794,31 @@ function updateChatList(message) {
     }
 
     const chatCard = document.querySelector(`.chat-card[data-chat-id="${message.chat_id}"]`);
-    const formattedTime = formatDateTime(message.send_time);
+    const chatsList = document.getElementById('chats-list');
 
     if (chatCard) {
-        // Обновляем текст последнего сообщения
-        const lastMessageText = chatCard.querySelector('.message-text');
-        lastMessageText.textContent = message.message ? message.message : 'Изображение';
-
-        // Обновляем время последнего сообщения
-        const messageTime = chatCard.querySelector('.message-time small');
-        messageTime.textContent = formattedTime;
-
-        // Обновляем статус последнего сообщения
-        const messageContent = chatCard.querySelector('.message-content');
-        if (messageContent) {
-            // Убираем индикатор непрочитанного сообщения, если он есть
-            const unreadIndicator = messageContent.querySelector('.unread-indicator');
-            if (unreadIndicator) {
-                unreadIndicator.remove();
-            }
-
-            // Если сообщение не от текущего пользователя и статус "непрочитанный", добавляем индикатор
-            if (message.author__username !== username && message.status === 'S') {
-                const unreadIndicator = document.createElement('span');
-                unreadIndicator.className = 'unread-indicator';
-                messageContent.appendChild(unreadIndicator);
-            }
-
-            // Если сообщение от текущего пользователя, обновляем галочки
-            if (message.author__username === username) {
-                const statusIcon = getMessageStatusIcon(message.status);
-                const existingStatusIcon = messageContent.querySelector('.message-status');
-                if (existingStatusIcon) {
-                    existingStatusIcon.innerHTML = statusIcon;
-                } else {
-                    messageContent.innerHTML += statusIcon;
-                }
-            }
-        }
-
-        // Перемещаем чат вверх
-        const chatsList = document.getElementById('chats-list');
-        chatsList.prepend(chatCard);
-    } else {
-        // Если чата нет в списке, загружаем заново
-        loadChats();
+        // Удаляем старую карточку
+        chatCard.remove();
     }
+    // Создаем новую карточку
+    console.log(message.chat_name)
+    const newChatCard = createChatCard({
+        id: message.chat_id,
+        chat_avatar: message.chat_avatar || '/static/default_avatar.png', // Значение по умолчанию для аватара
+        is_group: message.is_group, // Значение по умолчанию для группового чата
+        name: message.chat_name || 'Без названия', // Значение по умолчанию для группового чата
+        public_name_2: message.public_name_2 || null, // Значение по умолчанию для личного чата
+        username_2: message.username_2 || null, // Значение по умолчанию для личного чата
+        last_message_picture: message.picture_url || null, // Если изображения нет
+        last_message_text: message.message || 'Нет сообщения', // Значение по умолчанию
+        last_message_author: message.author_id,
+        last_message_author_username: message.author__username, // Значение по умолчанию
+        last_message_status: message.status , // Значение по умолчанию
+        last_message_time: message.send_time || new Date().toISOString(), // Значение по умолчанию
+    });
+
+    // Добавляем новую карточку в начало списка
+    chatsList.prepend(newChatCard);
 }
 
 // ========================
