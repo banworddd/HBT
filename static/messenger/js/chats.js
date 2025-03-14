@@ -161,6 +161,9 @@ async function loadChats() {
             chatCard.addEventListener('click', () => {
                 showMessageForm(chat.id);
             });
+
+            // Создаем WebSocket-соединение для каждого чата
+            connectWebSocket(chat.id);
         });
     } catch (error) {
         console.error('Ошибка:', error);
@@ -320,9 +323,11 @@ async function sendMessage(chatId, text, picture) {
         picture_url: pictureUrl,
     };
 
-    socket.send(JSON.stringify(messageData));
+    // Отправляем сообщение через WebSocket
+    if (sockets[chatId]) {
+        sockets[chatId].send(JSON.stringify(messageData));
+    }
 }
-
 // Обновление сообщения
 async function updateMessage(messageId, text, picture, removePicture) {
     const formData = new FormData();
@@ -681,12 +686,16 @@ document.addEventListener('click', (event) => {
 let socket;
 
 // Подключение к WebSocket
+let sockets = {}; // Объект для хранения WebSocket-соединений
+
 function connectWebSocket(chatId) {
     const chatUrl = `ws://${window.location.host}/ws/chat/${chatId}/`;
-    socket = new WebSocket(chatUrl);
+    const socket = new WebSocket(chatUrl);
+
+    sockets[chatId] = socket; // Сохраняем соединение в объекте
 
     socket.onopen = function(event) {
-        console.log('WebSocket соединение установлено');
+        console.log(`WebSocket соединение для чата ${chatId} установлено`);
     };
 
     socket.onmessage = function(event) {
@@ -695,18 +704,25 @@ function connectWebSocket(chatId) {
     };
 
     socket.onclose = function(event) {
-        console.log('WebSocket соединение закрыто');
+        console.log(`WebSocket соединение для чата ${chatId} закрыто`);
     };
 
     socket.onerror = function(error) {
-        console.error('WebSocket ошибка:', error);
+        console.error(`WebSocket ошибка для чата ${chatId}:`, error);
     };
 }
 
-// Обработка нового сообщения через WebSocket
 function handleNewMessage(message) {
     console.log('Новое сообщение:', message);
     console.log('send_time:', message.send_time);
+
+    // Проверяем, что сообщение пришло для текущего открытого чата
+    if (String(currentChatId) !== String(message.chat_id)) {
+        console.log('Сообщение для другого чата, игнорируем');
+        updateChatList(message);
+        return;
+    }
+
     const messagesList = document.getElementById('messages-list');
     const messageCard = document.createElement('div');
     messageCard.className = 'message-card ' + (message.author__username === username ? 'self' : 'other');
@@ -749,7 +765,6 @@ function handleNewMessage(message) {
 
     messagesList.scrollTop = messagesList.scrollHeight;
 
-    console.log((String(currentChatId) === String(message.chat_id)))
     if (String(currentChatId) === String(message.chat_id)) {
         console.log('Чат открыт, вызываем markMessagesAsRead');
         markMessagesAsRead(message.chat_id);
@@ -779,10 +794,17 @@ function updateChatList(message) {
         // Обновляем статус последнего сообщения
         const messageContent = chatCard.querySelector('.message-content');
         if (messageContent) {
-            // Убираем индикатор непрочитанного сообщения
+            // Убираем индикатор непрочитанного сообщения, если он есть
             const unreadIndicator = messageContent.querySelector('.unread-indicator');
             if (unreadIndicator) {
                 unreadIndicator.remove();
+            }
+
+            // Если сообщение не от текущего пользователя и статус "непрочитанный", добавляем индикатор
+            if (message.author__username !== username && message.status === 'S') {
+                const unreadIndicator = document.createElement('span');
+                unreadIndicator.className = 'unread-indicator';
+                messageContent.appendChild(unreadIndicator);
             }
 
             // Если сообщение от текущего пользователя, обновляем галочки
