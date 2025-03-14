@@ -21,6 +21,7 @@ function getCookie(name) {
 // Функция для отображения галочек в зависимости от статуса сообщения
 function getMessageStatusIcon(status) {
     if (status === 'S') {
+
         return `
             <span class="message-status">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2" viewBox="0 0 16 16">
@@ -43,7 +44,6 @@ function getMessageStatusIcon(status) {
 
 // Функция для форматирования даты и времени
 function formatDateTime(dateTimeString) {
-    console.log('вызов')
     const options = {
         year: 'numeric',
         month: '2-digit',
@@ -317,6 +317,7 @@ function showMessageForm(chatId) {
     hasNextPage = true; // Сбрасываем флаг наличия следующей страницы
     isLoading = false; // Сбрасываем флаг загрузки
 
+    markMessagesAsRead(chatId);
     // Остальной код функции showMessageForm остается без изменений
     const url = new URL(window.location);
     url.searchParams.set('chat_id', chatId);
@@ -346,6 +347,7 @@ function showMessageForm(chatId) {
             await sendMessage(chatId, text, picture);
             form.reset();
             loadMessages(chatId, 1);
+
         } catch (error) {
             alert('Не удалось отправить сообщение. Пожалуйста, попробуйте позже.');
         }
@@ -380,27 +382,24 @@ async function markMessagesAsRead(chatId) {
             throw new Error('Ошибка при обновлении статуса сообщений');
         }
 
+        // Отправляем уведомление через WebSocket только если текущий пользователь не автор сообщения
+        const messagesList = document.getElementById('messages-list');
+        const lastMessage = messagesList.lastElementChild;
 
-        // После обновления статуса обновляем список чатов
-        const chatCard = document.querySelector(`.chat-card[data-chat-id="${chatId}"]`);
-        if (chatCard) {
-            const lastMessageText = chatCard.querySelector('.message-text').textContent;
-            const lastMessageTime = chatCard.querySelector('.message-time small').textContent;
+        if (lastMessage && !lastMessage.classList.contains('self')) {
+            if (sockets[chatId]) {
 
-            // Создаем фиктивное сообщение для обновления интерфейса
-            const fakeMessage = {
-                chat_id: chatId,
-                message: lastMessageText,
-                send_time: lastMessageTime,
-                author__username: username, // Предполагаем, что сообщение от текущего пользователя
-                status: 'R', // Новый статус
-            };
-
-            updateChatList(fakeMessage);
+                sockets[chatId].send(JSON.stringify({
+                    type: 'message_status_update',
+                    chat_id: chatId,
+                    status: 'R',
+                }));
+            }
         }
     } catch (error) {
         console.error('Ошибка при обновлении статуса сообщений:', error);
     }
+    loadChats();
 }
 
 // ========================
@@ -608,8 +607,6 @@ document.addEventListener('click', (event) => {
 // 6. WebSocket
 // ========================
 
-let socket;
-
 // Подключение к WebSocket
 let sockets = {}; // Объект для хранения WebSocket-соединений
 
@@ -644,10 +641,20 @@ function connectWebSocket(chatId) {
 }
 
 function handleNewMessage(message) {
-    console.log('Новое сообщение:', message);
-    console.log('send_time:', message.send_time);
 
-    // Проверяем, что сообщение пришло для текущего открытого чата
+    // Обработка уведомления об изменении статуса
+    if (message.type === 'message_status_update') {
+        const chatCard = document.querySelector(`.chat-card[data-chat-id="${message.chat_id}"]`);
+        if (chatCard) {
+            const statusIcon = chatCard.querySelector('.message-status');
+            if (statusIcon) {
+                statusIcon.innerHTML = getMessageStatusIcon(message.status);
+            }
+        }
+        return;
+    }
+
+    // Обработка нового сообщения
     if (String(currentChatId) !== String(message.chat_id)) {
         console.log('Сообщение для другого чата, игнорируем');
         updateChatList(message);
@@ -704,6 +711,7 @@ function handleNewMessage(message) {
     loadReactions(message.id);
     updateChatList(message);
 }
+
 function createChatCard(chat) {
     const chatCard = document.createElement('div');
     chatCard.className = 'chat-card';
@@ -800,21 +808,21 @@ function updateChatList(message) {
         // Удаляем старую карточку
         chatCard.remove();
     }
+
     // Создаем новую карточку
-    console.log(message.chat_name)
     const newChatCard = createChatCard({
         id: message.chat_id,
-        chat_avatar: message.chat_avatar || '/static/default_avatar.png', // Значение по умолчанию для аватара
-        is_group: message.is_group, // Значение по умолчанию для группового чата
-        name: message.chat_name || 'Без названия', // Значение по умолчанию для группового чата
-        public_name_2: message.public_name_2 || null, // Значение по умолчанию для личного чата
-        username_2: message.username_2 || null, // Значение по умолчанию для личного чата
-        last_message_picture: message.picture_url || null, // Если изображения нет
-        last_message_text: message.message || 'Нет сообщения', // Значение по умолчанию
+        chat_avatar: message.chat_avatar || '/static/default_avatar.png',
+        is_group: message.is_group,
+        name: message.chat_name || 'Без названия',
+        public_name_2: message.public_name_2 || null,
+        username_2: message.username_2 || null,
+        last_message_picture: message.picture_url || null,
+        last_message_text: message.message || 'Нет сообщения',
         last_message_author: message.author_id,
-        last_message_author_username: message.author__username, // Значение по умолчанию
-        last_message_status: message.status , // Значение по умолчанию
-        last_message_time: message.send_time || new Date().toISOString(), // Значение по умолчанию
+        last_message_author_username: message.author__username,
+        last_message_status: message.status || 'S', // Убедитесь, что статус передается правильно
+        last_message_time: message.send_time || new Date().toISOString(),
     });
 
     // Добавляем новую карточку в начало списка
@@ -918,3 +926,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
