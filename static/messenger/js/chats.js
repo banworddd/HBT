@@ -68,6 +68,7 @@ function formatDateTime(dateTimeString) {
 // ========================
 
 async function loadChats() {
+    console.log('Вызов LoadChats');
     const apiUrl = `/api/messenger/chats/?user=${username}`;
     const chatsList = document.getElementById('chats-list');
 
@@ -87,6 +88,14 @@ async function loadChats() {
             // Создаем WebSocket-соединение для каждого чата
             connectWebSocket(chat.id);
         });
+
+        // После обновления списка чатов добавляем класс active к текущему открытому чату
+        if (currentChatId) {
+            const selectedChatCard = document.querySelector(`.chat-card[data-chat-id="${currentChatId}"]`);
+            if (selectedChatCard) {
+                selectedChatCard.classList.add('active');
+            }
+        }
     } catch (error) {
         console.error('Ошибка:', error);
         chatsList.innerHTML = '<p>Не удалось загрузить чаты. Пожалуйста, попробуйте позже.</p>';
@@ -369,6 +378,7 @@ function showMessageForm(chatId) {
 }
 
 async function markMessagesAsRead(chatId) {
+    console.log('вызов markmessageasread')
     try {
         const response = await fetch(`/api/messenger/mark_message_as_read/?chat_id=${chatId}`, {
             method: 'PATCH',
@@ -644,13 +654,7 @@ function handleNewMessage(message) {
 
     // Обработка уведомления об изменении статуса
     if (message.type === 'message_status_update') {
-        const chatCard = document.querySelector(`.chat-card[data-chat-id="${message.chat_id}"]`);
-        if (chatCard) {
-            const statusIcon = chatCard.querySelector('.message-status');
-            if (statusIcon) {
-                statusIcon.innerHTML = getMessageStatusIcon(message.status);
-            }
-        }
+        loadChats();
         return;
     }
 
@@ -797,6 +801,7 @@ function createChatCard(chat) {
 }
 
 function updateChatList(message) {
+    console.log('ВызовUpdateChatList')
     if (!message.send_time || isNaN(new Date(message.send_time).getTime())) {
         return; // Прерываем выполнение, если время некорректное
     }
